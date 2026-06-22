@@ -62,3 +62,9 @@ export function formatJapanesePitchName(
 ): string {
   return `${JAPANESE_STEP_NAMES[spelling.step]}${ACCIDENTAL_SYMBOLS[spelling.accidental]}${spelling.octave}`;
 }
+
+export function formatJapanesePitchClassName(
+  spelling: PitchSpellingInput,
+): string {
+  return `${JAPANESE_STEP_NAMES[spelling.step]}${ACCIDENTAL_SYMBOLS[spelling.accidental]}`;
+}

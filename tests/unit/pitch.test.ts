@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatJapanesePitchClassName,
   formatJapanesePitchName,
   pitchMatchesSpelling,
   spellingToMidi,
@@ -23,5 +24,7 @@ describe("音高ユーティリティ", () => {
     expect(spellingToMidi(dFlat4)).toBe(61);
     expect(pitchMatchesSpelling(61, cSharp4)).toBe(true);
     expect(formatJapanesePitchName(dFlat4)).toBe("レ♭4");
+    expect(formatJapanesePitchClassName(cSharp4)).toBe("ド♯");
+    expect(formatJapanesePitchClassName(dFlat4)).toBe("レ♭");
   });
 });
