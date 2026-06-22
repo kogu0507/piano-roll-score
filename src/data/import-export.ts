@@ -5,6 +5,8 @@ const DEFAULT_FILE_BASENAME = "piano-roll-score-song";
 const MAX_FILE_BASENAME_LENGTH = 80;
 const INVALID_FILE_NAME_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F]/g;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+const WINDOWS_RESERVED_BASENAME =
+  /^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
 
 export type JsonFileErrorKind = "extension" | "too-large" | "read";
 
@@ -55,7 +57,7 @@ export async function readJsonFile(file: File): Promise<JsonFileResult> {
 }
 
 export function sanitizeFileBasename(value: string): string {
-  return Array.from(
+  const basename = Array.from(
     value
       .normalize("NFKC")
       .replace(INVALID_FILE_NAME_CHARACTERS, "-")
@@ -66,15 +68,20 @@ export function sanitizeFileBasename(value: string): string {
     .slice(0, MAX_FILE_BASENAME_LENGTH)
     .join("")
     .replace(/[. ]+$/g, "");
+
+  return WINDOWS_RESERVED_BASENAME.test(basename)
+    ? `${basename}-song`
+    : basename;
 }
 
 export function createSongFileName(song: Song): string {
-  if (song.id !== undefined && SAFE_ID_PATTERN.test(song.id)) {
-    return `${song.id}.json`;
-  }
+  const preferredBasename =
+    song.id !== undefined && SAFE_ID_PATTERN.test(song.id)
+      ? song.id
+      : song.title;
+  const safeBasename = sanitizeFileBasename(preferredBasename);
 
-  const safeTitle = sanitizeFileBasename(song.title);
-  return `${safeTitle || DEFAULT_FILE_BASENAME}.json`;
+  return `${safeBasename || DEFAULT_FILE_BASENAME}.json`;
 }
 
 export function createSongJsonBlob(song: Song): Blob {

@@ -68,6 +68,33 @@ describe("JSONファイル読み込み", () => {
 describe("JSONファイル書き出し", () => {
   it("安全なIDをファイル名に使う", () => {
     expect(createSongFileName(createSong())).toBe("safe-id.json");
+    expect(createSongFileName(createSong({ id: "export-test" }))).toBe(
+      "export-test.json",
+    );
+  });
+
+  it("80文字を超える安全なIDを80文字へ制限する", () => {
+    const fileName = createSongFileName(createSong({ id: "a".repeat(100) }));
+    const basename = fileName.replace(/\.json$/, "");
+
+    expect(basename).toHaveLength(80);
+    expect(fileName).toBe(`${"a".repeat(80)}.json`);
+  });
+
+  it.each(["CON", "con", "PRN", "AUX", "NUL", "COM1", "COM9", "LPT1", "LPT9"])(
+    "Windows予約名 %s をそのまま出力しない",
+    (id) => {
+      const fileName = createSongFileName(createSong({ id }));
+
+      expect(fileName.toLowerCase()).not.toBe(`${id.toLowerCase()}.json`);
+      expect(fileName).toBe(`${id}-song.json`);
+    },
+  );
+
+  it("曲名経路でもWindows予約名をそのまま出力しない", () => {
+    expect(createSongFileName(createSong({ id: undefined, title: "CON" }))).toBe(
+      "CON-song.json",
+    );
   });
 
   it("曲名の使用禁止文字を安全化する", () => {
@@ -82,8 +109,12 @@ describe("JSONファイル書き出し", () => {
     );
   });
 
-  it("極端に長いファイル名を80文字へ制限する", () => {
+  it("曲名経路のファイルベース名を80文字へ制限する", () => {
     expect(sanitizeFileBasename("あ".repeat(100))).toHaveLength(80);
+    expect(
+      createSongFileName(createSong({ id: undefined, title: "あ".repeat(100) }))
+        .replace(/\.json$/, ""),
+    ).toHaveLength(80);
   });
 
   it("正規化済みJSONのBlobを生成する", async () => {
