@@ -7,4 +7,4 @@ if (root === null) {
   throw new Error("アプリのルート要素が見つかりません。");
 }
 
-mountApp(root);
+void mountApp(root);

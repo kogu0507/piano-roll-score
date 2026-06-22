@@ -83,3 +83,83 @@ select {
   color: #55625b;
   line-height: 1.75;
 }
+
+.load-panel__content {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.load-panel__error {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  color: #7a2626;
+  background: #fff0f0;
+  border: 1px solid #efcaca;
+  border-radius: 0.75rem;
+  line-height: 1.6;
+}
+
+.sample-list,
+.song-summary {
+  min-width: 0;
+  padding: 1.25rem;
+  background: #f7faf8;
+  border: 1px solid #dce8e0;
+  border-radius: 0.75rem;
+}
+
+.sample-list__title,
+.song-summary__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.sample-list__items {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sample-list__item {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.875rem;
+  background: #ffffff;
+  border-radius: 0.5rem;
+}
+
+.sample-list__name,
+.sample-list__detail {
+  overflow-wrap: anywhere;
+}
+
+.sample-list__detail,
+.song-summary__description {
+  color: #55625b;
+  line-height: 1.6;
+}
+
+.song-summary__description {
+  margin: 0.5rem 0 0;
+}
+
+.song-summary__facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0;
+}
+
+.song-summary__term {
+  font-weight: 700;
+}
+
+.song-summary__value {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
