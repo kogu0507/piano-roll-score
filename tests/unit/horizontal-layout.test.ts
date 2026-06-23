@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   HORIZONTAL_JUDGMENT_LINE_X,
+  HORIZONTAL_NOTE_HEIGHT_RATIO,
   HORIZONTAL_PIXELS_PER_BEAT,
+  calculateHorizontalNoteHeight,
   calculateNoteHorizontalRectangle,
   createHorizontalScene,
   isHorizontalRectangleVisible,
@@ -68,6 +70,27 @@ describe("横表示シーン", () => {
     const firstNote = scene.notes.find((note) => note.id === "c-sharp");
 
     expect(firstNote?.x).toBe(scene.judgmentLineX);
+  });
+
+  it("音符ブロック高さを五線の線間隔以内にし、中心位置を維持する", () => {
+    const scene = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+    });
+    const firstNote = scene.notes.find((note) => note.id === "c-sharp");
+
+    expect(calculateHorizontalNoteHeight(scene.staff.lineSpacing)).toBeCloseTo(
+      scene.staff.lineSpacing * HORIZONTAL_NOTE_HEIGHT_RATIO,
+    );
+    expect(HORIZONTAL_NOTE_HEIGHT_RATIO).toBeGreaterThanOrEqual(0.9);
+    expect(HORIZONTAL_NOTE_HEIGHT_RATIO).toBeLessThanOrEqual(1);
+    expect(firstNote?.height).toBeCloseTo(
+      scene.staff.lineSpacing * HORIZONTAL_NOTE_HEIGHT_RATIO,
+    );
+    expect(firstNote?.height).toBeLessThanOrEqual(scene.staff.lineSpacing);
+    expect((firstNote?.y ?? 0) + (firstNote?.height ?? 0) / 2).toBeCloseTo(
+      firstNote?.staffY ?? 0,
+    );
   });
 
   it("C♯4とD♭4を異なる五線上の縦位置にし、変化記号を区別する", () => {

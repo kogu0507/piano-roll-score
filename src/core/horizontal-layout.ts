@@ -14,7 +14,7 @@ import type { Song, SongNote } from "../schema/song-schema";
 
 export const HORIZONTAL_PIXELS_PER_BEAT = 96;
 export const HORIZONTAL_JUDGMENT_LINE_X = 72;
-export const HORIZONTAL_NOTE_HEIGHT = 24;
+export const HORIZONTAL_NOTE_HEIGHT_RATIO = 0.9;
 export const HORIZONTAL_LEDGER_LINE_MIN_WIDTH = 36;
 export const HORIZONTAL_VERTICAL_PADDING = 48;
 
@@ -109,6 +109,10 @@ export function isHorizontalRectangleVisible(
     rectangle.y + rectangle.height > 0 &&
     rectangle.y < canvasHeight
   );
+}
+
+export function calculateHorizontalNoteHeight(lineSpacing: number): number {
+  return lineSpacing * HORIZONTAL_NOTE_HEIGHT_RATIO;
 }
 
 function calculateBottomLineY(
@@ -208,6 +212,7 @@ export function createHorizontalScene(
   const judgmentLineX =
     options.judgmentLineX ?? HORIZONTAL_JUDGMENT_LINE_X;
   const lineSpacing = options.lineSpacing ?? STAFF_LINE_SPACING;
+  const noteHeight = calculateHorizontalNoteHeight(lineSpacing);
   const staff = createStaffGeometry(
     song.clef,
     calculateBottomLineY(song, options.height, lineSpacing),
@@ -223,9 +228,9 @@ export function createHorizontalScene(
     const staffPosition = calculateStaffNotePosition(note.spelling, staff);
     const rectangle: SceneRectangle = {
       x: horizontal.x,
-      y: staffPosition.y - HORIZONTAL_NOTE_HEIGHT / 2,
+      y: staffPosition.y - noteHeight / 2,
       width: horizontal.width,
-      height: HORIZONTAL_NOTE_HEIGHT,
+      height: noteHeight,
     };
     const ledgerLines = createLedgerLines(
       note.id,
