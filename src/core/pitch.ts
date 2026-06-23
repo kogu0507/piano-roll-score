@@ -68,3 +68,7 @@ export function formatJapanesePitchClassName(
 ): string {
   return `${JAPANESE_STEP_NAMES[spelling.step]}${ACCIDENTAL_SYMBOLS[spelling.accidental]}`;
 }
+
+export function formatAccidentalSymbol(accidental: Accidental): string {
+  return ACCIDENTAL_SYMBOLS[accidental];
+}

@@ -44,10 +44,13 @@ export function mountVerticalScreen(
   root: HTMLElement,
   song: Song,
   returnToLoadScreen: () => void,
+  switchToHorizontal?: () => void,
 ): void {
   const main = document.createElement("main");
   const header = document.createElement("header");
+  const navigation = document.createElement("div");
   const backButton = createButton("ロード画面へ戻る");
+  const switchButton = createButton("横表示へ切り替え");
   const controls = document.createElement("section");
   const canvasSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -68,8 +71,15 @@ export function mountVerticalScreen(
 
   main.className = "vertical-screen";
   header.className = "vertical-header";
+  navigation.className = "screen-navigation";
+  navigation.append(backButton);
+
+  if (switchToHorizontal !== undefined) {
+    navigation.append(switchButton);
+  }
+
   header.append(
-    backButton,
+    navigation,
     createTextElement("p", "vertical-header__eyebrow", "静止プレビュー"),
     createTextElement("h1", "vertical-header__title", song.title),
     createTextElement(
@@ -353,15 +363,27 @@ export function mountVerticalScreen(
   resizeObserver.observe(canvasWrap);
   window.addEventListener("resize", scheduleRender);
 
-  backButton.addEventListener("click", () => {
+  function cleanup(): void {
     resizeObserver.disconnect();
     window.removeEventListener("resize", scheduleRender);
 
     if (frameId !== 0) {
       window.cancelAnimationFrame(frameId);
     }
+  }
 
+  backButton.addEventListener("click", () => {
+    cleanup();
     returnToLoadScreen();
+  });
+
+  switchButton.addEventListener("click", () => {
+    if (switchToHorizontal === undefined) {
+      return;
+    }
+
+    cleanup();
+    switchToHorizontal();
   });
 
   scheduleRender();

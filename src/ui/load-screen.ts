@@ -46,12 +46,17 @@ interface LoadScreenElements {
   readonly validateButton: HTMLButtonElement;
   readonly clearButton: HTMLButtonElement;
   readonly exportButton: HTMLButtonElement;
-  readonly previewButton: HTMLButtonElement;
+  readonly verticalPreviewButton: HTMLButtonElement;
+  readonly horizontalPreviewButton: HTMLButtonElement;
   readonly result: HTMLDivElement;
 }
 
 export interface LoadScreenOptions {
-  readonly onPreview?: (
+  readonly onVerticalPreview?: (
+    song: Song,
+    returnToLoadScreen: () => void,
+  ) => void;
+  readonly onHorizontalPreview?: (
     song: Song,
     returnToLoadScreen: () => void,
   ) => void;
@@ -173,11 +178,16 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   const validateButton = createButton("JSONを確認", "button button--primary");
   const clearButton = createButton("入力をクリア");
   const exportButton = createButton("JSONを書き出す");
-  const previewButton = createButton(
+  const verticalPreviewButton = createButton(
     "縦表示を確認",
     "button button--preview",
   );
-  previewButton.disabled = true;
+  const horizontalPreviewButton = createButton(
+    "横表示を確認",
+    "button button--horizontal-preview",
+  );
+  verticalPreviewButton.disabled = true;
+  horizontalPreviewButton.disabled = true;
 
   editor.className = "section-card section-card--editor";
   editor.setAttribute("aria-labelledby", "editor-heading");
@@ -190,7 +200,13 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   jsonInput.placeholder =
     "内蔵サンプルまたはJSONファイルを読み込むか、楽曲JSONを入力してください。";
   actions.className = "button-row";
-  actions.append(validateButton, clearButton, exportButton, previewButton);
+  actions.append(
+    validateButton,
+    clearButton,
+    exportButton,
+    verticalPreviewButton,
+    horizontalPreviewButton,
+  );
   editor.append(
     editorHeading,
     createTextElement(
@@ -230,7 +246,8 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     validateButton,
     clearButton,
     exportButton,
-    previewButton,
+    verticalPreviewButton,
+    horizontalPreviewButton,
     result,
   };
 }
@@ -372,14 +389,16 @@ export async function mountLoadScreen(
 
   function showError(error: SongJsonError | DataLoadError): void {
     state.validatedSong = undefined;
-    elements.previewButton.disabled = true;
+    elements.verticalPreviewButton.disabled = true;
+    elements.horizontalPreviewButton.disabled = true;
     setStatus("invalid", "入力内容を確認してください。");
     elements.result.replaceChildren(createErrorDetails(error));
   }
 
   function showValidSong(song: Song): void {
     state.validatedSong = song;
-    elements.previewButton.disabled = false;
+    elements.verticalPreviewButton.disabled = false;
+    elements.horizontalPreviewButton.disabled = false;
     setStatus("valid", "楽曲JSONを確認しました。");
     elements.result.replaceChildren(createSummary(song));
   }
@@ -430,7 +449,8 @@ export async function mountLoadScreen(
     }
 
     state.validatedSong = undefined;
-    elements.previewButton.disabled = true;
+    elements.verticalPreviewButton.disabled = true;
+    elements.horizontalPreviewButton.disabled = true;
     setStatus("loading", `「${sample.title}」を読み込んでいます。`);
     const result = await loadBuiltinSong(baseUrl, sample.id);
 
@@ -472,7 +492,8 @@ export async function mountLoadScreen(
   elements.jsonInput.addEventListener("input", () => {
     state.isDirty = true;
     state.validatedSong = undefined;
-    elements.previewButton.disabled = true;
+    elements.verticalPreviewButton.disabled = true;
+    elements.horizontalPreviewButton.disabled = true;
     setStatus("editing", "編集中です。JSONを確認してください。");
     elements.result.replaceChildren(
       createTextElement(
@@ -496,7 +517,8 @@ export async function mountLoadScreen(
     elements.jsonInput.value = "";
     state.isDirty = false;
     state.validatedSong = undefined;
-    elements.previewButton.disabled = true;
+    elements.verticalPreviewButton.disabled = true;
+    elements.horizontalPreviewButton.disabled = true;
     setStatus("initial", "入力をクリアしました。");
     elements.result.replaceChildren();
     removeSongIdFromUrl();
@@ -516,7 +538,8 @@ export async function mountLoadScreen(
       }
 
       state.validatedSong = undefined;
-      elements.previewButton.disabled = true;
+      elements.verticalPreviewButton.disabled = true;
+      elements.horizontalPreviewButton.disabled = true;
       setStatus("loading", `${file.name}を読み込んでいます。`);
       const result = await readJsonFile(file);
 
@@ -543,12 +566,26 @@ export async function mountLoadScreen(
     startBlobDownload(createSongJsonBlob(song), createSongFileName(song));
   });
 
-  elements.previewButton.addEventListener("click", () => {
-    if (state.validatedSong === undefined || options.onPreview === undefined) {
+  elements.verticalPreviewButton.addEventListener("click", () => {
+    if (
+      state.validatedSong === undefined ||
+      options.onVerticalPreview === undefined
+    ) {
       return;
     }
 
-    options.onPreview(state.validatedSong, showLoadScreen);
+    options.onVerticalPreview(state.validatedSong, showLoadScreen);
+  });
+
+  elements.horizontalPreviewButton.addEventListener("click", () => {
+    if (
+      state.validatedSong === undefined ||
+      options.onHorizontalPreview === undefined
+    ) {
+      return;
+    }
+
+    options.onHorizontalPreview(state.validatedSong, showLoadScreen);
   });
 
   const indexResult = await loadBuiltinSongIndex(baseUrl);

@@ -1,0 +1,133 @@
+import { expect, test, type Page } from "@playwright/test";
+
+function getJsonEditor(page: Page) {
+  return page.getByRole("textbox", { name: "楽曲JSON", exact: true });
+}
+
+function getHorizontalPreviewButton(page: Page) {
+  return page.getByRole("button", { name: "横表示を確認" });
+}
+
+function getVerticalPreviewButton(page: Page) {
+  return page.getByRole("button", { name: "縦表示を確認" });
+}
+
+function getHorizontalCanvas(page: Page) {
+  return page.getByLabel(/横表示静止プレビュー/);
+}
+
+function getVerticalCanvas(page: Page) {
+  return page.getByLabel(/縦表示静止プレビュー/);
+}
+
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
+}
+
+async function openBuiltinHorizontalPreview(page: Page): Promise<void> {
+  await page.goto("./?id=001");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  await expect(getHorizontalCanvas(page)).toBeVisible();
+  await expect(getHorizontalCanvas(page)).toHaveAttribute("data-note-count", "5");
+}
+
+test("検証済み楽曲だけ横表示へ進める", async ({ page }) => {
+  await page.goto("./");
+  await expect(getHorizontalPreviewButton(page)).toBeDisabled();
+
+  await page.goto("./?id=001");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+
+  await getJsonEditor(page).fill("{");
+  await expect(getHorizontalPreviewButton(page)).toBeDisabled();
+  await page.getByRole("button", { name: "JSONを確認" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(getHorizontalPreviewButton(page)).toBeDisabled();
+});
+
+test("横表示画面に曲名、説明、Canvasを表示する", async ({ page }) => {
+  await openBuiltinHorizontalPreview(page);
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "ドからソまで",
+  );
+  await expect(page.getByText("横表示の静止プレビューです。")).toBeVisible();
+  await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-judgment-line-x",
+    /\d+/,
+  );
+  await expectNoHorizontalOverflow(page);
+});
+
+test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ page }) => {
+  await page.goto("./?id=001");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  const json = await getJsonEditor(page).inputValue();
+  await getHorizontalPreviewButton(page).click();
+
+  await page.getByRole("button", { name: "ロード画面へ戻る" }).click();
+
+  await expect(getJsonEditor(page)).toHaveValue(json);
+  await expect(page.getByText("JSONは有効です。")).toBeVisible();
+  await expect(getVerticalPreviewButton(page)).toBeEnabled();
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+});
+
+test("縦表示と横表示を相互に切り替えられる", async ({ page }) => {
+  await openBuiltinHorizontalPreview(page);
+
+  await page.getByRole("button", { name: "縦表示へ切り替え" }).click();
+  await expect(getVerticalCanvas(page)).toBeVisible();
+  await expect(getVerticalCanvas(page)).toHaveAttribute(
+    "data-white-key-width",
+    /\d+/,
+  );
+
+  await page.getByRole("button", { name: "横表示へ切り替え" }).click();
+  await expect(getHorizontalCanvas(page)).toBeVisible();
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-note-count",
+    "5",
+  );
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン幅とサイズ変更でCanvas内部サイズを更新し横スクロールしない", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openBuiltinHorizontalPreview(page);
+  const canvas = getHorizontalCanvas(page);
+  const initialCssWidth = await canvas.getAttribute("data-css-width");
+
+  await expectNoHorizontalOverflow(page);
+  await page.setViewportSize({ width: 720, height: 760 });
+  await expect
+    .poll(() => canvas.getAttribute("data-css-width"))
+    .not.toBe(initialCssWidth);
+
+  const sizes = await canvas.evaluate((element) => {
+    const canvasElement = element as HTMLCanvasElement;
+    return {
+      width: canvasElement.width,
+      height: canvasElement.height,
+      cssWidth: Number(canvasElement.dataset.cssWidth),
+      cssHeight: Number(canvasElement.dataset.cssHeight),
+      dpr: Number(canvasElement.dataset.dpr),
+    };
+  });
+
+  expect(sizes.width).toBe(Math.round(sizes.cssWidth * sizes.dpr));
+  expect(sizes.height).toBe(Math.round(sizes.cssHeight * sizes.dpr));
+  await expectNoHorizontalOverflow(page);
+});
