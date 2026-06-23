@@ -159,3 +159,75 @@ test("画面サイズ変更後もCanvas内部サイズをCSSサイズとDPRへ�
   expect(sizes.height).toBe(Math.round(sizes.cssHeight * sizes.dpr));
   await expectNoHorizontalOverflow(page);
 });
+
+test("844×390でCanvasだけを左右端まで広げて調整と回転へ追従する", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await openBuiltinPreview(page);
+  const canvas = getCanvas(page);
+  const widthInput = page.getByLabel("白鍵1鍵の幅");
+  const offsetInput = page.getByLabel("譜面の横位置");
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const canvasElement = document.querySelector(".vertical-canvas");
+        const header = document.querySelector(".vertical-header");
+        const controls = document.querySelector(".vertical-controls");
+
+        if (
+          canvasElement === null ||
+          header === null ||
+          controls === null
+        ) {
+          return null;
+        }
+
+        const canvasBounds = canvasElement.getBoundingClientRect();
+        return {
+          canvasReachesEdges:
+            canvasBounds.left <= 1 &&
+            window.innerWidth - canvasBounds.right <= 1,
+          headerKeepsInset: header.getBoundingClientRect().left >= 10,
+          controlsKeepInset: controls.getBoundingClientRect().left >= 10,
+        };
+      }),
+    )
+    .toEqual({
+      canvasReachesEdges: true,
+      headerKeepsInset: true,
+      controlsKeepInset: true,
+    });
+  await expectNoHorizontalOverflow(page);
+
+  await widthInput.fill("120");
+  await expect(canvas).toHaveAttribute("data-white-key-width", "120");
+  const minimumOffset = await offsetInput.getAttribute("min");
+  expect(minimumOffset).not.toBeNull();
+  await offsetInput.fill(minimumOffset ?? "0");
+  await expect(canvas).toHaveAttribute(
+    "data-horizontal-offset",
+    minimumOffset ?? "0",
+  );
+
+  const landscapeCssWidth = await canvas.getAttribute("data-css-width");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect
+    .poll(() => canvas.getAttribute("data-css-width"))
+    .not.toBe(landscapeCssWidth);
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return {
+          reachesEdges:
+            bounds.left <= 1 && window.innerWidth - bounds.right <= 1,
+        };
+      }),
+    )
+    .toEqual({
+      reachesEdges: true,
+    });
+  await expectNoHorizontalOverflow(page);
+});

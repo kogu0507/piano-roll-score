@@ -246,26 +246,34 @@ button {
 }
 
 .vertical-screen {
-  width: min(100%, 76rem);
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  margin: 0 auto;
+  margin: 0;
   padding:
     max(1rem, env(safe-area-inset-top))
-    max(0.75rem, env(safe-area-inset-right))
+    env(safe-area-inset-right, 0px)
     max(1.5rem, env(safe-area-inset-bottom))
-    max(0.75rem, env(safe-area-inset-left));
+    env(safe-area-inset-left, 0px);
 }
 
 .vertical-header,
-.vertical-controls,
-.vertical-preview {
+.vertical-controls {
+  width: min(calc(100% - 1.5rem), 74.5rem);
   min-width: 0;
+  margin-inline: auto;
   padding: clamp(1rem, 4vw, 2rem);
   overflow: hidden;
   background: #ffffff;
   border: 1px solid #d6e2da;
   border-radius: 1rem;
+}
+
+.vertical-preview {
+  min-width: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border-block: 1px solid #d6e2da;
 }
 
 .vertical-header__eyebrow {
@@ -377,8 +385,20 @@ button {
   margin-top: 1rem;
 }
 
+.vertical-preview__title,
 .vertical-preview__help {
-  margin: 0.5rem 0 1rem;
+  width: min(calc(100% - 1.5rem), 74.5rem);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.vertical-preview__title {
+  padding-top: clamp(1rem, 4vw, 2rem);
+}
+
+.vertical-preview__help {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .vertical-canvas-wrap {
@@ -388,7 +408,6 @@ button {
   overflow: hidden;
   background: #f2f7f4;
   border: 1px solid #aebdb4;
-  border-radius: 0.75rem;
 }
 
 .vertical-canvas {
