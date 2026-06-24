@@ -74,8 +74,51 @@ describe("縦表示シーン", () => {
     });
   });
 
+  it("currentBeatに応じて音符が下方向へ流れる", () => {
+    expect(
+      calculateNoteVerticalRectangle(2, 1.5, 500, PIXELS_PER_BEAT, 1),
+    ).toEqual({
+      bottomY: 500 - PIXELS_PER_BEAT,
+      y: 500 - 2.5 * PIXELS_PER_BEAT,
+      height: 1.5 * PIXELS_PER_BEAT,
+    });
+
+    const before = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+    });
+    const after = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0.5,
+    });
+    const beforeNote = before.notes.find((note) => note.id === "d-flat");
+    const afterNote = after.notes.find((note) => note.id === "d-flat");
+
+    expect(afterNote?.y).toBe((beforeNote?.y ?? 0) + 0.5 * PIXELS_PER_BEAT);
+    expect(after.currentBeat).toBe(0.5);
+  });
+
   it("0拍の音符の下端を判定ラインへ一致させる", () => {
     const rectangle = calculateNoteVerticalRectangle(0, 1, 408);
+
+    expect(rectangle.bottomY).toBe(408);
+    expect(rectangle.y + rectangle.height).toBe(408);
+  });
+
+  it("currentBeatが音符開始時刻と一致すると音符下端を判定ラインへ一致させる", () => {
+    const rectangle = calculateNoteVerticalRectangle(
+      2,
+      1,
+      408,
+      PIXELS_PER_BEAT,
+      2,
+    );
 
     expect(rectangle.bottomY).toBe(408);
     expect(rectangle.y + rectangle.height).toBe(408);

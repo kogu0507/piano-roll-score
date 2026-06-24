@@ -1,4 +1,5 @@
 import { STAFF_LINE_SPACING } from "../core/staff-position";
+import { formatBeat } from "../core/timeline";
 import {
   MAX_HORIZONTAL_LINE_SPACING,
   MIN_HORIZONTAL_LINE_SPACING,
@@ -6,8 +7,10 @@ import {
   createHorizontalScene,
   normalizeHorizontalLineSpacing,
 } from "../core/horizontal-layout";
+import type { PlaybackController } from "../playback/playback-controller";
 import { resizeCanvasForDisplay } from "../renderers/canvas";
 import { drawHorizontalScene } from "../renderers/horizontal-renderer";
+import { mountPlaybackControls } from "./playback-controls";
 import type { Song } from "../types/song";
 
 interface HorizontalScreenState {
@@ -38,6 +41,7 @@ export function mountHorizontalScreen(
   root: HTMLElement,
   song: Song,
   returnToLoadScreen: () => void,
+  playbackController: PlaybackController,
   switchToVertical?: () => void,
 ): void {
   const main = document.createElement("main");
@@ -56,6 +60,10 @@ export function mountHorizontalScreen(
   const verticalOffsetOutput = document.createElement("output");
   const fitButton = createButton("画面高に合わせる");
   const centerButton = createButton("中央に戻す");
+  const playbackControls = mountPlaybackControls(
+    playbackController,
+    "horizontal-playback-controls",
+  );
   const state: HorizontalScreenState = {
     lineSpacing: STAFF_LINE_SPACING,
     verticalOffset: 0,
@@ -72,12 +80,12 @@ export function mountHorizontalScreen(
 
   header.append(
     navigation,
-    createTextElement("p", "horizontal-header__eyebrow", "静止プレビュー"),
+    createTextElement("p", "horizontal-header__eyebrow", "再生プレビュー"),
     createTextElement("h1", "horizontal-header__title", song.title),
     createTextElement(
       "p",
       "horizontal-header__description",
-      "横表示の静止プレビューです。縦表示で覚えた鍵盤上の動きを、五線に近い上下位置へ結び付けます。",
+      "音符ブロックが右から左へ流れる横表示です。縦表示で覚えた鍵盤上の動きを、五線に近い上下位置へ結び付けます。",
     ),
   );
 
@@ -159,7 +167,7 @@ export function mountHorizontalScreen(
   canvas.className = "horizontal-canvas";
   canvas.setAttribute(
     "aria-label",
-    `${song.title}の横表示静止プレビュー`,
+    `${song.title}の横表示再生プレビュー`,
   );
   canvas.textContent = "Canvasに対応したブラウザで表示してください。";
   canvasWrap.append(canvas);
@@ -174,7 +182,7 @@ export function mountHorizontalScreen(
   );
 
   controls.append(spacingGroup, offsetGroup, legend);
-  main.append(header, controls, previewSection);
+  main.append(header, playbackControls.element, controls, previewSection);
   root.replaceChildren(main);
 
   let frameId = 0;
@@ -208,6 +216,7 @@ export function mountHorizontalScreen(
 
   function render(): void {
     frameId = 0;
+    const playbackState = playbackController.tick();
     const size = getCanvasSize();
     updateControls(size.height);
     const scene = createHorizontalScene(song, {
@@ -215,6 +224,7 @@ export function mountHorizontalScreen(
       height: size.height,
       lineSpacing: state.lineSpacing,
       verticalOffset: state.verticalOffset,
+      currentBeat: playbackState.currentBeat,
     });
     const context = resizeCanvasForDisplay(canvas, {
       cssWidth: size.width,
@@ -226,7 +236,15 @@ export function mountHorizontalScreen(
     canvas.dataset.noteCount = String(scene.notes.length);
     canvas.dataset.staffLineSpacing = String(scene.staff.lineSpacing);
     canvas.dataset.verticalOffset = String(scene.verticalOffset);
+    canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
+    canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
+    canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
+    canvas.dataset.playbackStatus = playbackState.status;
     drawHorizontalScene(context, scene);
+
+    if (playbackState.status === "playing") {
+      scheduleRender();
+    }
   }
 
   function scheduleRender(): void {
@@ -239,7 +257,10 @@ export function mountHorizontalScreen(
 
   function cleanup(): void {
     resizeObserver.disconnect();
+    unsubscribePlayback();
+    playbackControls.cleanup();
     window.removeEventListener("resize", scheduleRender);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
 
     if (frameId !== 0) {
       window.cancelAnimationFrame(frameId);
@@ -279,6 +300,17 @@ export function mountHorizontalScreen(
   const resizeObserver = new ResizeObserver(scheduleRender);
   resizeObserver.observe(canvasWrap);
   window.addEventListener("resize", scheduleRender);
+  const unsubscribePlayback = playbackController.subscribe(() => {
+    scheduleRender();
+  });
+
+  function handleVisibilityChange(): void {
+    if (document.visibilityState === "hidden") {
+      playbackController.pauseForVisibilityChange();
+    }
+  }
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   backButton.addEventListener("click", () => {
     cleanup();

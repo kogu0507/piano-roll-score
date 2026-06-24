@@ -261,6 +261,52 @@ button {
   gap: 0.75rem;
 }
 
+.playback-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.playback-controls__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 0.75rem;
+}
+
+.playback-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem;
+  background: #f5f9f6;
+  border-radius: 0.75rem;
+}
+
+.playback-control__label {
+  font-weight: 800;
+}
+
+.playback-control__value {
+  min-width: 8rem;
+  text-align: right;
+}
+
+.playback-control__range {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+}
+
+.playback-controls__status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #55625b;
+  font-weight: 700;
+}
+
 .vertical-screen {
   width: 100%;
   min-height: 100vh;
@@ -274,6 +320,7 @@ button {
 }
 
 .vertical-header,
+.vertical-playback-controls,
 .vertical-controls {
   width: min(calc(100% - 1.5rem), 74.5rem);
   min-width: 0;
@@ -323,6 +370,10 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
+}
+
+.vertical-playback-controls {
   margin-top: 1rem;
 }
 
@@ -452,6 +503,7 @@ button {
 }
 
 .horizontal-header,
+.horizontal-playback-controls,
 .horizontal-controls,
 .horizontal-preview {
   min-width: 0;
@@ -463,6 +515,7 @@ button {
 }
 
 .horizontal-controls,
+.horizontal-playback-controls,
 .horizontal-preview {
   margin-top: 1rem;
 }
@@ -694,6 +747,14 @@ button {
 
   .vertical-controls {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .playback-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .playback-controls__buttons .button {
+    flex: 1 1 8rem;
   }
 
   .horizontal-controls {

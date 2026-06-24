@@ -13,11 +13,11 @@ function getVerticalPreviewButton(page: Page) {
 }
 
 function getHorizontalCanvas(page: Page) {
-  return page.getByLabel(/横表示静止プレビュー/);
+  return page.locator("canvas.horizontal-canvas");
 }
 
 function getVerticalCanvas(page: Page) {
-  return page.getByLabel(/縦表示静止プレビュー/);
+  return page.locator("canvas.vertical-canvas");
 }
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
@@ -60,12 +60,29 @@ test("横表示画面に曲名、説明、Canvasを表示する", async ({ page 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "ドからソまで",
   );
-  await expect(page.getByText("横表示の静止プレビューです。")).toBeVisible();
+  await expect(
+    page.getByText("音符ブロックが右から左へ流れる横表示です。"),
+  ).toBeVisible();
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-judgment-line-x",
     /\d+/,
   );
+  await expectNoHorizontalOverflow(page);
+});
+
+test("横表示でスタートと一時停止ができる", async ({ page }) => {
+  await openBuiltinHorizontalPreview(page);
+  const canvas = getHorizontalCanvas(page);
+
+  await page.getByRole("button", { name: "スタート" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "paused");
   await expectNoHorizontalOverflow(page);
 });
 
@@ -114,6 +131,12 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
 
 test("縦表示と横表示を相互に切り替えられる", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
+  const seekInput = page.getByLabel("曲の現在位置");
+  await seekInput.fill("1.25");
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-current-beat",
+    "1.25",
+  );
 
   await page.getByRole("button", { name: "縦表示へ切り替え" }).click();
   await expect(getVerticalCanvas(page)).toBeVisible();
@@ -121,12 +144,20 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
     "data-white-key-width",
     /\d+/,
   );
+  await expect(getVerticalCanvas(page)).toHaveAttribute(
+    "data-current-beat",
+    "1.25",
+  );
 
   await page.getByRole("button", { name: "横表示へ切り替え" }).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-note-count",
     "5",
+  );
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-current-beat",
+    "1.25",
   );
   await expectNoHorizontalOverflow(page);
 });
@@ -145,6 +176,10 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "24");
   await verticalOffsetInput.fill("16");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "16");
+  await page.getByLabel("曲の現在位置").fill("0.75");
+  await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
+  await page.getByLabel("再生速度").fill("0.8");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
   await expectNoHorizontalOverflow(page);
   await page.setViewportSize({ width: 720, height: 760 });
   await expect

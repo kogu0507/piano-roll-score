@@ -32,6 +32,7 @@ export interface VerticalScene {
   readonly width: number;
   readonly height: number;
   readonly judgmentLineY: number;
+  readonly currentBeat: number;
   readonly keyboard: KeyboardGeometry;
   readonly whiteKeys: readonly SceneRectangle[];
   readonly blackKeys: readonly SceneRectangle[];
@@ -44,6 +45,7 @@ export interface VerticalSceneOptions {
   readonly height: number;
   readonly whiteKeyWidth: number;
   readonly horizontalOffset: number;
+  readonly currentBeat?: number;
 }
 
 function offsetKey(
@@ -65,8 +67,9 @@ export function calculateNoteVerticalRectangle(
   duration: number,
   judgmentLineY: number,
   pixelsPerBeat = PIXELS_PER_BEAT,
+  currentBeat = 0,
 ): Pick<SceneRectangle, "y" | "height"> & { readonly bottomY: number } {
-  const bottomY = judgmentLineY - time * pixelsPerBeat;
+  const bottomY = judgmentLineY - (time - currentBeat) * pixelsPerBeat;
   const height = duration * pixelsPerBeat;
 
   return {
@@ -93,6 +96,7 @@ export function createVerticalScene(
   song: Song,
   options: VerticalSceneOptions,
 ): VerticalScene {
+  const currentBeat = options.currentBeat ?? 0;
   const keyboard = createKeyboardGeometry(
     resolveSongPitchRange(song),
     options.whiteKeyWidth,
@@ -125,6 +129,8 @@ export function createVerticalScene(
       note.time,
       note.duration,
       judgmentLineY,
+      PIXELS_PER_BEAT,
+      currentBeat,
     );
     const rectangle: SceneRectangle = {
       x: horizontal.x + options.horizontalOffset,
@@ -154,6 +160,7 @@ export function createVerticalScene(
     width: options.width,
     height: options.height,
     judgmentLineY,
+    currentBeat,
     keyboard,
     whiteKeys,
     blackKeys,

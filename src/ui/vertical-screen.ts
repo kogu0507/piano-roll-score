@@ -8,11 +8,14 @@ import {
   preserveContentCenterOffset,
   resolveSongPitchRange,
 } from "../core/keyboard-geometry";
+import { formatBeat } from "../core/timeline";
 import { createVerticalScene } from "../core/vertical-layout";
+import type { PlaybackController } from "../playback/playback-controller";
 import {
   drawVerticalScene,
   resizeCanvasForDisplay,
 } from "../renderers/vertical-renderer";
+import { mountPlaybackControls } from "./playback-controls";
 import type { Song } from "../types/song";
 
 interface VerticalScreenState {
@@ -44,6 +47,7 @@ export function mountVerticalScreen(
   root: HTMLElement,
   song: Song,
   returnToLoadScreen: () => void,
+  playbackController: PlaybackController,
   switchToHorizontal?: () => void,
 ): void {
   const main = document.createElement("main");
@@ -61,6 +65,10 @@ export function mountVerticalScreen(
   const offsetOutput = document.createElement("output");
   const fitButton = createButton("画面幅に合わせる");
   const centerButton = createButton("中央に戻す");
+  const playbackControls = mountPlaybackControls(
+    playbackController,
+    "vertical-playback-controls",
+  );
   const range = resolveSongPitchRange(song);
   const initialGeometry = createKeyboardGeometry(range, 64);
   const state: VerticalScreenState = {
@@ -80,12 +88,12 @@ export function mountVerticalScreen(
 
   header.append(
     navigation,
-    createTextElement("p", "vertical-header__eyebrow", "静止プレビュー"),
+    createTextElement("p", "vertical-header__eyebrow", "再生プレビュー"),
     createTextElement("h1", "vertical-header__title", song.title),
     createTextElement(
       "p",
       "vertical-header__description",
-      "再生位置0拍の縦表示です。白鍵幅と横位置を実際の鍵盤に合わせて調整できます。",
+      "音符ブロックが上から下へ流れる縦表示です。白鍵幅と横位置を実際の鍵盤に合わせて調整できます。",
     ),
   );
 
@@ -168,7 +176,7 @@ export function mountVerticalScreen(
   canvas.className = "vertical-canvas";
   canvas.setAttribute(
     "aria-label",
-    `${song.title}の縦表示静止プレビュー`,
+    `${song.title}の縦表示再生プレビュー`,
   );
   canvas.textContent = "Canvasに対応したブラウザで表示してください。";
   canvasWrap.append(canvas);
@@ -182,7 +190,7 @@ export function mountVerticalScreen(
     canvasWrap,
   );
 
-  main.append(header, controls, canvasSection);
+  main.append(header, playbackControls.element, controls, canvasSection);
   root.replaceChildren(main);
 
   let frameId = 0;
@@ -213,6 +221,7 @@ export function mountVerticalScreen(
 
   function render(): void {
     frameId = 0;
+    const playbackState = playbackController.tick();
     const size = getCanvasSize();
 
     if (!state.initialized) {
@@ -239,13 +248,22 @@ export function mountVerticalScreen(
       height: size.height,
       whiteKeyWidth: state.whiteKeyWidth,
       horizontalOffset: state.horizontalOffset,
+      currentBeat: playbackState.currentBeat,
     });
     const context = resizeCanvasForDisplay(canvas, {
       cssWidth: size.width,
       cssHeight: size.height,
       devicePixelRatio: window.devicePixelRatio || 1,
     });
+    canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
+    canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
+    canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
+    canvas.dataset.playbackStatus = playbackState.status;
     drawVerticalScene(context, scene);
+
+    if (playbackState.status === "playing") {
+      scheduleRender();
+    }
   }
 
   function scheduleRender(): void {
@@ -362,10 +380,24 @@ export function mountVerticalScreen(
   const resizeObserver = new ResizeObserver(scheduleRender);
   resizeObserver.observe(canvasWrap);
   window.addEventListener("resize", scheduleRender);
+  const unsubscribePlayback = playbackController.subscribe(() => {
+    scheduleRender();
+  });
+
+  function handleVisibilityChange(): void {
+    if (document.visibilityState === "hidden") {
+      playbackController.pauseForVisibilityChange();
+    }
+  }
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   function cleanup(): void {
     resizeObserver.disconnect();
+    unsubscribePlayback();
+    playbackControls.cleanup();
     window.removeEventListener("resize", scheduleRender);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
 
     if (frameId !== 0) {
       window.cancelAnimationFrame(frameId);

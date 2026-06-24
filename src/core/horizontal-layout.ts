@@ -69,6 +69,7 @@ export interface HorizontalScene {
   readonly height: number;
   readonly judgmentLineX: number;
   readonly pixelsPerBeat: number;
+  readonly currentBeat: number;
   readonly verticalOffset: number;
   readonly staff: StaffGeometry;
   readonly staffLines: readonly HorizontalStaffLine[];
@@ -84,6 +85,7 @@ export interface HorizontalSceneOptions {
   readonly judgmentLineX?: number;
   readonly lineSpacing?: number;
   readonly verticalOffset?: number;
+  readonly currentBeat?: number;
 }
 
 export interface HorizontalDiatonicOffsetRange {
@@ -96,8 +98,9 @@ export function calculateNoteHorizontalRectangle(
   duration: number,
   judgmentLineX = HORIZONTAL_JUDGMENT_LINE_X,
   pixelsPerBeat = HORIZONTAL_PIXELS_PER_BEAT,
+  currentBeat = 0,
 ): Pick<SceneRectangle, "x" | "width"> & { readonly rightX: number } {
-  const x = judgmentLineX + time * pixelsPerBeat;
+  const x = judgmentLineX + (time - currentBeat) * pixelsPerBeat;
   const width = duration * pixelsPerBeat;
 
   return {
@@ -241,15 +244,28 @@ function createBeatLines(
   width: number,
   judgmentLineX: number,
   pixelsPerBeat: number,
+  currentBeat: number,
 ): readonly HorizontalBeatLine[] {
-  const visibleBeatCount = Math.ceil(
-    Math.max(0, width - judgmentLineX) / pixelsPerBeat,
+  const firstVisibleBeat = Math.max(
+    0,
+    Math.floor(currentBeat - judgmentLineX / pixelsPerBeat),
+  );
+  const lastVisibleBeat = Math.max(
+    firstVisibleBeat,
+    Math.ceil(currentBeat + Math.max(0, width - judgmentLineX) / pixelsPerBeat),
   );
 
-  return Array.from({ length: visibleBeatCount + 1 }, (_, beat) => ({
-    beat,
-    x: judgmentLineX + beat * pixelsPerBeat,
-  }));
+  return Array.from(
+    { length: lastVisibleBeat - firstVisibleBeat + 1 },
+    (_, index) => {
+      const beat = firstVisibleBeat + index;
+
+      return {
+        beat,
+        x: judgmentLineX + (beat - currentBeat) * pixelsPerBeat,
+      };
+    },
+  );
 }
 
 function createLedgerLines(
@@ -286,6 +302,7 @@ export function createHorizontalScene(
     options.lineSpacing ?? STAFF_LINE_SPACING,
   );
   const verticalOffset = Math.round(options.verticalOffset ?? 0);
+  const currentBeat = options.currentBeat ?? 0;
   const noteHeight = calculateHorizontalNoteHeight(lineSpacing);
   const staff = createStaffGeometry(
     song.clef,
@@ -298,6 +315,7 @@ export function createHorizontalScene(
       note.duration,
       judgmentLineX,
       pixelsPerBeat,
+      currentBeat,
     );
     const staffPosition = calculateStaffNotePosition(note.spelling, staff);
     const rectangle: SceneRectangle = {
@@ -337,11 +355,17 @@ export function createHorizontalScene(
     height: options.height,
     judgmentLineX,
     pixelsPerBeat,
+    currentBeat,
     verticalOffset,
     staff,
     staffLines: staff.lines,
     guideLines: createGuideLines(staff, song.notes),
-    beatLines: createBeatLines(options.width, judgmentLineX, pixelsPerBeat),
+    beatLines: createBeatLines(
+      options.width,
+      judgmentLineX,
+      pixelsPerBeat,
+      currentBeat,
+    ),
     notes,
   };
 }

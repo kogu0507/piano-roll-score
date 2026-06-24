@@ -9,7 +9,7 @@ function getPreviewButton(page: Page) {
 }
 
 function getCanvas(page: Page) {
-  return page.getByLabel(/縦表示静止プレビュー/);
+  return page.locator("canvas.vertical-canvas");
 }
 
 async function openBuiltinPreview(page: Page): Promise<void> {
@@ -46,7 +46,7 @@ test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await expect(getPreviewButton(page)).toBeDisabled();
 });
 
-test("縦表示画面に曲名、静止プレビュー、Canvasを表示する", async ({
+test("縦表示画面に曲名、再生プレビュー、Canvasを表示する", async ({
   page,
 }) => {
   await openBuiltinPreview(page);
@@ -54,8 +54,40 @@ test("縦表示画面に曲名、静止プレビュー、Canvasを表示する",
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "ドからソまで",
   );
-  await expect(page.getByText("静止プレビュー", { exact: true })).toBeVisible();
+  await expect(page.getByText("再生プレビュー", { exact: true })).toBeVisible();
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("縦表示で再生、一時停止、シーク、速度変更、先頭戻しができる", async ({
+  page,
+}) => {
+  await openBuiltinPreview(page);
+  const canvas = getCanvas(page);
+  const seekInput = page.getByLabel("曲の現在位置");
+  const speedInput = page.getByLabel("再生速度");
+
+  await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+  await expect(canvas).toHaveAttribute("data-end-beat", "5.00");
+
+  await page.getByRole("button", { name: "スタート" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "paused");
+
+  await seekInput.fill("1.25");
+  await expect(canvas).toHaveAttribute("data-current-beat", "1.25");
+
+  await speedInput.fill("1.5");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
+
+  await page.getByRole("button", { name: "先頭に戻す" }).click();
+  await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+  await expect(canvas).toHaveAttribute("data-playback-status", "stopped");
   await expectNoHorizontalOverflow(page);
 });
 
