@@ -17,6 +17,8 @@ export const HORIZONTAL_JUDGMENT_LINE_X = 72;
 export const HORIZONTAL_NOTE_HEIGHT_RATIO = 0.9;
 export const HORIZONTAL_LEDGER_LINE_MIN_WIDTH = 36;
 export const HORIZONTAL_VERTICAL_PADDING = 48;
+export const MIN_HORIZONTAL_LINE_SPACING = 10;
+export const MAX_HORIZONTAL_LINE_SPACING = 40;
 
 export interface SceneRectangle {
   readonly x: number;
@@ -67,6 +69,7 @@ export interface HorizontalScene {
   readonly height: number;
   readonly judgmentLineX: number;
   readonly pixelsPerBeat: number;
+  readonly verticalOffset: number;
   readonly staff: StaffGeometry;
   readonly staffLines: readonly HorizontalStaffLine[];
   readonly guideLines: readonly HorizontalGuideLine[];
@@ -80,6 +83,12 @@ export interface HorizontalSceneOptions {
   readonly pixelsPerBeat?: number;
   readonly judgmentLineX?: number;
   readonly lineSpacing?: number;
+  readonly verticalOffset?: number;
+}
+
+export interface HorizontalDiatonicOffsetRange {
+  readonly minOffset: number;
+  readonly maxOffset: number;
 }
 
 export function calculateNoteHorizontalRectangle(
@@ -115,18 +124,80 @@ export function calculateHorizontalNoteHeight(lineSpacing: number): number {
   return lineSpacing * HORIZONTAL_NOTE_HEIGHT_RATIO;
 }
 
-function calculateBottomLineY(
+export function normalizeHorizontalLineSpacing(lineSpacing: number): number {
+  if (!Number.isFinite(lineSpacing)) {
+    return STAFF_LINE_SPACING;
+  }
+
+  return Math.min(
+    MAX_HORIZONTAL_LINE_SPACING,
+    Math.max(MIN_HORIZONTAL_LINE_SPACING, Math.round(lineSpacing)),
+  );
+}
+
+export function calculateHorizontalDiatonicOffsetRange(
   song: Song,
-  height: number,
   lineSpacing: number,
-): number {
+): HorizontalDiatonicOffsetRange {
   const reference = createStaffGeometry(song.clef, 0, lineSpacing);
   const offsets = song.notes.map(
     (note) =>
       calculateStaffNotePosition(note.spelling, reference).diatonicOffset,
   );
-  const minOffset = Math.min(0, ...offsets);
-  const maxOffset = Math.max(8, ...offsets);
+
+  return {
+    minOffset: Math.min(0, ...offsets),
+    maxOffset: Math.max(8, ...offsets),
+  };
+}
+
+export function calculateHorizontalContentHeight(
+  song: Song,
+  lineSpacing: number,
+): number {
+  const normalizedSpacing = normalizeHorizontalLineSpacing(lineSpacing);
+  const range = calculateHorizontalDiatonicOffsetRange(
+    song,
+    normalizedSpacing,
+  );
+
+  return (
+    ((range.maxOffset - range.minOffset) * normalizedSpacing) / 2 +
+    calculateHorizontalNoteHeight(normalizedSpacing)
+  );
+}
+
+export function calculateFittedHorizontalLineSpacing(
+  song: Song,
+  height: number,
+): number {
+  const range = calculateHorizontalDiatonicOffsetRange(
+    song,
+    STAFF_LINE_SPACING,
+  );
+  const availableHeight = Math.max(
+    MIN_HORIZONTAL_LINE_SPACING,
+    height - HORIZONTAL_VERTICAL_PADDING * 2,
+  );
+  const contentRatio =
+    (range.maxOffset - range.minOffset) / 2 + HORIZONTAL_NOTE_HEIGHT_RATIO;
+  const fittedSpacing =
+    contentRatio <= 0
+      ? STAFF_LINE_SPACING
+      : availableHeight / contentRatio;
+
+  return normalizeHorizontalLineSpacing(Math.floor(fittedSpacing));
+}
+
+function calculateBottomLineY(
+  song: Song,
+  height: number,
+  lineSpacing: number,
+): number {
+  const { minOffset, maxOffset } = calculateHorizontalDiatonicOffsetRange(
+    song,
+    lineSpacing,
+  );
   const halfStep = lineSpacing / 2;
   const centerY = height * 0.52;
   let bottomLineY = centerY + ((minOffset + maxOffset) / 2) * halfStep;
@@ -211,11 +282,14 @@ export function createHorizontalScene(
   const pixelsPerBeat = options.pixelsPerBeat ?? HORIZONTAL_PIXELS_PER_BEAT;
   const judgmentLineX =
     options.judgmentLineX ?? HORIZONTAL_JUDGMENT_LINE_X;
-  const lineSpacing = options.lineSpacing ?? STAFF_LINE_SPACING;
+  const lineSpacing = normalizeHorizontalLineSpacing(
+    options.lineSpacing ?? STAFF_LINE_SPACING,
+  );
+  const verticalOffset = Math.round(options.verticalOffset ?? 0);
   const noteHeight = calculateHorizontalNoteHeight(lineSpacing);
   const staff = createStaffGeometry(
     song.clef,
-    calculateBottomLineY(song, options.height, lineSpacing),
+    calculateBottomLineY(song, options.height, lineSpacing) + verticalOffset,
     lineSpacing,
   );
   const notes = song.notes.map<HorizontalNoteScene>((note) => {
@@ -263,6 +337,7 @@ export function createHorizontalScene(
     height: options.height,
     judgmentLineX,
     pixelsPerBeat,
+    verticalOffset,
     staff,
     staffLines: staff.lines,
     guideLines: createGuideLines(staff, song.notes),

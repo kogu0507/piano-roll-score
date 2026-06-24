@@ -69,6 +69,35 @@ test("横表示画面に曲名、説明、Canvasを表示する", async ({ page 
   await expectNoHorizontalOverflow(page);
 });
 
+test("横表示の五線間隔、縦位置、画面高合わせを操作できる", async ({
+  page,
+}) => {
+  await openBuiltinHorizontalPreview(page);
+  const canvas = getHorizontalCanvas(page);
+  const lineSpacingInput = page.getByLabel("五線の1間の幅");
+  const verticalOffsetInput = page.getByLabel("譜面の縦位置");
+
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "18");
+
+  await lineSpacingInput.fill("30");
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
+
+  await verticalOffsetInput.fill("24");
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "24");
+
+  await page.getByRole("button", { name: "中央に戻す" }).click();
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "0");
+
+  await lineSpacingInput.fill("12");
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "12");
+  await page.getByRole("button", { name: "画面高に合わせる" }).click();
+  await expect
+    .poll(() => canvas.getAttribute("data-staff-line-spacing"))
+    .not.toBe("12");
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "0");
+  await expectNoHorizontalOverflow(page);
+});
+
 test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ page }) => {
   await page.goto("./?id=001");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
@@ -108,8 +137,14 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await page.setViewportSize({ width: 390, height: 844 });
   await openBuiltinHorizontalPreview(page);
   const canvas = getHorizontalCanvas(page);
+  const lineSpacingInput = page.getByLabel("五線の1間の幅");
+  const verticalOffsetInput = page.getByLabel("譜面の縦位置");
   const initialCssWidth = await canvas.getAttribute("data-css-width");
 
+  await lineSpacingInput.fill("24");
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "24");
+  await verticalOffsetInput.fill("16");
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "16");
   await expectNoHorizontalOverflow(page);
   await page.setViewportSize({ width: 720, height: 760 });
   await expect

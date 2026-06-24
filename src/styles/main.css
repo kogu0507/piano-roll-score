@@ -452,6 +452,7 @@ button {
 }
 
 .horizontal-header,
+.horizontal-controls,
 .horizontal-preview {
   min-width: 0;
   padding: clamp(1rem, 4vw, 2rem);
@@ -461,8 +462,45 @@ button {
   border-radius: 1rem;
 }
 
+.horizontal-controls,
 .horizontal-preview {
   margin-top: 1rem;
+}
+
+.horizontal-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.horizontal-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem;
+  background: #f5f9f6;
+  border-radius: 0.75rem;
+}
+
+.horizontal-control__label {
+  font-weight: 800;
+}
+
+.horizontal-control__value {
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.horizontal-control__range {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+}
+
+.horizontal-control .button {
+  grid-column: 1 / -1;
 }
 
 .horizontal-header__eyebrow {
@@ -499,9 +537,10 @@ button {
 .horizontal-legend {
   display: flex;
   flex-wrap: wrap;
+  grid-column: 1 / -1;
   gap: 0.75rem 1rem;
   align-items: center;
-  margin-bottom: 1rem;
+  margin: 0;
 }
 
 .horizontal-legend__item {
@@ -657,7 +696,15 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .horizontal-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .vertical-legend {
+    grid-column: auto;
+  }
+
+  .horizontal-legend {
     grid-column: auto;
   }
 
