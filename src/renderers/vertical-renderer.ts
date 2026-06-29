@@ -2,6 +2,8 @@ import type { VerticalNoteScene, VerticalScene } from "../core/vertical-layout";
 import { HAND_RENDERING_STYLES } from "./hand-styles";
 export { resizeCanvasForDisplay } from "./canvas";
 
+const PLAYBACK_GUIDE_BAND_HEIGHT = 10;
+
 function drawNote(
   context: CanvasRenderingContext2D,
   note: VerticalNoteScene,
@@ -102,10 +104,17 @@ export function drawVerticalScene(
     context.strokeRect(key.x, key.y, key.width, key.height);
   });
 
-  context.strokeStyle = "#c23f32";
-  context.lineWidth = 3;
+  context.fillStyle = "rgba(37, 99, 115, 0.14)";
+  context.fillRect(
+    0,
+    scene.playbackGuideY - PLAYBACK_GUIDE_BAND_HEIGHT / 2,
+    scene.width,
+    PLAYBACK_GUIDE_BAND_HEIGHT,
+  );
+  context.strokeStyle = "rgba(37, 99, 115, 0.34)";
+  context.lineWidth = 1.5;
   context.beginPath();
-  context.moveTo(0, scene.judgmentLineY);
-  context.lineTo(scene.width, scene.judgmentLineY);
+  context.moveTo(0, scene.playbackGuideY);
+  context.lineTo(scene.width, scene.playbackGuideY);
   context.stroke();
 }

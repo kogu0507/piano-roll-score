@@ -65,9 +65,11 @@ test("横表示画面に曲名、説明、Canvasを表示する", async ({ page 
   ).toBeVisible();
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
-    "data-judgment-line-x",
+    "data-playback-guide-x",
     /\d+/,
   );
+  await expect(page.getByText("再生ガイド")).toBeVisible();
+  await expect(page.getByText("判定ライン")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -94,6 +96,43 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
 
   await page.getByRole("button", { name: "一時停止" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "paused");
+  await expectNoHorizontalOverflow(page);
+});
+
+test("横表示でプリカウント中に助走表示が進む", async ({ page }) => {
+  await openBuiltinHorizontalPreview(page);
+  const canvas = getHorizontalCanvas(page);
+  const playbackControls = page.locator(".playback-controls");
+
+  await page.getByLabel("プリカウント").selectOption("1");
+  await page.getByLabel("再生速度").fill("2");
+  await page.getByRole("button", { name: "スタート" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "precount");
+  await expect(playbackControls).toHaveAttribute(
+    "data-precount-remaining-beats",
+    /[1-4]/,
+  );
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeLessThan(0);
+  const displayBeatDuringPrecount = Number(
+    await canvas.getAttribute("data-display-beat"),
+  );
+
+  await page.waitForTimeout(250);
+  await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeGreaterThan(displayBeatDuringPrecount);
+
+  await expect
+    .poll(() => canvas.getAttribute("data-playback-status"), {
+      timeout: 4000,
+    })
+    .toBe("playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeGreaterThanOrEqual(0);
   await expectNoHorizontalOverflow(page);
 });
 

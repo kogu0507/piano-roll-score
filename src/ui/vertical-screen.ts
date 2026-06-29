@@ -8,7 +8,7 @@ import {
   preserveContentCenterOffset,
   resolveSongPitchRange,
 } from "../core/keyboard-geometry";
-import { formatBeat } from "../core/timeline";
+import { calculateDisplayBeat, formatBeat } from "../core/timeline";
 import { createVerticalScene } from "../core/vertical-layout";
 import type { PlaybackController } from "../playback/playback-controller";
 import {
@@ -185,7 +185,7 @@ export function mountVerticalScreen(
     createTextElement(
       "p",
       "vertical-preview__help",
-      "赤い線が判定ラインです。Canvasを横へドラッグして位置を微調整できます。",
+      "薄い帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。Canvasを横へドラッグして位置を微調整できます。",
     ),
     canvasWrap,
   );
@@ -222,6 +222,7 @@ export function mountVerticalScreen(
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
+    const displayBeat = calculateDisplayBeat(playbackState);
     const size = getCanvasSize();
 
     if (!state.initialized) {
@@ -249,6 +250,7 @@ export function mountVerticalScreen(
       whiteKeyWidth: state.whiteKeyWidth,
       horizontalOffset: state.horizontalOffset,
       currentBeat: playbackState.currentBeat,
+      displayBeat,
     });
     const context = resizeCanvasForDisplay(canvas, {
       cssWidth: size.width,
@@ -256,6 +258,7 @@ export function mountVerticalScreen(
       devicePixelRatio: window.devicePixelRatio || 1,
     });
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
+    canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
     canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
     canvas.dataset.playbackStatus = playbackState.status;

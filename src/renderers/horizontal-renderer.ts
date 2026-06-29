@@ -4,6 +4,8 @@ import type {
 } from "../core/horizontal-layout";
 import { HAND_RENDERING_STYLES } from "./hand-styles";
 
+const PLAYBACK_GUIDE_BAND_WIDTH = 12;
+
 function drawRoundedBlock(
   context: CanvasRenderingContext2D,
   note: HorizontalNoteScene,
@@ -70,7 +72,7 @@ export function drawHorizontalScene(
 
   scene.beatLines.forEach((line) => {
     context.strokeStyle =
-      line.beat === 0 ? "rgba(194, 63, 50, 0.22)" : "rgba(47, 85, 65, 0.10)";
+      line.beat === 0 ? "rgba(37, 99, 115, 0.18)" : "rgba(47, 85, 65, 0.10)";
     context.lineWidth = line.beat === 0 ? 1.5 : 1;
     context.beginPath();
     context.moveTo(line.x, 0);
@@ -114,11 +116,18 @@ export function drawHorizontalScene(
     drawRoundedBlock(context, note);
   });
 
-  context.strokeStyle = "#c23f32";
-  context.lineWidth = 3;
+  context.fillStyle = "rgba(37, 99, 115, 0.14)";
+  context.fillRect(
+    scene.playbackGuideX - PLAYBACK_GUIDE_BAND_WIDTH / 2,
+    0,
+    PLAYBACK_GUIDE_BAND_WIDTH,
+    scene.height,
+  );
+  context.strokeStyle = "rgba(37, 99, 115, 0.34)";
+  context.lineWidth = 1.5;
   context.beginPath();
-  context.moveTo(scene.judgmentLineX, 0);
-  context.lineTo(scene.judgmentLineX, scene.height);
+  context.moveTo(scene.playbackGuideX, 0);
+  context.lineTo(scene.playbackGuideX, scene.height);
   context.stroke();
 
   context.restore();

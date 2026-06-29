@@ -31,7 +31,9 @@ export interface VerticalNoteScene extends SceneRectangle {
 export interface VerticalScene {
   readonly width: number;
   readonly height: number;
+  readonly playbackGuideY: number;
   readonly judgmentLineY: number;
+  readonly displayBeat: number;
   readonly currentBeat: number;
   readonly keyboard: KeyboardGeometry;
   readonly whiteKeys: readonly SceneRectangle[];
@@ -46,6 +48,7 @@ export interface VerticalSceneOptions {
   readonly whiteKeyWidth: number;
   readonly horizontalOffset: number;
   readonly currentBeat?: number;
+  readonly displayBeat?: number;
 }
 
 function offsetKey(
@@ -96,17 +99,17 @@ export function createVerticalScene(
   song: Song,
   options: VerticalSceneOptions,
 ): VerticalScene {
-  const currentBeat = options.currentBeat ?? 0;
+  const displayBeat = options.displayBeat ?? options.currentBeat ?? 0;
   const keyboard = createKeyboardGeometry(
     resolveSongPitchRange(song),
     options.whiteKeyWidth,
   );
-  const judgmentLineY = Math.max(0, options.height - WHITE_KEY_GUIDE_HEIGHT);
+  const playbackGuideY = Math.max(0, options.height - WHITE_KEY_GUIDE_HEIGHT);
   const whiteKeys = keyboard.whiteKeys.map((key) =>
     offsetKey(
       key,
       options.horizontalOffset,
-      judgmentLineY,
+      playbackGuideY,
       WHITE_KEY_GUIDE_HEIGHT,
     ),
   );
@@ -114,7 +117,7 @@ export function createVerticalScene(
     offsetKey(
       key,
       options.horizontalOffset,
-      judgmentLineY,
+      playbackGuideY,
       BLACK_KEY_GUIDE_HEIGHT,
     ),
   );
@@ -128,9 +131,9 @@ export function createVerticalScene(
     const vertical = calculateNoteVerticalRectangle(
       note.time,
       note.duration,
-      judgmentLineY,
+      playbackGuideY,
       PIXELS_PER_BEAT,
-      currentBeat,
+      displayBeat,
     );
     const rectangle: SceneRectangle = {
       x: horizontal.x + options.horizontalOffset,
@@ -150,7 +153,7 @@ export function createVerticalScene(
         visible: isRectangleVisible(
           rectangle,
           options.width,
-          judgmentLineY,
+          playbackGuideY,
         ),
       },
     ];
@@ -159,8 +162,10 @@ export function createVerticalScene(
   return {
     width: options.width,
     height: options.height,
-    judgmentLineY,
-    currentBeat,
+    playbackGuideY,
+    judgmentLineY: playbackGuideY,
+    displayBeat,
+    currentBeat: displayBeat,
     keyboard,
     whiteKeys,
     blackKeys,

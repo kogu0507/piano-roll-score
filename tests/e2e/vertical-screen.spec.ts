@@ -55,6 +55,8 @@ test("縦表示画面に曲名、再生プレビュー、Canvasを表示する",
     "ドからソまで",
   );
   await expect(page.getByText("再生プレビュー", { exact: true })).toBeVisible();
+  await expect(page.getByText("再生ガイド")).toBeVisible();
+  await expect(page.getByText("判定ライン")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
@@ -127,6 +129,12 @@ test("メトロノーム、音量、プリカウントを操作できる", async
 
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeLessThan(0);
+  const displayBeatDuringPrecount = Number(
+    await canvas.getAttribute("data-display-beat"),
+  );
   await expect(playbackControls).toHaveAttribute(
     "data-precount-remaining-beats",
     /[1-4]/,
@@ -134,12 +142,18 @@ test("メトロノーム、音量、プリカウントを操作できる", async
 
   await page.waitForTimeout(250);
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeGreaterThan(displayBeatDuringPrecount);
 
   await expect
     .poll(() => canvas.getAttribute("data-playback-status"), {
       timeout: 4000,
     })
     .toBe("playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeGreaterThanOrEqual(0);
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
     .toBeGreaterThan(0);

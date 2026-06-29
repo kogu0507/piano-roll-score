@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   HORIZONTAL_JUDGMENT_LINE_X,
   HORIZONTAL_NOTE_HEIGHT_RATIO,
+  HORIZONTAL_PLAYBACK_GUIDE_X,
   MAX_HORIZONTAL_LINE_SPACING,
   MIN_HORIZONTAL_LINE_SPACING,
   HORIZONTAL_VERTICAL_PADDING,
@@ -61,9 +62,9 @@ const enharmonicSong: Song = {
 describe("横表示シーン", () => {
   it("timeから横位置、durationから音符幅を計算する", () => {
     expect(calculateNoteHorizontalRectangle(2, 1.5)).toEqual({
-      x: HORIZONTAL_JUDGMENT_LINE_X + 2 * HORIZONTAL_PIXELS_PER_BEAT,
+      x: HORIZONTAL_PLAYBACK_GUIDE_X + 2 * HORIZONTAL_PIXELS_PER_BEAT,
       width: 1.5 * HORIZONTAL_PIXELS_PER_BEAT,
-      rightX: HORIZONTAL_JUDGMENT_LINE_X + 3.5 * HORIZONTAL_PIXELS_PER_BEAT,
+      rightX: HORIZONTAL_PLAYBACK_GUIDE_X + 3.5 * HORIZONTAL_PIXELS_PER_BEAT,
     });
   });
 
@@ -101,17 +102,40 @@ describe("横表示シーン", () => {
     expect(after.currentBeat).toBe(0.5);
   });
 
-  it("0拍の音符開始位置を判定ラインへ一致させる", () => {
+  it("displayBeatを使うと実再生位置と別に助走位置を描画できる", () => {
+    const before = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0,
+      displayBeat: -4,
+    });
+    const after = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0,
+      displayBeat: -3.5,
+    });
+    const beforeNote = before.notes.find((note) => note.id === "c-sharp");
+    const afterNote = after.notes.find((note) => note.id === "c-sharp");
+
+    expect(before.displayBeat).toBe(-4);
+    expect(after.displayBeat).toBe(-3.5);
+    expect(afterNote?.x).toBe(
+      (beforeNote?.x ?? 0) - 0.5 * HORIZONTAL_PIXELS_PER_BEAT,
+    );
+  });
+
+  it("0拍の音符開始位置を再生ガイドへ一致させる", () => {
     const scene = createHorizontalScene(enharmonicSong, {
       width: 640,
       height: 360,
     });
     const firstNote = scene.notes.find((note) => note.id === "c-sharp");
 
-    expect(firstNote?.x).toBe(scene.judgmentLineX);
+    expect(firstNote?.x).toBe(scene.playbackGuideX);
   });
 
-  it("currentBeatが音符開始時刻と一致すると音符左端を判定ラインへ一致させる", () => {
+  it("currentBeatが音符開始時刻と一致すると音符左端を再生ガイドへ一致させる", () => {
     const scene = createHorizontalScene(enharmonicSong, {
       width: 640,
       height: 360,
@@ -119,7 +143,7 @@ describe("横表示シーン", () => {
     });
     const dFlat = scene.notes.find((note) => note.id === "d-flat");
 
-    expect(dFlat?.x).toBe(scene.judgmentLineX);
+    expect(dFlat?.x).toBe(scene.playbackGuideX);
   });
 
   it("音符ブロック高さを五線の線間隔以内にし、中心位置を維持する", () => {

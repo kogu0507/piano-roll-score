@@ -104,14 +104,39 @@ describe("縦表示シーン", () => {
     expect(after.currentBeat).toBe(0.5);
   });
 
-  it("0拍の音符の下端を判定ラインへ一致させる", () => {
+  it("displayBeatを使うと実再生位置と別に助走位置を描画できる", () => {
+    const before = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+      displayBeat: -4,
+    });
+    const after = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+      displayBeat: -3.5,
+    });
+    const beforeNote = before.notes.find((note) => note.id === "c-sharp");
+    const afterNote = after.notes.find((note) => note.id === "c-sharp");
+
+    expect(before.displayBeat).toBe(-4);
+    expect(after.displayBeat).toBe(-3.5);
+    expect(afterNote?.y).toBe((beforeNote?.y ?? 0) + 0.5 * PIXELS_PER_BEAT);
+  });
+
+  it("0拍の音符の下端を再生ガイドへ一致させる", () => {
     const rectangle = calculateNoteVerticalRectangle(0, 1, 408);
 
     expect(rectangle.bottomY).toBe(408);
     expect(rectangle.y + rectangle.height).toBe(408);
   });
 
-  it("currentBeatが音符開始時刻と一致すると音符下端を判定ラインへ一致させる", () => {
+  it("currentBeatが音符開始時刻と一致すると音符下端を再生ガイドへ一致させる", () => {
     const rectangle = calculateNoteVerticalRectangle(
       2,
       1,

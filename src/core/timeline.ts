@@ -284,6 +284,17 @@ export function updatePrecountPlaybackState(
   };
 }
 
+export function calculateDisplayBeat(state: PlaybackState): number {
+  if (state.status !== "precount") {
+    return state.currentBeat;
+  }
+
+  return (
+    state.currentBeat -
+    Math.max(0, state.precountTotalBeats - state.precountElapsedBeats)
+  );
+}
+
 export function formatBeat(beat: number): string {
   return clampBeat(beat, Number.POSITIVE_INFINITY).toFixed(2);
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateAdvancedBeat,
   calculateBeatsPerSecond,
+  calculateDisplayBeat,
   calculateSongEndBeat,
   clampBeat,
   createInitialPlaybackState,
@@ -160,6 +161,29 @@ describe("共通タイムライン", () => {
       precountTotalBeats: 0,
       precountRemainingBeats: 0,
     });
+  });
+
+  it("プリカウント中は実再生位置を進めず、表示用拍位置だけ助走させる", () => {
+    const initial = setPrecountMeasuresState(
+      createInitialPlaybackState(timelineSong),
+      1,
+    );
+    const precount = startPrecountPlaybackState(initial, 4);
+    const halfCount = updatePrecountPlaybackState(precount, 1.5);
+    const playing = updatePrecountPlaybackState(halfCount, 4);
+
+    expect(precount.currentBeat).toBe(0);
+    expect(calculateDisplayBeat(precount)).toBe(-4);
+    expect(halfCount).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+    });
+    expect(calculateDisplayBeat(halfCount)).toBeCloseTo(-2.5);
+    expect(playing).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+    });
+    expect(calculateDisplayBeat(playing)).toBe(0);
   });
 
   it("コントローラは経過時間から再生し、速度変更と非表示時一時停止を反映する", () => {

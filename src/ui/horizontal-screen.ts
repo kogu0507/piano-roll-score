@@ -1,5 +1,5 @@
 import { STAFF_LINE_SPACING } from "../core/staff-position";
-import { formatBeat } from "../core/timeline";
+import { calculateDisplayBeat, formatBeat } from "../core/timeline";
 import {
   MAX_HORIZONTAL_LINE_SPACING,
   MIN_HORIZONTAL_LINE_SPACING,
@@ -176,7 +176,7 @@ export function mountHorizontalScreen(
     createTextElement(
       "p",
       "horizontal-preview__help",
-      "赤い縦線が判定ラインです。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
+      "薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
     ),
     canvasWrap,
   );
@@ -217,6 +217,7 @@ export function mountHorizontalScreen(
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
+    const displayBeat = calculateDisplayBeat(playbackState);
     const size = getCanvasSize();
     updateControls(size.height);
     const scene = createHorizontalScene(song, {
@@ -225,6 +226,7 @@ export function mountHorizontalScreen(
       lineSpacing: state.lineSpacing,
       verticalOffset: state.verticalOffset,
       currentBeat: playbackState.currentBeat,
+      displayBeat,
     });
     const context = resizeCanvasForDisplay(canvas, {
       cssWidth: size.width,
@@ -232,11 +234,13 @@ export function mountHorizontalScreen(
       devicePixelRatio: window.devicePixelRatio || 1,
     });
 
+    canvas.dataset.playbackGuideX = String(scene.playbackGuideX);
     canvas.dataset.judgmentLineX = String(scene.judgmentLineX);
     canvas.dataset.noteCount = String(scene.notes.length);
     canvas.dataset.staffLineSpacing = String(scene.staff.lineSpacing);
     canvas.dataset.verticalOffset = String(scene.verticalOffset);
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
+    canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
     canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
     canvas.dataset.playbackStatus = playbackState.status;

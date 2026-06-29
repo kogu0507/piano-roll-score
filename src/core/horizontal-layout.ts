@@ -14,6 +14,7 @@ import type { Song, SongNote } from "../schema/song-schema";
 
 export const HORIZONTAL_PIXELS_PER_BEAT = 96;
 export const HORIZONTAL_JUDGMENT_LINE_X = 72;
+export const HORIZONTAL_PLAYBACK_GUIDE_X = HORIZONTAL_JUDGMENT_LINE_X;
 export const HORIZONTAL_NOTE_HEIGHT_RATIO = 0.9;
 export const HORIZONTAL_LEDGER_LINE_MIN_WIDTH = 36;
 export const HORIZONTAL_VERTICAL_PADDING = 48;
@@ -67,8 +68,10 @@ export interface HorizontalNoteScene extends SceneRectangle {
 export interface HorizontalScene {
   readonly width: number;
   readonly height: number;
+  readonly playbackGuideX: number;
   readonly judgmentLineX: number;
   readonly pixelsPerBeat: number;
+  readonly displayBeat: number;
   readonly currentBeat: number;
   readonly verticalOffset: number;
   readonly staff: StaffGeometry;
@@ -86,6 +89,7 @@ export interface HorizontalSceneOptions {
   readonly lineSpacing?: number;
   readonly verticalOffset?: number;
   readonly currentBeat?: number;
+  readonly displayBeat?: number;
 }
 
 export interface HorizontalDiatonicOffsetRange {
@@ -296,13 +300,13 @@ export function createHorizontalScene(
   options: HorizontalSceneOptions,
 ): HorizontalScene {
   const pixelsPerBeat = options.pixelsPerBeat ?? HORIZONTAL_PIXELS_PER_BEAT;
-  const judgmentLineX =
+  const playbackGuideX =
     options.judgmentLineX ?? HORIZONTAL_JUDGMENT_LINE_X;
   const lineSpacing = normalizeHorizontalLineSpacing(
     options.lineSpacing ?? STAFF_LINE_SPACING,
   );
   const verticalOffset = Math.round(options.verticalOffset ?? 0);
-  const currentBeat = options.currentBeat ?? 0;
+  const displayBeat = options.displayBeat ?? options.currentBeat ?? 0;
   const noteHeight = calculateHorizontalNoteHeight(lineSpacing);
   const staff = createStaffGeometry(
     song.clef,
@@ -313,9 +317,9 @@ export function createHorizontalScene(
     const horizontal = calculateNoteHorizontalRectangle(
       note.time,
       note.duration,
-      judgmentLineX,
+      playbackGuideX,
       pixelsPerBeat,
-      currentBeat,
+      displayBeat,
     );
     const staffPosition = calculateStaffNotePosition(note.spelling, staff);
     const rectangle: SceneRectangle = {
@@ -353,18 +357,20 @@ export function createHorizontalScene(
   return {
     width: options.width,
     height: options.height,
-    judgmentLineX,
+    playbackGuideX,
+    judgmentLineX: playbackGuideX,
     pixelsPerBeat,
-    currentBeat,
+    displayBeat,
+    currentBeat: displayBeat,
     verticalOffset,
     staff,
     staffLines: staff.lines,
     guideLines: createGuideLines(staff, song.notes),
     beatLines: createBeatLines(
       options.width,
-      judgmentLineX,
+      playbackGuideX,
       pixelsPerBeat,
-      currentBeat,
+      displayBeat,
     ),
     notes,
   };
