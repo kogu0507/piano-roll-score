@@ -16,6 +16,10 @@ export interface PlaybackControlsMount {
   readonly cleanup: () => void;
 }
 
+export interface PlaybackControlsOptions {
+  readonly onSettingsChange?: (state: PlaybackState) => void;
+}
+
 function createTextElement<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
   className: string,
@@ -65,6 +69,7 @@ function formatDetailedStatus(state: PlaybackState): string {
 export function mountPlaybackControls(
   controller: PlaybackController,
   className: string,
+  options: PlaybackControlsOptions = {},
 ): PlaybackControlsMount {
   const section = document.createElement("section");
   const buttons = document.createElement("div");
@@ -240,6 +245,10 @@ export function mountPlaybackControls(
 
   const unsubscribe = controller.subscribe(update);
 
+  function notifySettingsChange(): void {
+    options.onSettingsChange?.(controller.getSnapshot());
+  }
+
   startButton.addEventListener("click", () => {
     controller.start();
   });
@@ -258,18 +267,22 @@ export function mountPlaybackControls(
 
   speedInput.addEventListener("input", () => {
     controller.setPlaybackRate(Number(speedInput.value));
+    notifySettingsChange();
   });
 
   metronomeInput.addEventListener("change", () => {
     controller.setMetronomeEnabled(metronomeInput.checked);
+    notifySettingsChange();
   });
 
   volumeInput.addEventListener("input", () => {
     controller.setMetronomeVolume(Number(volumeInput.value) / 100);
+    notifySettingsChange();
   });
 
   precountSelect.addEventListener("change", () => {
     controller.setPrecountMeasures(Number(precountSelect.value));
+    notifySettingsChange();
   });
 
   return {

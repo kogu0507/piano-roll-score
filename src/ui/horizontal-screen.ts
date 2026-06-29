@@ -1,5 +1,7 @@
 import { STAFF_LINE_SPACING } from "../core/staff-position";
 import { calculateDisplayBeat, formatBeat } from "../core/timeline";
+import type { PlaybackState } from "../core/timeline";
+import type { HorizontalViewSettings } from "../core/app-settings";
 import {
   MAX_HORIZONTAL_LINE_SPACING,
   MIN_HORIZONTAL_LINE_SPACING,
@@ -16,6 +18,12 @@ import type { Song } from "../types/song";
 interface HorizontalScreenState {
   lineSpacing: number;
   verticalOffset: number;
+}
+
+export interface HorizontalScreenOptions {
+  readonly initialSettings?: HorizontalViewSettings;
+  readonly onSettingsChange?: (settings: HorizontalViewSettings) => void;
+  readonly onPlaybackSettingsChange?: (state: PlaybackState) => void;
 }
 
 function createTextElement<K extends keyof HTMLElementTagNameMap>(
@@ -43,6 +51,7 @@ export function mountHorizontalScreen(
   returnToLoadScreen: () => void,
   playbackController: PlaybackController,
   switchToVertical?: () => void,
+  screenOptions: HorizontalScreenOptions = {},
 ): void {
   const main = document.createElement("main");
   const header = document.createElement("header");
@@ -63,10 +72,13 @@ export function mountHorizontalScreen(
   const playbackControls = mountPlaybackControls(
     playbackController,
     "horizontal-playback-controls",
+    {
+      onSettingsChange: screenOptions.onPlaybackSettingsChange,
+    },
   );
   const state: HorizontalScreenState = {
-    lineSpacing: STAFF_LINE_SPACING,
-    verticalOffset: 0,
+    lineSpacing: screenOptions.initialSettings?.lineSpacing ?? STAFF_LINE_SPACING,
+    verticalOffset: screenOptions.initialSettings?.verticalOffset ?? 0,
   };
 
   main.className = "horizontal-screen";
@@ -214,6 +226,14 @@ export function mountHorizontalScreen(
     canvas.dataset.verticalOffset = String(state.verticalOffset);
   }
 
+  function persistViewSettings(): void {
+    updateControls(getCanvasSize().height);
+    screenOptions.onSettingsChange?.({
+      lineSpacing: state.lineSpacing,
+      verticalOffset: state.verticalOffset,
+    });
+  }
+
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
@@ -281,11 +301,13 @@ export function mountHorizontalScreen(
       size.height,
     );
     state.verticalOffset = 0;
+    persistViewSettings();
     scheduleRender();
   }
 
   function centerContent(): void {
     state.verticalOffset = 0;
+    persistViewSettings();
     scheduleRender();
   }
 
@@ -293,11 +315,13 @@ export function mountHorizontalScreen(
     state.lineSpacing = normalizeHorizontalLineSpacing(
       Number(lineSpacingInput.value),
     );
+    persistViewSettings();
     scheduleRender();
   });
 
   verticalOffsetInput.addEventListener("input", () => {
     state.verticalOffset = Number(verticalOffsetInput.value);
+    persistViewSettings();
     scheduleRender();
   });
 

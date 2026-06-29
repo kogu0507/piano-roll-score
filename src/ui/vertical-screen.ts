@@ -10,6 +10,8 @@ import {
 } from "../core/keyboard-geometry";
 import { calculateDisplayBeat, formatBeat } from "../core/timeline";
 import { createVerticalScene } from "../core/vertical-layout";
+import type { VerticalViewSettings } from "../core/app-settings";
+import type { PlaybackState } from "../core/timeline";
 import type { PlaybackController } from "../playback/playback-controller";
 import {
   drawVerticalScene,
@@ -22,6 +24,12 @@ interface VerticalScreenState {
   whiteKeyWidth: number;
   horizontalOffset: number;
   initialized: boolean;
+}
+
+export interface VerticalScreenOptions {
+  readonly initialSettings?: VerticalViewSettings;
+  readonly onSettingsChange?: (settings: VerticalViewSettings) => void;
+  readonly onPlaybackSettingsChange?: (state: PlaybackState) => void;
 }
 
 function createTextElement<K extends keyof HTMLElementTagNameMap>(
@@ -49,6 +57,7 @@ export function mountVerticalScreen(
   returnToLoadScreen: () => void,
   playbackController: PlaybackController,
   switchToHorizontal?: () => void,
+  screenOptions: VerticalScreenOptions = {},
 ): void {
   const main = document.createElement("main");
   const header = document.createElement("header");
@@ -68,13 +77,16 @@ export function mountVerticalScreen(
   const playbackControls = mountPlaybackControls(
     playbackController,
     "vertical-playback-controls",
+    {
+      onSettingsChange: screenOptions.onPlaybackSettingsChange,
+    },
   );
   const range = resolveSongPitchRange(song);
   const initialGeometry = createKeyboardGeometry(range, 64);
   const state: VerticalScreenState = {
-    whiteKeyWidth: 64,
-    horizontalOffset: 0,
-    initialized: false,
+    whiteKeyWidth: screenOptions.initialSettings?.whiteKeyWidth ?? 64,
+    horizontalOffset: screenOptions.initialSettings?.horizontalOffset ?? 0,
+    initialized: screenOptions.initialSettings !== undefined,
   };
 
   main.className = "vertical-screen";
@@ -219,6 +231,20 @@ export function mountVerticalScreen(
     canvas.dataset.horizontalOffset = String(state.horizontalOffset);
   }
 
+  function persistViewSettings(): void {
+    const size = getCanvasSize();
+    const geometry = createKeyboardGeometry(range, state.whiteKeyWidth);
+    state.horizontalOffset = clampHorizontalOffset(
+      state.horizontalOffset,
+      size.width,
+      geometry.totalWidth,
+    );
+    screenOptions.onSettingsChange?.({
+      whiteKeyWidth: state.whiteKeyWidth,
+      horizontalOffset: state.horizontalOffset,
+    });
+  }
+
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
@@ -291,6 +317,7 @@ export function mountVerticalScreen(
       size.width,
       geometry.totalWidth,
     );
+    persistViewSettings();
     scheduleRender();
   }
 
@@ -301,6 +328,7 @@ export function mountVerticalScreen(
       size.width,
       geometry.totalWidth,
     );
+    persistViewSettings();
     scheduleRender();
   }
 
@@ -319,11 +347,13 @@ export function mountVerticalScreen(
       nextGeometry.totalWidth,
     );
     state.whiteKeyWidth = nextWhiteKeyWidth;
+    persistViewSettings();
     scheduleRender();
   });
 
   offsetInput.addEventListener("input", () => {
     state.horizontalOffset = Number(offsetInput.value);
+    persistViewSettings();
     scheduleRender();
   });
 
@@ -372,12 +402,18 @@ export function mountVerticalScreen(
   });
 
   function finishPointer(event: PointerEvent): void {
+    const shouldPersist = pointerId === event.pointerId && horizontalDrag;
+
     if (pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId)) {
       canvas.releasePointerCapture(event.pointerId);
     }
 
     pointerId = undefined;
     horizontalDrag = false;
+
+    if (shouldPersist) {
+      persistViewSettings();
+    }
   }
 
   canvas.addEventListener("pointerup", finishPointer);
