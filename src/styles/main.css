@@ -16,6 +16,8 @@
 
 html {
   min-width: 0;
+  overflow-x: hidden;
+  overflow-x: clip;
   background: #eef4f0;
 }
 
@@ -24,6 +26,8 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 button,
@@ -34,7 +38,14 @@ select {
 }
 
 button {
+  min-height: 2.75rem;
   touch-action: manipulation;
+}
+
+input[type="range"],
+input[type="file"],
+select {
+  min-height: 2.75rem;
 }
 
 .app-shell {
@@ -245,7 +256,10 @@ button {
 
 .json-editor:focus,
 .button:focus-visible,
-.file-input:focus-visible {
+.file-input:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 3px solid #80b89c;
   outline-offset: 2px;
 }
@@ -309,7 +323,7 @@ button {
 
 .button--small {
   flex: 0 0 auto;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   font-size: 0.9rem;
 }
 
@@ -330,6 +344,10 @@ button {
   flex-wrap: wrap;
   grid-column: 1 / -1;
   gap: 0.75rem;
+}
+
+.playback-controls__buttons .button {
+  flex: 1 1 9rem;
 }
 
 .playback-control {
@@ -356,11 +374,12 @@ button {
   grid-column: 1 / -1;
   width: 100%;
   max-width: 100%;
+  min-height: 2.75rem;
 }
 
 .playback-control__checkbox {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 2.75rem;
+  height: 2.75rem;
   justify-self: start;
 }
 
@@ -368,7 +387,7 @@ button {
   grid-column: 1 / -1;
   width: 100%;
   max-width: 100%;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.4rem 0.6rem;
   color: #17201c;
   background: #ffffff;
@@ -477,6 +496,7 @@ button {
   grid-column: 1 / -1;
   width: 100%;
   max-width: 100%;
+  min-height: 2.75rem;
 }
 
 .vertical-control .button {
@@ -626,6 +646,7 @@ button {
   grid-column: 1 / -1;
   width: 100%;
   max-width: 100%;
+  min-height: 2.75rem;
 }
 
 .horizontal-control .button {
@@ -786,8 +807,23 @@ button {
 }
 
 @media (max-width: 700px) {
+  .app-shell {
+    padding:
+      max(0.75rem, env(safe-area-inset-top))
+      max(0.75rem, env(safe-area-inset-right))
+      max(1.25rem, env(safe-area-inset-bottom))
+      max(0.75rem, env(safe-area-inset-left));
+  }
+
+  .app-header,
+  .section-card {
+    padding: clamp(1rem, 4vw, 1.25rem);
+    border-radius: 0.85rem;
+  }
+
   .load-layout {
     grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .section-card--editor,
@@ -834,10 +870,11 @@ button {
 
   .playback-controls {
     grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .playback-controls__buttons .button {
-    flex: 1 1 8rem;
+    flex: 1 1 8.5rem;
   }
 
   .horizontal-controls {
@@ -860,5 +897,89 @@ button {
   .horizontal-canvas-wrap {
     height: min(56vh, 30rem);
     min-height: 19rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header__title {
+    font-size: clamp(1.75rem, 12vw, 2.5rem);
+  }
+
+  .json-editor {
+    min-height: min(22rem, 52vh);
+    padding: 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .playback-control,
+  .vertical-control,
+  .horizontal-control {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.85rem;
+  }
+
+  .playback-control__value,
+  .vertical-control__value,
+  .horizontal-control__value {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .vertical-header,
+  .vertical-playback-controls,
+  .vertical-controls {
+    width: min(calc(100% - 1rem), 74.5rem);
+    padding: 1rem;
+    border-radius: 0.85rem;
+  }
+
+  .vertical-preview__title,
+  .vertical-preview__help {
+    width: min(calc(100% - 1rem), 74.5rem);
+    padding-inline: 1rem;
+  }
+
+  .horizontal-screen {
+    padding:
+      max(0.75rem, env(safe-area-inset-top))
+      max(0.75rem, env(safe-area-inset-right))
+      max(1.25rem, env(safe-area-inset-bottom))
+      max(0.75rem, env(safe-area-inset-left));
+  }
+
+  .horizontal-header,
+  .horizontal-playback-controls,
+  .horizontal-controls,
+  .horizontal-preview {
+    padding: 1rem;
+    border-radius: 0.85rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .vertical-screen,
+  .horizontal-screen {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .vertical-header,
+  .vertical-playback-controls,
+  .vertical-controls,
+  .horizontal-header,
+  .horizontal-playback-controls,
+  .horizontal-controls,
+  .horizontal-preview {
+    padding: 0.85rem;
+  }
+
+  .vertical-canvas-wrap {
+    height: min(58vh, 20rem);
+    min-height: 14rem;
+  }
+
+  .horizontal-canvas-wrap {
+    height: min(54vh, 18rem);
+    min-height: 13rem;
   }
 }
