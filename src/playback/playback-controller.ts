@@ -66,6 +66,7 @@ export class PlaybackController {
   }
 
   start(): PlaybackState {
+    const nowMs = this.now();
     const shouldUsePrecount =
       (this.state.status === "stopped" || this.state.status === "ended") &&
       this.state.precountMeasures > 0;
@@ -76,10 +77,10 @@ export class PlaybackController {
 
     if (this.state.status === "precount") {
       this.precountAnchorElapsedBeats = this.state.precountElapsedBeats;
-      this.precountAnchorTimeMs = this.now();
+      this.precountAnchorTimeMs = nowMs;
     } else {
       this.anchorBeat = this.state.currentBeat;
-      this.anchorTimeMs = this.now();
+      this.anchorTimeMs = nowMs;
     }
 
     this.syncMetronome();
@@ -88,19 +89,21 @@ export class PlaybackController {
   }
 
   pause(): PlaybackState {
-    this.tick();
+    const nowMs = this.now();
+    this.tick(nowMs);
     this.state = pausePlaybackState(this.state);
     this.anchorBeat = this.state.currentBeat;
-    this.anchorTimeMs = this.now();
+    this.anchorTimeMs = nowMs;
     this.stopMetronome();
     this.emit();
     return this.state;
   }
 
   resetToStart(): PlaybackState {
+    const nowMs = this.now();
     this.state = resetPlaybackState(this.state);
     this.anchorBeat = 0;
-    this.anchorTimeMs = this.now();
+    this.anchorTimeMs = nowMs;
     this.precountAnchorElapsedBeats = 0;
     this.precountAnchorTimeMs = this.anchorTimeMs;
     this.stopMetronome();
@@ -109,9 +112,10 @@ export class PlaybackController {
   }
 
   seek(beat: number): PlaybackState {
+    const nowMs = this.now();
     this.state = seekPlaybackState(this.state, beat);
     this.anchorBeat = this.state.currentBeat;
-    this.anchorTimeMs = this.now();
+    this.anchorTimeMs = nowMs;
     this.precountAnchorElapsedBeats = 0;
     this.precountAnchorTimeMs = this.anchorTimeMs;
     this.syncMetronome();
@@ -120,10 +124,11 @@ export class PlaybackController {
   }
 
   setPlaybackRate(playbackRate: number): PlaybackState {
-    this.tick();
+    const nowMs = this.now();
+    this.tick(nowMs);
     this.state = setPlaybackRateState(this.state, playbackRate);
     this.anchorBeat = this.state.currentBeat;
-    this.anchorTimeMs = this.now();
+    this.anchorTimeMs = nowMs;
     this.precountAnchorElapsedBeats = this.state.precountElapsedBeats;
     this.precountAnchorTimeMs = this.anchorTimeMs;
     this.syncMetronome();
@@ -132,6 +137,7 @@ export class PlaybackController {
   }
 
   setMetronomeEnabled(enabled: boolean): PlaybackState {
+    this.tick(this.now());
     this.state = setMetronomeEnabledState(this.state, enabled);
     this.syncMetronome();
     this.emit();
@@ -139,6 +145,7 @@ export class PlaybackController {
   }
 
   setMetronomeVolume(volume: number): PlaybackState {
+    this.tick(this.now());
     this.state = setMetronomeVolumeState(this.state, volume);
     this.syncMetronome();
     this.emit();

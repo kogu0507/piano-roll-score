@@ -74,12 +74,23 @@ test("横表示画面に曲名、説明、Canvasを表示する", async ({ page 
 test("横表示でスタートと一時停止ができる", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
   const canvas = getHorizontalCanvas(page);
+  const speedInput = page.getByLabel("再生速度");
 
+  await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
     .toBeGreaterThan(0);
+
+  await speedInput.fill("2");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "2.0");
+  const beatAfterRateChange = Number(
+    await canvas.getAttribute("data-current-beat"),
+  );
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(beatAfterRateChange + 0.2);
 
   await page.getByRole("button", { name: "一時停止" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "paused");

@@ -192,6 +192,44 @@ describe("共通タイムライン", () => {
     );
   });
 
+  it("再生速度変更時は画面位置とメトロノーム次拍を同じ基準時刻から計算する", () => {
+    let now = 0;
+    const nowCalls: number[] = [];
+    const metronome = new FakeMetronome();
+    const controller = new PlaybackController(
+      timelineSong,
+      () => {
+        nowCalls.push(now);
+        return now;
+      },
+      metronome,
+    );
+
+    controller.setMetronomeEnabled(true);
+    controller.start();
+    now = 250;
+    const callsBeforeRateChange = nowCalls.length;
+    controller.setPlaybackRate(2);
+
+    const rateChangeCallCount = nowCalls.length - callsBeforeRateChange;
+    const latestMetronomeStart = metronome.starts.at(-1);
+
+    expect(rateChangeCallCount).toBe(1);
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "playing",
+      currentBeat: 0.5,
+      playbackRate: 2,
+    });
+    expect(latestMetronomeStart).toMatchObject({
+      playbackRate: 2,
+      startBeatIndex: 1,
+    });
+    expect(latestMetronomeStart?.startDelaySeconds).toBeCloseTo(0.125);
+
+    controller.tick(375);
+    expect(controller.getSnapshot().currentBeat).toBeCloseTo(1);
+  });
+
   it("コントローラはプリカウント中にcurrentBeatを進めず、予約音を停止できる", () => {
     let now = 0;
     const metronome = new FakeMetronome();

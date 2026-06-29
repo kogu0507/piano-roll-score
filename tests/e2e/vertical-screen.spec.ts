@@ -70,11 +70,21 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
   await expect(canvas).toHaveAttribute("data-end-beat", "5.00");
 
+  await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
     .toBeGreaterThan(0);
+
+  await speedInput.fill("2");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "2.0");
+  const beatAfterRateChange = Number(
+    await canvas.getAttribute("data-current-beat"),
+  );
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(beatAfterRateChange + 0.2);
 
   await page.getByRole("button", { name: "一時停止" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "paused");
