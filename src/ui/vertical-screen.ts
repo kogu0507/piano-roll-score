@@ -261,7 +261,10 @@ export function mountVerticalScreen(
     canvas.dataset.playbackStatus = playbackState.status;
     drawVerticalScene(context, scene);
 
-    if (playbackState.status === "playing") {
+    if (
+      playbackState.status === "playing" ||
+      playbackState.status === "precount"
+    ) {
       scheduleRender();
     }
   }

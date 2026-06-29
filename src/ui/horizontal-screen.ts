@@ -242,7 +242,10 @@ export function mountHorizontalScreen(
     canvas.dataset.playbackStatus = playbackState.status;
     drawHorizontalScene(context, scene);
 
-    if (playbackState.status === "playing") {
+    if (
+      playbackState.status === "playing" ||
+      playbackState.status === "precount"
+    ) {
       scheduleRender();
     }
   }

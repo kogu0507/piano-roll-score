@@ -2,6 +2,7 @@ import { mountLoadScreen } from "./ui/load-screen";
 import { mountHorizontalScreen } from "./ui/horizontal-screen";
 import { mountVerticalScreen } from "./ui/vertical-screen";
 import { PlaybackController } from "./playback/playback-controller";
+import { WebAudioMetronome } from "./audio/metronome";
 import type { Song } from "./types/song";
 
 export async function mountApp(
@@ -12,7 +13,11 @@ export async function mountApp(
   function mountVerticalPreview(
     song: Song,
     returnToLoadScreen: () => void,
-    playbackController = new PlaybackController(song),
+    playbackController = new PlaybackController(
+      song,
+      undefined,
+      new WebAudioMetronome(),
+    ),
   ): void {
     mountVerticalScreen(
       root,
@@ -28,7 +33,11 @@ export async function mountApp(
   function mountHorizontalPreview(
     song: Song,
     returnToLoadScreen: () => void,
-    playbackController = new PlaybackController(song),
+    playbackController = new PlaybackController(
+      song,
+      undefined,
+      new WebAudioMetronome(),
+    ),
   ): void {
     mountHorizontalScreen(
       root,

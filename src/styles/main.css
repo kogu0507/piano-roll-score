@@ -300,6 +300,24 @@ button {
   max-width: 100%;
 }
 
+.playback-control__checkbox {
+  width: 1.35rem;
+  height: 1.35rem;
+  justify-self: start;
+}
+
+.playback-control__select {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  color: #17201c;
+  background: #ffffff;
+  border: 1px solid #aebdb4;
+  border-radius: 0.55rem;
+}
+
 .playback-controls__status {
   grid-column: 1 / -1;
   margin: 0;

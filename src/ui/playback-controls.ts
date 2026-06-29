@@ -4,6 +4,11 @@ import {
   formatBeat,
   type PlaybackState,
 } from "../core/timeline";
+import {
+  DEFAULT_METRONOME_VOLUME,
+  MAX_METRONOME_VOLUME,
+  MIN_METRONOME_VOLUME,
+} from "../core/metronome-timing";
 import type { PlaybackController } from "../playback/playback-controller";
 
 export interface PlaybackControlsMount {
@@ -38,6 +43,8 @@ function formatStatus(status: PlaybackState["status"]): string {
   switch (status) {
     case "stopped":
       return "停止中";
+    case "precount":
+      return "プリカウント中";
     case "playing":
       return "再生中";
     case "paused":
@@ -45,6 +52,14 @@ function formatStatus(status: PlaybackState["status"]): string {
     case "ended":
       return "終了";
   }
+}
+
+function formatDetailedStatus(state: PlaybackState): string {
+  if (state.status === "precount") {
+    return `状態: プリカウント中（残り${state.precountRemainingBeats}拍）`;
+  }
+
+  return `状態: ${formatStatus(state.status)}`;
 }
 
 export function mountPlaybackControls(
@@ -74,6 +89,34 @@ export function mountPlaybackControls(
   const speedValue = document.createElement("span");
   const speedOutput = document.createElement("output");
   const speedInput = document.createElement("input");
+  const metronomeGroup = document.createElement("div");
+  const metronomeLabel = createTextElement(
+    "label",
+    "playback-control__label",
+    "メトロノーム",
+  );
+  const metronomeInput = document.createElement("input");
+  const metronomeState = createTextElement(
+    "span",
+    "playback-control__value",
+    "OFF",
+  );
+  const volumeGroup = document.createElement("div");
+  const volumeLabel = createTextElement(
+    "label",
+    "playback-control__label",
+    "メトロノーム音量",
+  );
+  const volumeValue = document.createElement("span");
+  const volumeOutput = document.createElement("output");
+  const volumeInput = document.createElement("input");
+  const precountGroup = document.createElement("div");
+  const precountLabel = createTextElement(
+    "label",
+    "playback-control__label",
+    "プリカウント",
+  );
+  const precountSelect = document.createElement("select");
   const status = createTextElement(
     "p",
     "playback-controls__status",
@@ -111,7 +154,52 @@ export function mountPlaybackControls(
   speedGroup.className = "playback-control playback-control--speed";
   speedGroup.append(speedLabel, speedValue, speedInput);
 
-  section.append(buttons, seekGroup, speedGroup, status);
+  metronomeInput.id = `${className}-metronome`;
+  metronomeInput.type = "checkbox";
+  metronomeInput.className = "playback-control__checkbox";
+  metronomeLabel.htmlFor = metronomeInput.id;
+  metronomeGroup.className = "playback-control playback-control--metronome";
+  metronomeGroup.append(metronomeLabel, metronomeState, metronomeInput);
+
+  volumeInput.id = `${className}-metronome-volume`;
+  volumeInput.type = "range";
+  volumeInput.min = String(MIN_METRONOME_VOLUME * 100);
+  volumeInput.max = String(MAX_METRONOME_VOLUME * 100);
+  volumeInput.step = "1";
+  volumeInput.value = String(Math.round(DEFAULT_METRONOME_VOLUME * 100));
+  volumeInput.className = "playback-control__range";
+  volumeLabel.htmlFor = volumeInput.id;
+  volumeOutput.htmlFor = volumeInput.id;
+  volumeValue.className = "playback-control__value";
+  volumeValue.append(volumeOutput, document.createTextNode(" %"));
+  volumeGroup.className = "playback-control playback-control--volume";
+  volumeGroup.append(volumeLabel, volumeValue, volumeInput);
+
+  precountSelect.id = `${className}-precount`;
+  precountSelect.className = "playback-control__select";
+  [
+    ["0", "なし"],
+    ["1", "1小節"],
+    ["2", "2小節"],
+  ].forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    precountSelect.append(option);
+  });
+  precountLabel.htmlFor = precountSelect.id;
+  precountGroup.className = "playback-control playback-control--precount";
+  precountGroup.append(precountLabel, precountSelect);
+
+  section.append(
+    buttons,
+    seekGroup,
+    speedGroup,
+    metronomeGroup,
+    volumeGroup,
+    precountGroup,
+    status,
+  );
 
   function update(state: PlaybackState): void {
     const currentBeatText = formatBeat(state.currentBeat);
@@ -122,8 +210,18 @@ export function mountPlaybackControls(
     section.dataset.currentBeat = currentBeatText;
     section.dataset.endBeat = endBeatText;
     section.dataset.playbackRate = playbackRateText;
-    startButton.disabled = state.status === "playing";
-    pauseButton.disabled = state.status !== "playing";
+    section.dataset.metronomeEnabled = String(state.metronomeEnabled);
+    section.dataset.metronomeVolume = String(
+      Math.round(state.metronomeVolume * 100),
+    );
+    section.dataset.precountMeasures = String(state.precountMeasures);
+    section.dataset.precountRemainingBeats = String(
+      state.precountRemainingBeats,
+    );
+    startButton.disabled =
+      state.status === "playing" || state.status === "precount";
+    pauseButton.disabled =
+      state.status !== "playing" && state.status !== "precount";
     seekInput.max = endBeatText;
     seekInput.value = currentBeatText;
     seekOutput.value = `${currentBeatText} / ${endBeatText} 拍`;
@@ -131,7 +229,13 @@ export function mountPlaybackControls(
     speedInput.value = playbackRateText;
     speedOutput.value = playbackRateText;
     speedOutput.textContent = playbackRateText;
-    status.textContent = `状態: ${formatStatus(state.status)}`;
+    metronomeInput.checked = state.metronomeEnabled;
+    metronomeState.textContent = state.metronomeEnabled ? "ON" : "OFF";
+    volumeInput.value = String(Math.round(state.metronomeVolume * 100));
+    volumeOutput.value = String(Math.round(state.metronomeVolume * 100));
+    volumeOutput.textContent = String(Math.round(state.metronomeVolume * 100));
+    precountSelect.value = String(state.precountMeasures);
+    status.textContent = formatDetailedStatus(state);
   }
 
   const unsubscribe = controller.subscribe(update);
@@ -154,6 +258,18 @@ export function mountPlaybackControls(
 
   speedInput.addEventListener("input", () => {
     controller.setPlaybackRate(Number(speedInput.value));
+  });
+
+  metronomeInput.addEventListener("change", () => {
+    controller.setMetronomeEnabled(metronomeInput.checked);
+  });
+
+  volumeInput.addEventListener("input", () => {
+    controller.setMetronomeVolume(Number(volumeInput.value) / 100);
+  });
+
+  precountSelect.addEventListener("change", () => {
+    controller.setPrecountMeasures(Number(precountSelect.value));
   });
 
   return {

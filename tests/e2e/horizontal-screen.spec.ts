@@ -132,6 +132,15 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
 test("縦表示と横表示を相互に切り替えられる", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
   const seekInput = page.getByLabel("曲の現在位置");
+  const playbackControls = page.locator(".playback-controls");
+
+  await page.getByRole("checkbox", { name: "メトロノーム" }).check();
+  await page.getByLabel("メトロノーム音量").fill("42");
+  await page.getByLabel("プリカウント").selectOption("2");
+  await expect(playbackControls).toHaveAttribute(
+    "data-metronome-enabled",
+    "true",
+  );
   await seekInput.fill("1.25");
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-current-beat",
@@ -148,6 +157,14 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
     "data-current-beat",
     "1.25",
   );
+  await expect(page.locator(".playback-controls")).toHaveAttribute(
+    "data-precount-measures",
+    "2",
+  );
+  await expect(page.locator(".playback-controls")).toHaveAttribute(
+    "data-metronome-volume",
+    "42",
+  );
 
   await page.getByRole("button", { name: "横表示へ切り替え" }).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
@@ -158,6 +175,10 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-current-beat",
     "1.25",
+  );
+  await expect(page.locator(".playback-controls")).toHaveAttribute(
+    "data-metronome-enabled",
+    "true",
   );
   await expectNoHorizontalOverflow(page);
 });

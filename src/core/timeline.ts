@@ -1,16 +1,34 @@
+import {
+  DEFAULT_METRONOME_VOLUME,
+  calculatePrecountBeats,
+  normalizeMetronomeVolume,
+  normalizePrecountMeasures,
+  type PrecountMeasures,
+} from "./metronome-timing";
 import type { Song } from "../schema/song-schema";
 
 export const MIN_PLAYBACK_RATE = 0.5;
 export const MAX_PLAYBACK_RATE = 2;
 export const DEFAULT_PLAYBACK_RATE = 1;
 
-export type PlaybackStatus = "stopped" | "playing" | "paused" | "ended";
+export type PlaybackStatus =
+  | "stopped"
+  | "precount"
+  | "playing"
+  | "paused"
+  | "ended";
 
 export interface PlaybackState {
   readonly status: PlaybackStatus;
   readonly currentBeat: number;
   readonly endBeat: number;
   readonly playbackRate: number;
+  readonly metronomeEnabled: boolean;
+  readonly metronomeVolume: number;
+  readonly precountMeasures: PrecountMeasures;
+  readonly precountTotalBeats: number;
+  readonly precountRemainingBeats: number;
+  readonly precountElapsedBeats: number;
 }
 
 export function calculateSongEndBeat(song: Song): number {
@@ -74,6 +92,12 @@ export function createInitialPlaybackState(song: Song): PlaybackState {
     currentBeat: 0,
     endBeat: calculateSongEndBeat(song),
     playbackRate: DEFAULT_PLAYBACK_RATE,
+    metronomeEnabled: false,
+    metronomeVolume: DEFAULT_METRONOME_VOLUME,
+    precountMeasures: 0,
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
@@ -85,11 +109,14 @@ export function startPlaybackState(state: PlaybackState): PlaybackState {
     ...state,
     status: "playing",
     currentBeat: shouldRestart ? 0 : clampBeat(state.currentBeat, state.endBeat),
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
 export function pausePlaybackState(state: PlaybackState): PlaybackState {
-  if (state.status !== "playing") {
+  if (state.status !== "playing" && state.status !== "precount") {
     return state;
   }
 
@@ -97,6 +124,9 @@ export function pausePlaybackState(state: PlaybackState): PlaybackState {
     ...state,
     status: "paused",
     currentBeat: clampBeat(state.currentBeat, state.endBeat),
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
@@ -105,6 +135,9 @@ export function resetPlaybackState(state: PlaybackState): PlaybackState {
     ...state,
     status: "stopped",
     currentBeat: 0,
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
@@ -113,6 +146,9 @@ export function finishPlaybackState(state: PlaybackState): PlaybackState {
     ...state,
     status: "ended",
     currentBeat: state.endBeat,
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
@@ -127,6 +163,9 @@ export function seekPlaybackState(
       ...state,
       status: "ended",
       currentBeat,
+      precountTotalBeats: 0,
+      precountRemainingBeats: 0,
+      precountElapsedBeats: 0,
     };
   }
 
@@ -141,6 +180,9 @@ export function seekPlaybackState(
     ...state,
     status,
     currentBeat,
+    precountTotalBeats: 0,
+    precountRemainingBeats: 0,
+    precountElapsedBeats: 0,
   };
 }
 
@@ -151,6 +193,94 @@ export function setPlaybackRateState(
   return {
     ...state,
     playbackRate: normalizePlaybackRate(playbackRate),
+  };
+}
+
+export function setMetronomeEnabledState(
+  state: PlaybackState,
+  enabled: boolean,
+): PlaybackState {
+  return {
+    ...state,
+    metronomeEnabled: enabled,
+  };
+}
+
+export function setMetronomeVolumeState(
+  state: PlaybackState,
+  volume: number,
+): PlaybackState {
+  return {
+    ...state,
+    metronomeVolume: normalizeMetronomeVolume(volume),
+  };
+}
+
+export function setPrecountMeasuresState(
+  state: PlaybackState,
+  measures: number,
+): PlaybackState {
+  return {
+    ...state,
+    precountMeasures: normalizePrecountMeasures(measures),
+  };
+}
+
+export function startPrecountPlaybackState(
+  state: PlaybackState,
+  numerator: number,
+): PlaybackState {
+  const startState =
+    state.status === "ended" || state.currentBeat >= state.endBeat
+      ? { ...state, currentBeat: 0 }
+      : state;
+  const precountTotalBeats = calculatePrecountBeats(
+    numerator,
+    startState.precountMeasures,
+  );
+
+  if (precountTotalBeats <= 0) {
+    return startPlaybackState(startState);
+  }
+
+  return {
+    ...startState,
+    status: "precount",
+    precountTotalBeats,
+    precountRemainingBeats: precountTotalBeats,
+    precountElapsedBeats: 0,
+  };
+}
+
+export function updatePrecountPlaybackState(
+  state: PlaybackState,
+  elapsedBeats: number,
+): PlaybackState {
+  if (state.status !== "precount") {
+    return state;
+  }
+
+  const normalizedElapsedBeats = Math.min(
+    state.precountTotalBeats,
+    Math.max(0, elapsedBeats),
+  );
+
+  if (normalizedElapsedBeats >= state.precountTotalBeats) {
+    return startPlaybackState({
+      ...state,
+      status: "paused",
+      precountTotalBeats: 0,
+      precountRemainingBeats: 0,
+      precountElapsedBeats: 0,
+    });
+  }
+
+  const completedBeats = Math.floor(normalizedElapsedBeats);
+
+  return {
+    ...state,
+    precountElapsedBeats: normalizedElapsedBeats,
+    precountRemainingBeats: state.precountTotalBeats - completedBeats,
   };
 }
 

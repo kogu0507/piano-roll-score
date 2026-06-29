@@ -91,6 +91,54 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expectNoHorizontalOverflow(page);
 });
 
+test("メトロノーム、音量、プリカウントを操作できる", async ({ page }) => {
+  await openBuiltinPreview(page);
+  const canvas = getCanvas(page);
+  const playbackControls = page.locator(".playback-controls");
+
+  await page.getByRole("checkbox", { name: "メトロノーム" }).check();
+  await expect(playbackControls).toHaveAttribute(
+    "data-metronome-enabled",
+    "true",
+  );
+
+  await page.getByLabel("メトロノーム音量").fill("35");
+  await expect(playbackControls).toHaveAttribute(
+    "data-metronome-volume",
+    "35",
+  );
+
+  await page.getByLabel("プリカウント").selectOption("1");
+  await expect(playbackControls).toHaveAttribute(
+    "data-precount-measures",
+    "1",
+  );
+  await page.getByLabel("再生速度").fill("2");
+
+  await page.getByRole("button", { name: "スタート" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "precount");
+  await expect(playbackControls).toHaveAttribute(
+    "data-precount-remaining-beats",
+    /[1-4]/,
+  );
+
+  await page.waitForTimeout(250);
+  await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+
+  await expect
+    .poll(() => canvas.getAttribute("data-playback-status"), {
+      timeout: 4000,
+    })
+    .toBe("playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "paused");
+  await expectNoHorizontalOverflow(page);
+});
+
 test("白鍵幅、横位置、画面幅合わせ、中央配置を操作できる", async ({
   page,
 }) => {

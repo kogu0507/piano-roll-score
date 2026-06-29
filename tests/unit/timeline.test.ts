@@ -11,8 +11,15 @@ import {
   pausePlaybackState,
   resetPlaybackState,
   seekPlaybackState,
+  setPrecountMeasuresState,
+  startPrecountPlaybackState,
   startPlaybackState,
+  updatePrecountPlaybackState,
 } from "../../src/core/timeline";
+import type {
+  MetronomePlaybackConfig,
+  MetronomeScheduler,
+} from "../../src/audio/metronome";
 import { PlaybackController } from "../../src/playback/playback-controller";
 import type { Song } from "../../src/schema/song-schema";
 
@@ -55,6 +62,19 @@ const timelineSong: Song = {
     },
   ],
 };
+
+class FakeMetronome implements MetronomeScheduler {
+  readonly starts: MetronomePlaybackConfig[] = [];
+  stopCount = 0;
+
+  start(config: MetronomePlaybackConfig): void {
+    this.starts.push(config);
+  }
+
+  stop(): void {
+    this.stopCount += 1;
+  }
+}
 
 describe("共通タイムライン", () => {
   it("音符のtime+duration最大値から曲の終端拍を計算する", () => {
@@ -114,6 +134,34 @@ describe("共通タイムライン", () => {
     });
   });
 
+  it("プリカウント開始、完了、再生開始の状態遷移を計算する", () => {
+    const initial = setPrecountMeasuresState(
+      createInitialPlaybackState(timelineSong),
+      1,
+    );
+    const precount = startPrecountPlaybackState(initial, 4);
+    const counting = updatePrecountPlaybackState(precount, 1.25);
+    const playing = updatePrecountPlaybackState(counting, 4);
+
+    expect(precount).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+      precountTotalBeats: 4,
+      precountRemainingBeats: 4,
+    });
+    expect(counting).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+      precountRemainingBeats: 3,
+    });
+    expect(playing).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+      precountTotalBeats: 0,
+      precountRemainingBeats: 0,
+    });
+  });
+
   it("コントローラは経過時間から再生し、速度変更と非表示時一時停止を反映する", () => {
     let now = 0;
     const controller = new PlaybackController(timelineSong, () => now);
@@ -142,5 +190,57 @@ describe("共通タイムライン", () => {
     expect(snapshots.some((snapshot) => snapshot.startsWith("playing:"))).toBe(
       true,
     );
+  });
+
+  it("コントローラはプリカウント中にcurrentBeatを進めず、予約音を停止できる", () => {
+    let now = 0;
+    const metronome = new FakeMetronome();
+    const controller = new PlaybackController(
+      timelineSong,
+      () => now,
+      metronome,
+    );
+
+    controller.setMetronomeEnabled(true);
+    controller.setPrecountMeasures(1);
+    controller.start();
+    now = 500;
+    controller.tick();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+      precountRemainingBeats: 3,
+    });
+    expect(metronome.starts.at(-1)).toMatchObject({
+      enabled: true,
+      startBeatIndex: 0,
+      maxBeatCount: 4,
+    });
+
+    now = 2000;
+    controller.tick();
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+    });
+
+    now = 2500;
+    controller.tick();
+    expect(controller.getSnapshot().currentBeat).toBe(1);
+
+    controller.seek(1.5);
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "playing",
+      currentBeat: 1.5,
+    });
+    expect(metronome.stopCount).toBeGreaterThan(0);
+
+    controller.resetToStart();
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "stopped",
+      currentBeat: 0,
+    });
+    expect(metronome.stopCount).toBeGreaterThan(1);
   });
 });
