@@ -172,14 +172,24 @@ async function openPlaybackSettings(page: Page): Promise<void> {
     await menu.locator(":scope > summary").click();
   }
 
-  const details = page.locator("details.playback-controls__secondary");
-  const isOpen = await details.evaluate(
+  await expect(page.locator(".playback-controls__secondary")).toBeVisible();
+}
+
+async function openDisplayAdjustmentMode(page: Page): Promise<void> {
+  const menu = page.locator("details.practice-menu");
+  const menuIsOpen = await menu.evaluate(
     (element) => (element as HTMLDetailsElement).open,
   );
 
-  if (!isOpen) {
-    await details.locator(":scope > summary").click();
+  if (!menuIsOpen) {
+    await menu.locator(":scope > summary").click();
   }
+
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "adjustment",
+  );
 }
 
 async function closePracticeMenu(page: Page): Promise<void> {
@@ -234,6 +244,7 @@ test("縦表示はスマートフォン縦横とタブレット幅で操作で�
   const canvas = getVerticalCanvas(page);
   const portraitCssWidth = await canvas.getAttribute("data-css-width");
 
+  await openDisplayAdjustmentMode(page);
   await page.getByLabel("白鍵1鍵の幅").fill("112");
   await expect(canvas).toHaveAttribute("data-white-key-width", "112");
   await page.getByLabel("譜面の横位置").fill("8");
@@ -241,6 +252,7 @@ test("縦表示はスマートフォン縦横とタブレット幅で操作で�
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await closePracticeMenu(page);
+  await page.getByRole("button", { name: "表示調整を閉じる" }).click();
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
   await expectAccessibleAndTouchable(page);
@@ -250,6 +262,7 @@ test("縦表示はスマートフォン縦横とタブレット幅で操作で�
   await expect
     .poll(() => canvas.getAttribute("data-css-width"))
     .not.toBe(portraitCssWidth);
+  await openDisplayAdjustmentMode(page);
   await page.getByRole("button", { name: "画面幅に合わせる" }).click();
   await expectAccessibleAndTouchable(page);
   await expectNoHorizontalOverflow(page);
@@ -271,12 +284,13 @@ test("横表示はスマートフォン縦横とタブレット幅で操作で�
   const canvas = getHorizontalCanvas(page);
   const portraitCssWidth = await canvas.getAttribute("data-css-width");
 
+  await openDisplayAdjustmentMode(page);
   await page.getByLabel("五線の1間の幅").fill("28");
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "28");
   await page.getByLabel("譜面の縦位置").fill("18");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
   await openPlaybackSettings(page);
-  await page.getByLabel("再生速度").fill("1.2");
+  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("1.2");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.2");
   await closePracticeMenu(page);
   await expectAccessibleAndTouchable(page);

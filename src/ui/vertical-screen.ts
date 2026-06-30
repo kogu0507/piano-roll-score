@@ -63,11 +63,12 @@ export function mountVerticalScreen(
   const main = document.createElement("main");
   const header = document.createElement("header");
   const navigation = document.createElement("div");
-  const switchButton = createButton(
-    "横表示へ切り替え",
-    "button button--primary button--view-switch",
+  const adjustmentPanel = document.createElement("section");
+  const adjustmentHeader = document.createElement("div");
+  const closeAdjustmentButton = createButton(
+    "表示調整を閉じる",
+    "button button--secondary",
   );
-  const bottomBar = document.createElement("section");
   const controls = document.createElement("section");
   const canvasSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -93,25 +94,11 @@ export function mountVerticalScreen(
     initialized: screenOptions.initialSettings !== undefined,
   };
 
-  main.className = "practice-screen vertical-screen";
+  main.className = "practice-screen practice-screen--normal vertical-screen";
+  main.dataset.practiceMode = "practice";
   header.className = "practice-topbar vertical-header";
   navigation.className = "practice-topbar__actions screen-navigation";
-
-  if (switchToHorizontal !== undefined) {
-    navigation.append(switchButton);
-  }
-
-  header.append(
-    createTextElement(
-      "h1",
-      "practice-topbar__title vertical-header__title",
-      song.title,
-    ),
-    navigation,
-  );
-
-  bottomBar.className = "practice-bottom-bar vertical-bottom-bar";
-  bottomBar.setAttribute("aria-label", "練習中によく使う操作");
+  header.append(playbackControls.element, navigation);
 
   controls.className = "vertical-controls";
   controls.setAttribute("aria-label", "鍵盤位置調整");
@@ -180,6 +167,20 @@ export function mountVerticalScreen(
 
   controls.append(widthGroup, offsetGroup);
 
+  adjustmentPanel.className =
+    "practice-adjustment-panel vertical-adjustment-panel";
+  adjustmentPanel.setAttribute("aria-label", "縦表示の表示調整モード");
+  adjustmentHeader.className = "practice-adjustment-panel__header";
+  adjustmentHeader.append(
+    createTextElement(
+      "h2",
+      "practice-adjustment-panel__title",
+      "表示調整モード",
+    ),
+    closeAdjustmentButton,
+  );
+  adjustmentPanel.append(adjustmentHeader, controls);
+
   navigation.append(
     createPracticeMenu({
       song,
@@ -187,14 +188,24 @@ export function mountVerticalScreen(
         "音符ブロックが上から下へ流れる縦表示です。薄い帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。Canvasを横へドラッグして位置を微調整できます。",
       playbackSettingsElement: playbackControls.settingsElement,
       legend,
+      switchViewLabel:
+        switchToHorizontal === undefined ? undefined : "横表示へ切り替え",
+      onOpenDisplayAdjustment: () => {
+        setPracticeMode("adjustment");
+      },
+      onSwitchView:
+        switchToHorizontal === undefined
+          ? undefined
+          : () => {
+              cleanup();
+              switchToHorizontal();
+            },
       onReturnToLoadScreen: () => {
         cleanup();
         returnToLoadScreen();
       },
     }),
   );
-
-  bottomBar.append(playbackControls.element, controls);
 
   canvasSection.className = "practice-canvas-region vertical-preview";
   canvasSection.setAttribute("aria-label", "縦表示Canvas");
@@ -208,10 +219,20 @@ export function mountVerticalScreen(
   canvasWrap.append(canvas);
   canvasSection.append(canvasWrap);
 
-  main.append(header, canvasSection, bottomBar);
+  main.append(header, playbackControls.seekElement, adjustmentPanel, canvasSection);
   root.replaceChildren(main);
 
   let frameId = 0;
+
+  function setPracticeMode(mode: "practice" | "adjustment"): void {
+    main.dataset.practiceMode = mode;
+    main.classList.toggle("practice-screen--normal", mode === "practice");
+    main.classList.toggle(
+      "practice-screen--adjusting",
+      mode === "adjustment",
+    );
+    scheduleRender();
+  }
 
   function getCanvasSize(): { width: number; height: number } {
     return {
@@ -365,6 +386,9 @@ export function mountVerticalScreen(
 
   fitButton.addEventListener("click", fitToCanvas);
   centerButton.addEventListener("click", centerContent);
+  closeAdjustmentButton.addEventListener("click", () => {
+    setPracticeMode("practice");
+  });
 
   let pointerId: number | undefined;
   let pointerStartX = 0;
@@ -451,15 +475,6 @@ export function mountVerticalScreen(
       window.cancelAnimationFrame(frameId);
     }
   }
-
-  switchButton.addEventListener("click", () => {
-    if (switchToHorizontal === undefined) {
-      return;
-    }
-
-    cleanup();
-    switchToHorizontal();
-  });
 
   scheduleRender();
 }

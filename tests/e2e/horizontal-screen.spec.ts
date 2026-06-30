@@ -34,14 +34,17 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 
 async function openPlaybackSettings(page: Page): Promise<void> {
   await openPracticeMenu(page);
-  const details = page.locator("details.playback-controls__secondary");
-  const isOpen = await details.evaluate(
-    (element) => (element as HTMLDetailsElement).open,
-  );
 
-  if (!isOpen) {
-    await details.locator(":scope > summary").click();
-  }
+  await expect(page.locator(".playback-controls__secondary")).toBeVisible();
+}
+
+async function openDisplayAdjustmentMode(page: Page): Promise<void> {
+  await openPracticeMenu(page);
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "adjustment",
+  );
 }
 
 async function openPracticeMenu(page: Page): Promise<void> {
@@ -88,13 +91,17 @@ test("検証済み楽曲だけ横表示へ進める", async ({ page }) => {
   await expect(getHorizontalPreviewButton(page)).toBeDisabled();
 });
 
-test("横表示画面に曲名、説明、Canvasを表示する", async ({ page }) => {
+test("横表示画面に通常練習モード、曲情報メニュー、Canvasを表示する", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
 
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
+  await expect(page.locator(".practice-seek-row")).toBeVisible();
+  await expect(page.locator(".practice-adjustment-panel")).toBeHidden();
+  await openPracticeMenu(page);
+  await expect(page.getByText("曲情報")).toBeVisible();
+  await expect(page.locator(".practice-menu__facts")).toContainText(
     "ドからソまで",
   );
-  await openPracticeMenu(page);
   await expect(
     page.getByText("音符ブロックが右から左へ流れる横表示です。"),
   ).toBeVisible();
@@ -111,7 +118,7 @@ test("横表示画面に曲名、説明、Canvasを表示する", async ({ page 
 test("横表示でスタートと一時停止ができる", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
   const canvas = getHorizontalCanvas(page);
-  const speedInput = page.getByLabel("再生速度");
+  const speedInput = page.locator("#horizontal-playback-controls-playback-rate");
 
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
@@ -145,7 +152,7 @@ test("横表示でプリカウント中に助走表示が進む", async ({ page 
 
   await openPlaybackSettings(page);
   await page.getByLabel("プリカウント").selectOption("1");
-  await page.getByLabel("再生速度").fill("2");
+  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("2");
   await closePracticeMenu(page);
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
@@ -181,6 +188,7 @@ test("横表示の五線間隔、縦位置、画面高合わせを操作でき�
   page,
 }) => {
   await openBuiltinHorizontalPreview(page);
+  await openDisplayAdjustmentMode(page);
   const canvas = getHorizontalCanvas(page);
   const lineSpacingInput = page.getByLabel("五線の1間の幅");
   const verticalOffsetInput = page.getByLabel("譜面の縦位置");
@@ -241,6 +249,7 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
     "1.25",
   );
 
+  await openPracticeMenu(page);
   await page.getByRole("button", { name: "縦表示へ切り替え" }).click();
   await expect(getVerticalCanvas(page)).toBeVisible();
   await expect(getVerticalCanvas(page)).toHaveAttribute(
@@ -260,6 +269,7 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
     "42",
   );
 
+  await openPracticeMenu(page);
   await page.getByRole("button", { name: "横表示へ切り替え" }).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
@@ -282,6 +292,7 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openBuiltinHorizontalPreview(page);
+  await openDisplayAdjustmentMode(page);
   const canvas = getHorizontalCanvas(page);
   const lineSpacingInput = page.getByLabel("五線の1間の幅");
   const verticalOffsetInput = page.getByLabel("譜面の縦位置");
@@ -291,10 +302,11 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "24");
   await verticalOffsetInput.fill("16");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "16");
+  await page.getByRole("button", { name: "表示調整を閉じる" }).click();
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
   await openPlaybackSettings(page);
-  await page.getByLabel("再生速度").fill("0.8");
+  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("0.8");
   await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
   await closePracticeMenu(page);
   await expectNoHorizontalOverflow(page);
@@ -302,6 +314,7 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await expect
     .poll(() => canvas.getAttribute("data-css-width"))
     .not.toBe(initialCssWidth);
+  await openDisplayAdjustmentMode(page);
 
   const sizes = await canvas.evaluate((element) => {
     const canvasElement = element as HTMLCanvasElement;

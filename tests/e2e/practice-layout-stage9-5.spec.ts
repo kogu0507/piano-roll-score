@@ -45,34 +45,33 @@ async function openPracticeMenu(page: Page): Promise<void> {
   }
 }
 
-async function openPlaybackSettings(page: Page): Promise<void> {
+async function openDisplayAdjustmentMode(page: Page): Promise<void> {
   await openPracticeMenu(page);
-  const settings = page.locator("details.playback-controls__secondary");
-  const isOpen = await settings.evaluate(
-    (element) => (element as HTMLDetailsElement).open,
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "adjustment",
   );
-
-  if (!isOpen) {
-    await settings.locator(":scope > summary").click();
-  }
 }
 
-async function expectPracticeShell(
+async function expectNormalPracticeShell(
   page: Page,
   canvasSelector: string,
 ): Promise<void> {
   const structure = await page.evaluate((selector) => {
     const screen = document.querySelector(".practice-screen");
     const topbar = document.querySelector(".practice-topbar");
+    const seekRow = document.querySelector(".practice-seek-row");
+    const adjustmentPanel = document.querySelector(".practice-adjustment-panel");
     const canvasRegion = document.querySelector(".practice-canvas-region");
-    const bottomBar = document.querySelector(".practice-bottom-bar");
     const canvas = document.querySelector(selector);
 
     if (
       screen === null ||
       topbar === null ||
+      seekRow === null ||
+      adjustmentPanel === null ||
       canvasRegion === null ||
-      bottomBar === null ||
       canvas === null
     ) {
       return null;
@@ -80,125 +79,173 @@ async function expectPracticeShell(
 
     const children = Array.from(screen.children);
     const topbarBounds = topbar.getBoundingClientRect();
+    const seekBounds = seekRow.getBoundingClientRect();
+    const canvasRegionBounds = canvasRegion.getBoundingClientRect();
     const canvasBounds = canvas.getBoundingClientRect();
-    const bottomBounds = bottomBar.getBoundingClientRect();
+    const adjustmentDisplay = window.getComputedStyle(adjustmentPanel).display;
 
     return {
       directChildOrder:
         children[0] === topbar &&
-        children[1] === canvasRegion &&
-        children[2] === bottomBar,
-      topbarAboveCanvas: topbarBounds.bottom <= canvasBounds.top,
-      canvasAboveBottomBar: canvasBounds.bottom <= bottomBounds.top,
-      bottomBarNearViewportBottom:
-        Math.abs(window.innerHeight - bottomBounds.bottom) <= 2,
-      canvasArea: canvasBounds.width * canvasBounds.height,
+        children[1] === seekRow &&
+        children[2] === adjustmentPanel &&
+        children[3] === canvasRegion,
+      mode: (screen as HTMLElement).dataset.practiceMode,
+      topbarAboveSeek: topbarBounds.bottom <= seekBounds.top,
+      seekAboveCanvas: seekBounds.bottom <= canvasBounds.top,
+      canvasNearViewportBottom:
+        Math.abs(window.innerHeight - canvasRegionBounds.bottom) <= 2,
+      adjustmentHidden: adjustmentDisplay === "none",
       canvasWidth: canvasBounds.width,
       canvasHeight: canvasBounds.height,
     };
   }, canvasSelector);
 
   if (structure === null) {
-    throw new Error("練習画面シェルまたはCanvasが見つかりません。");
+    throw new Error("通常練習画面シェルまたはCanvasが見つかりません。");
   }
 
   expect(structure.directChildOrder).toBe(true);
-  expect(structure.topbarAboveCanvas).toBe(true);
-  expect(structure.canvasAboveBottomBar).toBe(true);
-  expect(structure.bottomBarNearViewportBottom).toBe(true);
+  expect(structure.mode).toBe("practice");
+  expect(structure.topbarAboveSeek).toBe(true);
+  expect(structure.seekAboveCanvas).toBe(true);
+  expect(structure.canvasNearViewportBottom).toBe(true);
+  expect(structure.adjustmentHidden).toBe(true);
   expect(structure.canvasWidth).toBeGreaterThan(300);
-  expect(structure.canvasHeight).toBeGreaterThan(120);
-  expect(structure.canvasArea).toBeGreaterThan(50000);
+  expect(structure.canvasHeight).toBeGreaterThan(160);
 }
 
-test("縦表示は上部・中央Canvas・下部バー・メニューの固定構造になる", async ({
+async function expectMenuSections(page: Page): Promise<void> {
+  await openPracticeMenu(page);
+  await expect(
+    page.locator(
+      ".practice-menu__content > .practice-menu__section > .practice-menu__heading",
+    ),
+  ).toHaveText(["再生設定", "表示設定", "その他"]);
+  await expect(
+    page.locator("#vertical-playback-controls-playback-rate-menu, #horizontal-playback-controls-playback-rate-menu"),
+  ).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "メトロノーム" })).toBeVisible();
+  await expect(page.getByLabel("メトロノーム音量")).toBeVisible();
+  await expect(page.getByLabel("プリカウント")).toBeVisible();
+  await expect(page.getByRole("button", { name: "表示調整モードを開く" })).toBeVisible();
+  await expect(page.getByText("曲情報")).toBeVisible();
+  await expect(page.getByTestId("practice-save-song-button")).toBeVisible();
+  await expect(page.getByTestId("practice-export-song-button")).toBeVisible();
+  await expect(page.getByTestId("practice-saved-list-button")).toBeVisible();
+  await expect(page.getByRole("button", { name: "ロード画面へ戻る" })).toBeVisible();
+}
+
+test("縦表示の通常練習モードは最小操作列、シーク、下側Canvasに分離される", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openBuiltinLoadScreen(page);
   await getVerticalPreviewButton(page).click();
 
-  await expect(page.locator(".practice-topbar")).toContainText("ドからソまで");
-  await expect(
-    page.locator(".practice-topbar").getByRole("button", {
-      name: "横表示へ切り替え",
-    }),
-  ).toBeVisible();
-  await expect(
-    page.locator(".practice-topbar details.practice-menu > summary"),
-  ).toBeVisible();
+  const topbar = page.locator(".practice-topbar");
+  await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "一時停止" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
+  await expect(page.locator("#vertical-playback-controls-playback-rate")).toBeVisible();
+  await expect(topbar.locator("details.practice-menu > summary")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "横表示へ切り替え" })).toBeHidden();
+  await expect(page.getByLabel("曲の現在位置")).toBeVisible();
+  await expect(page.getByLabel("白鍵1鍵の幅")).toBeHidden();
+  await expect(page.getByLabel("譜面の横位置")).toBeHidden();
   await expect(getVerticalCanvas(page)).toBeVisible();
 
-  const bottomBar = page.locator(".practice-bottom-bar");
-  await expect(bottomBar.getByRole("button", { name: "スタート" })).toBeVisible();
-  await expect(bottomBar.getByRole("button", { name: "一時停止" })).toBeVisible();
-  await expect(bottomBar.getByRole("button", { name: "先頭に戻す" })).toBeVisible();
-  await expect(bottomBar.getByLabel("曲の現在位置")).toBeVisible();
-  await expect(bottomBar.getByLabel("白鍵1鍵の幅")).toBeVisible();
-  await expect(bottomBar.getByLabel("譜面の横位置")).toBeVisible();
-  await expect(
-    page.locator("#vertical-playback-controls-playback-rate"),
-  ).toBeHidden();
-
-  await openPracticeMenu(page);
-  await expect(page.getByLabel("再生速度")).toBeHidden();
-  await openPlaybackSettings(page);
-  await expect(page.getByLabel("再生速度")).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "メトロノーム" })).toBeVisible();
-  await expect(page.getByLabel("プリカウント")).toBeVisible();
-  await expect(page.getByTestId("practice-save-song-button")).toBeVisible();
-  await expect(page.getByTestId("practice-export-song-button")).toBeVisible();
-  await expect(page.getByRole("button", { name: "ロード画面へ戻る" })).toBeVisible();
-
-  await expectPracticeShell(page, ".vertical-canvas");
+  await expectNormalPracticeShell(page, ".vertical-canvas");
+  await expectMenuSections(page);
   await expectNoHorizontalOverflow(page);
 });
 
-test("横表示は上部・中央Canvas・下部バー・メニューの固定構造になる", async ({
+test("縦表示の表示調整モードは開閉でき、調整値を維持する", async ({
+  page,
+}) => {
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+  const canvas = getVerticalCanvas(page);
+
+  await openDisplayAdjustmentMode(page);
+  await expect(page.locator(".practice-adjustment-panel")).toBeVisible();
+  await expect(page.getByLabel("曲の現在位置")).toBeHidden();
+  await page.getByLabel("白鍵1鍵の幅").fill("120");
+  await expect(canvas).toHaveAttribute("data-white-key-width", "120");
+  await page.getByLabel("譜面の横位置").fill("10");
+  await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+
+  await page.getByRole("button", { name: "表示調整を閉じる" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "practice",
+  );
+  await expect(page.getByLabel("白鍵1鍵の幅")).toBeHidden();
+  await expect(page.getByLabel("曲の現在位置")).toBeVisible();
+  await expect(canvas).toHaveAttribute("data-white-key-width", "120");
+  await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+  await expectNoHorizontalOverflow(page);
+});
+
+test("横表示の通常練習モードと表示調整モードも同じ構造で使える", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 844, height: 390 });
   await openBuiltinLoadScreen(page);
   await getHorizontalPreviewButton(page).click();
 
-  await expect(page.locator(".practice-topbar")).toContainText("ドからソまで");
-  await expect(
-    page.locator(".practice-topbar").getByRole("button", {
-      name: "縦表示へ切り替え",
-    }),
-  ).toBeVisible();
-  await expect(getHorizontalCanvas(page)).toBeVisible();
+  const topbar = page.locator(".practice-topbar");
+  await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
+  await expect(page.locator("#horizontal-playback-controls-playback-rate")).toBeVisible();
+  await expect(page.getByRole("button", { name: "縦表示へ切り替え" })).toBeHidden();
+  await expect(page.getByLabel("五線の1間の幅")).toBeHidden();
+  await expect(page.getByLabel("譜面の縦位置")).toBeHidden();
+  await expectNormalPracticeShell(page, ".horizontal-canvas");
+  await expectMenuSections(page);
 
-  const bottomBar = page.locator(".practice-bottom-bar");
-  await expect(bottomBar.getByRole("button", { name: "スタート" })).toBeVisible();
-  await expect(bottomBar.getByRole("button", { name: "一時停止" })).toBeVisible();
-  await expect(bottomBar.getByRole("button", { name: "先頭に戻す" })).toBeVisible();
-  await expect(bottomBar.getByLabel("曲の現在位置")).toBeVisible();
-  await expect(bottomBar.getByLabel("五線の1間の幅")).toBeVisible();
-  await expect(bottomBar.getByLabel("譜面の縦位置")).toBeVisible();
-  await expect(
-    page.locator("#horizontal-playback-controls-playback-rate"),
-  ).toBeHidden();
-
-  await openPlaybackSettings(page);
-  await expect(page.getByLabel("再生速度")).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "メトロノーム" })).toBeVisible();
-  await expect(page.getByLabel("メトロノーム音量")).toBeVisible();
-  await expect(page.getByLabel("プリカウント")).toBeVisible();
-  await expect(page.getByTestId("practice-save-song-button")).toBeVisible();
-  await expect(page.getByTestId("practice-export-song-button")).toBeVisible();
-
-  await expectPracticeShell(page, ".horizontal-canvas");
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  const canvas = getHorizontalCanvas(page);
+  await page.getByLabel("五線の1間の幅").fill("30");
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
+  await page.getByLabel("譜面の縦位置").fill("18");
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
+  await page.getByRole("button", { name: "表示調整を閉じる" }).click();
+  await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
+  await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
   await expectNoHorizontalOverflow(page);
 });
 
-test("練習メニューから保存、JSON書き出し、保存一覧へ到達できる", async ({
+test("再生速度は通常練習モードとメニュー内で即時同期する", async ({
+  page,
+}) => {
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+  const topSpeed = page.locator("#vertical-playback-controls-playback-rate");
+  const menuSpeed = page.locator("#vertical-playback-controls-playback-rate-menu");
+  const canvas = getVerticalCanvas(page);
+
+  await topSpeed.fill("1.5");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
+  await openPracticeMenu(page);
+  await expect(menuSpeed).toHaveValue("1.5");
+  await menuSpeed.fill("0.8");
+  await expect(topSpeed).toHaveValue("0.8");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
+  await expectNoHorizontalOverflow(page);
+});
+
+test("練習メニューから表示切り替え、保存、JSON書き出し、保存一覧へ到達できる", async ({
   page,
 }) => {
   await openBuiltinLoadScreen(page);
   await getVerticalPreviewButton(page).click();
   await openPracticeMenu(page);
+  await page.getByRole("button", { name: "横表示へ切り替え" }).click();
+  await expect(getHorizontalCanvas(page)).toBeVisible();
 
+  await openPracticeMenu(page);
   await page.getByTestId("practice-save-song-button").click();
   await expect(page.locator(".practice-menu__status")).toContainText(
     "保存しました",

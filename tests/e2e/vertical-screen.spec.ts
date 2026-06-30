@@ -34,14 +34,17 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 
 async function openPlaybackSettings(page: Page): Promise<void> {
   await openPracticeMenu(page);
-  const details = page.locator("details.playback-controls__secondary");
-  const isOpen = await details.evaluate(
-    (element) => (element as HTMLDetailsElement).open,
-  );
 
-  if (!isOpen) {
-    await details.locator(":scope > summary").click();
-  }
+  await expect(page.locator(".playback-controls__secondary")).toBeVisible();
+}
+
+async function openDisplayAdjustmentMode(page: Page): Promise<void> {
+  await openPracticeMenu(page);
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "adjustment",
+  );
 }
 
 async function openPracticeMenu(page: Page): Promise<void> {
@@ -80,18 +83,21 @@ test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await expect(getPreviewButton(page)).toBeDisabled();
 });
 
-test("縦表示画面に曲名、再生プレビュー、Canvasを表示する", async ({
+test("縦表示画面に通常練習モード、曲情報メニュー、Canvasを表示する", async ({
   page,
 }) => {
   await openBuiltinPreview(page);
 
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
+  await expect(page.locator(".practice-topbar")).toBeVisible();
+  await expect(page.locator(".practice-seek-row")).toBeVisible();
+  await expect(page.locator(".practice-canvas-region")).toBeVisible();
+  await expect(page.locator(".practice-adjustment-panel")).toBeHidden();
+  await openPracticeMenu(page);
+  await expect(page.getByText("曲情報")).toBeVisible();
+  await expect(page.locator(".practice-menu__facts")).toContainText(
     "ドからソまで",
   );
-  await expect(page.locator(".practice-topbar")).toBeVisible();
-  await expect(page.locator(".practice-canvas-region")).toBeVisible();
-  await expect(page.locator(".practice-bottom-bar")).toBeVisible();
-  await openPracticeMenu(page);
   await expect(page.getByText("再生ガイド")).toBeVisible();
   await expect(page.getByText("判定ライン")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
@@ -104,7 +110,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await openBuiltinPreview(page);
   const canvas = getCanvas(page);
   const seekInput = page.getByLabel("曲の現在位置");
-  const speedInput = page.getByLabel("再生速度");
+  const speedInput = page.locator("#vertical-playback-controls-playback-rate");
 
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
   await expect(canvas).toHaveAttribute("data-end-beat", "5.00");
@@ -140,7 +146,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
   await closePracticeMenu(page);
 
-  await page.getByRole("button", { name: "先頭に戻す" }).click();
+  await page.getByRole("button", { name: "先頭" }).click();
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
   await expect(canvas).toHaveAttribute("data-playback-status", "stopped");
   await expectNoHorizontalOverflow(page);
@@ -169,7 +175,7 @@ test("メトロノーム、音量、プリカウントを操作できる", async
     "data-precount-measures",
     "1",
   );
-  await page.getByLabel("再生速度").fill("2");
+  await page.locator("#vertical-playback-controls-playback-rate-menu").fill("2");
   await closePracticeMenu(page);
 
   await page.getByRole("button", { name: "スタート" }).click();
@@ -212,6 +218,7 @@ test("白鍵幅、横位置、画面幅合わせ、中央配置を操作でき�
   page,
 }) => {
   await openBuiltinPreview(page);
+  await openDisplayAdjustmentMode(page);
   const canvas = getCanvas(page);
   const widthInput = page.getByLabel("白鍵1鍵の幅");
   const offsetInput = page.getByLabel("譜面の横位置");
@@ -241,6 +248,7 @@ test("白鍵幅、横位置、画面幅合わせ、中央配置を操作でき�
 
 test("Canvasの横ドラッグを横位置スライダーへ同期する", async ({ page }) => {
   await openBuiltinPreview(page);
+  await openDisplayAdjustmentMode(page);
   const canvas = getCanvas(page);
   const offsetInput = page.getByLabel("譜面の横位置");
   const before = await canvas.getAttribute("data-horizontal-offset");
@@ -315,6 +323,7 @@ test("844×390でCanvasだけを左右端まで広げて調整と回転へ追従
 }) => {
   await page.setViewportSize({ width: 844, height: 390 });
   await openBuiltinPreview(page);
+  await openDisplayAdjustmentMode(page);
   const canvas = getCanvas(page);
   const widthInput = page.getByLabel("白鍵1鍵の幅");
   const offsetInput = page.getByLabel("譜面の横位置");

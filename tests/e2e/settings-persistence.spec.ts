@@ -38,14 +38,24 @@ async function openPlaybackSettings(page: Page): Promise<void> {
     await menu.locator(":scope > summary").click();
   }
 
-  const details = page.locator("details.playback-controls__secondary");
-  const isOpen = await details.evaluate(
+  await expect(page.locator(".playback-controls__secondary")).toBeVisible();
+}
+
+async function openDisplayAdjustmentMode(page: Page): Promise<void> {
+  const menu = page.locator("details.practice-menu");
+  const menuIsOpen = await menu.evaluate(
     (element) => (element as HTMLDetailsElement).open,
   );
 
-  if (!isOpen) {
-    await details.locator(":scope > summary").click();
+  if (!menuIsOpen) {
+    await menu.locator(":scope > summary").click();
   }
+
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect(page.locator(".practice-screen")).toHaveAttribute(
+    "data-practice-mode",
+    "adjustment",
+  );
 }
 
 async function openBuiltinLoadScreen(page: Page): Promise<void> {
@@ -61,6 +71,7 @@ test("縦表示と再生設定をlocalStorageへ保存し、次回表示時に�
   await getVerticalPreviewButton(page).click();
   const canvas = getVerticalCanvas(page);
 
+  await openDisplayAdjustmentMode(page);
   await page.locator("#white-key-width").fill("120");
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await page.locator("#horizontal-offset").fill("10");
@@ -110,6 +121,7 @@ test("横表示の五線間隔と譜面縦位置をlocalStorageへ保存し、�
   await getHorizontalPreviewButton(page).click();
   const canvas = getHorizontalCanvas(page);
 
+  await openDisplayAdjustmentMode(page);
   await page.locator("#horizontal-line-spacing").fill("30");
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
   await page.locator("#horizontal-vertical-offset").fill("24");

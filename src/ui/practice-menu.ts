@@ -9,8 +9,11 @@ import type { Song } from "../types/song";
 interface PracticeMenuOptions {
   readonly song: Song;
   readonly modeDescription: string;
-  readonly playbackSettingsElement: HTMLDetailsElement;
+  readonly playbackSettingsElement: HTMLElement;
   readonly legend: HTMLElement;
+  readonly switchViewLabel?: string;
+  readonly onOpenDisplayAdjustment: () => void;
+  readonly onSwitchView?: () => void;
   readonly onReturnToLoadScreen: () => void;
 }
 
@@ -40,11 +43,24 @@ function createButton(text: string, className = "button"): HTMLButtonElement {
   return button;
 }
 
+function createMenuSection(title: string): HTMLElement {
+  const section = document.createElement("section");
+  const heading = createTextElement("h2", "practice-menu__heading", title);
+
+  section.className = "practice-menu__section";
+  section.append(heading);
+
+  return section;
+}
+
 export function createPracticeMenu({
   song,
   modeDescription,
   playbackSettingsElement,
   legend,
+  switchViewLabel,
+  onOpenDisplayAdjustment,
+  onSwitchView,
   onReturnToLoadScreen,
 }: PracticeMenuOptions): HTMLDetailsElement {
   const details = document.createElement("details");
@@ -54,6 +70,17 @@ export function createPracticeMenu({
     "練習メニュー",
   );
   const content = document.createElement("div");
+  const displaySection = createMenuSection("表示設定");
+  const displayActions = document.createElement("div");
+  const openDisplayAdjustmentButton = createButton("表示調整モードを開く");
+  const switchViewButton =
+    switchViewLabel === undefined ? undefined : createButton(switchViewLabel);
+  const songInfoHeading = createTextElement(
+    "h3",
+    "practice-menu__subheading",
+    "曲情報",
+  );
+  const otherSection = createMenuSection("その他");
   const menuActions = document.createElement("div");
   const saveButton = createButton("端末内に保存");
   const exportButton = createButton("JSONを書き出す");
@@ -68,6 +95,7 @@ export function createPracticeMenu({
 
   details.className = "practice-menu";
   content.className = "practice-menu__content";
+  displayActions.className = "practice-menu__actions";
   menuActions.className = "practice-menu__actions";
   facts.className = "practice-menu__facts";
   status.setAttribute("aria-live", "polite");
@@ -84,8 +112,23 @@ export function createPracticeMenu({
   );
   appendFact(facts, "音符数", `${song.notes.length}件`);
 
-  content.append(
-    playbackSettingsElement,
+  displayActions.append(openDisplayAdjustmentButton);
+
+  if (switchViewButton !== undefined) {
+    displayActions.append(switchViewButton);
+  }
+
+  displaySection.append(
+    displayActions,
+    createTextElement("p", "practice-menu__description", modeDescription),
+    legend,
+    songInfoHeading,
+    facts,
+  );
+
+  menuActions.append(saveButton, exportButton, savedListButton, backButton);
+
+  otherSection.append(
     createTextElement(
       "p",
       "practice-menu__description",
@@ -98,13 +141,24 @@ export function createPracticeMenu({
       "practice-menu__description",
       "保存一覧はロード画面にあります。必要なときは「保存一覧を開く」から移動できます。",
     ),
-    createTextElement("p", "practice-menu__description", modeDescription),
-    legend,
-    facts,
+  );
+
+  content.append(
+    playbackSettingsElement,
+    displaySection,
+    otherSection,
   );
   details.append(summary, content);
 
-  menuActions.append(saveButton, exportButton, savedListButton, backButton);
+  openDisplayAdjustmentButton.addEventListener("click", () => {
+    details.open = false;
+    onOpenDisplayAdjustment();
+  });
+
+  switchViewButton?.addEventListener("click", () => {
+    details.open = false;
+    onSwitchView?.();
+  });
 
   saveButton.addEventListener("click", async () => {
     saveButton.disabled = true;
