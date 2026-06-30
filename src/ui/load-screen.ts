@@ -426,6 +426,7 @@ export async function mountLoadScreen(
   const savedSongRepository = createSavedSongRepository();
   const showLoadScreen = (): void => {
     root.replaceChildren(elements.main);
+    void refreshSavedSongs();
   };
 
   function setStatus(status: ScreenStatus, message: string): void {

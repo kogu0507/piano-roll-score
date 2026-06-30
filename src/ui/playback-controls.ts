@@ -13,6 +13,7 @@ import type { PlaybackController } from "../playback/playback-controller";
 
 export interface PlaybackControlsMount {
   readonly element: HTMLElement;
+  readonly settingsElement: HTMLDetailsElement;
   readonly cleanup: () => void;
 }
 
@@ -217,10 +218,7 @@ export function mountPlaybackControls(
   secondaryDetails.append(secondarySummary, secondaryContent);
 
   primaryControls.append(buttons, seekGroup, status);
-  section.append(
-    primaryControls,
-    secondaryDetails,
-  );
+  section.append(primaryControls);
 
   function update(state: PlaybackState): void {
     const currentBeatText = formatBeat(state.currentBeat);
@@ -303,6 +301,7 @@ export function mountPlaybackControls(
 
   return {
     element: section,
+    settingsElement: secondaryDetails,
     cleanup: unsubscribe,
   };
 }

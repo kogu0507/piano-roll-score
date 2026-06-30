@@ -63,12 +63,11 @@ export function mountVerticalScreen(
   const main = document.createElement("main");
   const header = document.createElement("header");
   const navigation = document.createElement("div");
-  const backButton = createButton("ロード画面へ戻る", "button button--secondary");
   const switchButton = createButton(
     "横表示へ切り替え",
     "button button--primary button--view-switch",
   );
-  const priorityPanel = document.createElement("section");
+  const bottomBar = document.createElement("section");
   const controls = document.createElement("section");
   const canvasSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -94,36 +93,25 @@ export function mountVerticalScreen(
     initialized: screenOptions.initialSettings !== undefined,
   };
 
-  main.className = "vertical-screen";
-  header.className = "vertical-header";
-  navigation.className = "screen-navigation";
+  main.className = "practice-screen vertical-screen";
+  header.className = "practice-topbar vertical-header";
+  navigation.className = "practice-topbar__actions screen-navigation";
 
   if (switchToHorizontal !== undefined) {
     navigation.append(switchButton);
   }
-  navigation.append(
-    createPracticeMenu({
-      song,
-      backButton,
-      modeDescription:
-        "縦表示では、白鍵幅と譜面の横位置を実鍵盤に合わせて調整します。",
-    }),
-  );
 
   header.append(
-    navigation,
-    createTextElement("p", "vertical-header__eyebrow", "再生プレビュー"),
-    createTextElement("h1", "vertical-header__title", song.title),
     createTextElement(
-      "p",
-      "vertical-header__description",
-      "音符ブロックが上から下へ流れる縦表示です。白鍵幅と横位置を実際の鍵盤に合わせて調整できます。",
+      "h1",
+      "practice-topbar__title vertical-header__title",
+      song.title,
     ),
+    navigation,
   );
 
-  priorityPanel.className =
-    "practice-priority-panel vertical-priority-panel";
-  priorityPanel.setAttribute("aria-label", "練習中によく使う操作");
+  bottomBar.className = "practice-bottom-bar vertical-bottom-bar";
+  bottomBar.setAttribute("aria-label", "練習中によく使う操作");
 
   controls.className = "vertical-controls";
   controls.setAttribute("aria-label", "鍵盤位置調整");
@@ -190,17 +178,26 @@ export function mountVerticalScreen(
     legend.append(item);
   });
 
-  controls.append(widthGroup, offsetGroup, legend);
-  priorityPanel.append(playbackControls.element, controls);
+  controls.append(widthGroup, offsetGroup);
 
-  canvasSection.className = "vertical-preview";
-  canvasSection.setAttribute("aria-labelledby", "vertical-preview-title");
-  const canvasHeading = createTextElement(
-    "h2",
-    "vertical-preview__title",
-    "縦表示プレビュー",
+  navigation.append(
+    createPracticeMenu({
+      song,
+      modeDescription:
+        "音符ブロックが上から下へ流れる縦表示です。薄い帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。Canvasを横へドラッグして位置を微調整できます。",
+      playbackSettingsElement: playbackControls.settingsElement,
+      legend,
+      onReturnToLoadScreen: () => {
+        cleanup();
+        returnToLoadScreen();
+      },
+    }),
   );
-  canvasHeading.id = "vertical-preview-title";
+
+  bottomBar.append(playbackControls.element, controls);
+
+  canvasSection.className = "practice-canvas-region vertical-preview";
+  canvasSection.setAttribute("aria-label", "縦表示Canvas");
   canvasWrap.className = "vertical-canvas-wrap";
   canvas.className = "vertical-canvas";
   canvas.setAttribute(
@@ -209,17 +206,9 @@ export function mountVerticalScreen(
   );
   canvas.textContent = "Canvasに対応したブラウザで表示してください。";
   canvasWrap.append(canvas);
-  canvasSection.append(
-    canvasHeading,
-    createTextElement(
-      "p",
-      "vertical-preview__help",
-      "薄い帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。Canvasを横へドラッグして位置を微調整できます。",
-    ),
-    canvasWrap,
-  );
+  canvasSection.append(canvasWrap);
 
-  main.append(header, priorityPanel, canvasSection);
+  main.append(header, canvasSection, bottomBar);
   root.replaceChildren(main);
 
   let frameId = 0;
@@ -462,11 +451,6 @@ export function mountVerticalScreen(
       window.cancelAnimationFrame(frameId);
     }
   }
-
-  backButton.addEventListener("click", () => {
-    cleanup();
-    returnToLoadScreen();
-  });
 
   switchButton.addEventListener("click", () => {
     if (switchToHorizontal === undefined) {

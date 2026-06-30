@@ -163,13 +163,33 @@ async function expectAccessibleAndTouchable(page: Page): Promise<void> {
 }
 
 async function openPlaybackSettings(page: Page): Promise<void> {
+  const menu = page.locator("details.practice-menu");
+  const menuIsOpen = await menu.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!menuIsOpen) {
+    await menu.locator(":scope > summary").click();
+  }
+
   const details = page.locator("details.playback-controls__secondary");
   const isOpen = await details.evaluate(
     (element) => (element as HTMLDetailsElement).open,
   );
 
   if (!isOpen) {
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
+  }
+}
+
+async function closePracticeMenu(page: Page): Promise<void> {
+  const menu = page.locator("details.practice-menu");
+  const isOpen = await menu.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (isOpen) {
+    await menu.locator(":scope > summary").click();
   }
 }
 
@@ -220,6 +240,7 @@ test("縦表示はスマートフォン縦横とタブレット幅で操作で�
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "8");
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
+  await closePracticeMenu(page);
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
   await expectAccessibleAndTouchable(page);
@@ -257,6 +278,7 @@ test("横表示はスマートフォン縦横とタブレット幅で操作で�
   await openPlaybackSettings(page);
   await page.getByLabel("再生速度").fill("1.2");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.2");
+  await closePracticeMenu(page);
   await expectAccessibleAndTouchable(page);
   await expectNoHorizontalOverflow(page);
 

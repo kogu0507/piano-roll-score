@@ -57,12 +57,11 @@ export function mountHorizontalScreen(
   const main = document.createElement("main");
   const header = document.createElement("header");
   const navigation = document.createElement("div");
-  const backButton = createButton("ロード画面へ戻る", "button button--secondary");
   const switchButton = createButton(
     "縦表示へ切り替え",
     "button button--primary button--view-switch",
   );
-  const priorityPanel = document.createElement("section");
+  const bottomBar = document.createElement("section");
   const controls = document.createElement("section");
   const previewSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -86,36 +85,25 @@ export function mountHorizontalScreen(
     verticalOffset: screenOptions.initialSettings?.verticalOffset ?? 0,
   };
 
-  main.className = "horizontal-screen";
-  header.className = "horizontal-header";
-  navigation.className = "screen-navigation";
+  main.className = "practice-screen horizontal-screen";
+  header.className = "practice-topbar horizontal-header";
+  navigation.className = "practice-topbar__actions screen-navigation";
 
   if (switchToVertical !== undefined) {
     navigation.append(switchButton);
   }
-  navigation.append(
-    createPracticeMenu({
-      song,
-      backButton,
-      modeDescription:
-        "横表示では、五線の1間の幅と譜面の縦位置を見やすさに合わせて調整します。",
-    }),
-  );
 
   header.append(
-    navigation,
-    createTextElement("p", "horizontal-header__eyebrow", "再生プレビュー"),
-    createTextElement("h1", "horizontal-header__title", song.title),
     createTextElement(
-      "p",
-      "horizontal-header__description",
-      "音符ブロックが右から左へ流れる横表示です。縦表示で覚えた鍵盤上の動きを、五線に近い上下位置へ結び付けます。",
+      "h1",
+      "practice-topbar__title horizontal-header__title",
+      song.title,
     ),
+    navigation,
   );
 
-  priorityPanel.className =
-    "practice-priority-panel horizontal-priority-panel";
-  priorityPanel.setAttribute("aria-label", "練習中によく使う操作");
+  bottomBar.className = "practice-bottom-bar horizontal-bottom-bar";
+  bottomBar.setAttribute("aria-label", "練習中によく使う操作");
 
   controls.className = "horizontal-controls";
   controls.setAttribute("aria-label", "横表示の表示調整");
@@ -183,14 +171,22 @@ export function mountHorizontalScreen(
     legend.append(item);
   });
 
-  previewSection.className = "horizontal-preview";
-  previewSection.setAttribute("aria-labelledby", "horizontal-preview-title");
-  const previewHeading = createTextElement(
-    "h2",
-    "horizontal-preview__title",
-    "横表示プレビュー",
+  navigation.append(
+    createPracticeMenu({
+      song,
+      modeDescription:
+        "音符ブロックが右から左へ流れる横表示です。薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
+      playbackSettingsElement: playbackControls.settingsElement,
+      legend,
+      onReturnToLoadScreen: () => {
+        cleanup();
+        returnToLoadScreen();
+      },
+    }),
   );
-  previewHeading.id = "horizontal-preview-title";
+
+  previewSection.className = "practice-canvas-region horizontal-preview";
+  previewSection.setAttribute("aria-label", "横表示Canvas");
   canvasWrap.className = "horizontal-canvas-wrap";
   canvas.className = "horizontal-canvas";
   canvas.setAttribute(
@@ -199,19 +195,11 @@ export function mountHorizontalScreen(
   );
   canvas.textContent = "Canvasに対応したブラウザで表示してください。";
   canvasWrap.append(canvas);
-  previewSection.append(
-    previewHeading,
-    createTextElement(
-      "p",
-      "horizontal-preview__help",
-      "薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
-    ),
-    canvasWrap,
-  );
+  previewSection.append(canvasWrap);
 
-  controls.append(spacingGroup, offsetGroup, legend);
-  priorityPanel.append(playbackControls.element, controls);
-  main.append(header, priorityPanel, previewSection);
+  controls.append(spacingGroup, offsetGroup);
+  bottomBar.append(playbackControls.element, controls);
+  main.append(header, previewSection, bottomBar);
   root.replaceChildren(main);
 
   let frameId = 0;
@@ -359,11 +347,6 @@ export function mountHorizontalScreen(
   }
 
   document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  backButton.addEventListener("click", () => {
-    cleanup();
-    returnToLoadScreen();
-  });
 
   switchButton.addEventListener("click", () => {
     if (switchToVertical === undefined) {

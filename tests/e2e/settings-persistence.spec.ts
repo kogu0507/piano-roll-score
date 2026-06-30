@@ -29,13 +29,22 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 }
 
 async function openPlaybackSettings(page: Page): Promise<void> {
+  const menu = page.locator("details.practice-menu");
+  const menuIsOpen = await menu.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!menuIsOpen) {
+    await menu.locator(":scope > summary").click();
+  }
+
   const details = page.locator("details.playback-controls__secondary");
   const isOpen = await details.evaluate(
     (element) => (element as HTMLDetailsElement).open,
   );
 
   if (!isOpen) {
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
   }
 }
 

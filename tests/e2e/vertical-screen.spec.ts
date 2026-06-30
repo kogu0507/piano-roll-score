@@ -33,13 +33,14 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 }
 
 async function openPlaybackSettings(page: Page): Promise<void> {
+  await openPracticeMenu(page);
   const details = page.locator("details.playback-controls__secondary");
   const isOpen = await details.evaluate(
     (element) => (element as HTMLDetailsElement).open,
   );
 
   if (!isOpen) {
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
   }
 }
 
@@ -50,7 +51,18 @@ async function openPracticeMenu(page: Page): Promise<void> {
   );
 
   if (!isOpen) {
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
+  }
+}
+
+async function closePracticeMenu(page: Page): Promise<void> {
+  const details = page.locator("details.practice-menu");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (isOpen) {
+    await details.locator(":scope > summary").click();
   }
 }
 
@@ -76,7 +88,10 @@ test("縦表示画面に曲名、再生プレビュー、Canvasを表示する",
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "ドからソまで",
   );
-  await expect(page.getByText("再生プレビュー", { exact: true })).toBeVisible();
+  await expect(page.locator(".practice-topbar")).toBeVisible();
+  await expect(page.locator(".practice-canvas-region")).toBeVisible();
+  await expect(page.locator(".practice-bottom-bar")).toBeVisible();
+  await openPracticeMenu(page);
   await expect(page.getByText("再生ガイド")).toBeVisible();
   await expect(page.getByText("判定ライン")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
@@ -96,14 +111,17 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
 
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
+  await closePracticeMenu(page);
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
     .toBeGreaterThan(0);
 
+  await openPlaybackSettings(page);
   await speedInput.fill("2");
   await expect(canvas).toHaveAttribute("data-playback-rate", "2.0");
+  await closePracticeMenu(page);
   const beatAfterRateChange = Number(
     await canvas.getAttribute("data-current-beat"),
   );
@@ -117,8 +135,10 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await seekInput.fill("1.25");
   await expect(canvas).toHaveAttribute("data-current-beat", "1.25");
 
+  await openPlaybackSettings(page);
   await speedInput.fill("1.5");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
+  await closePracticeMenu(page);
 
   await page.getByRole("button", { name: "先頭に戻す" }).click();
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
@@ -150,6 +170,7 @@ test("メトロノーム、音量、プリカウントを操作できる", async
     "1",
   );
   await page.getByLabel("再生速度").fill("2");
+  await closePracticeMenu(page);
 
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
@@ -318,14 +339,14 @@ test("844×390でCanvasだけを左右端まで広げて調整と回転へ追従
           canvasReachesEdges:
             canvasBounds.left <= 1 &&
             window.innerWidth - canvasBounds.right <= 1,
-          headerKeepsInset: header.getBoundingClientRect().left >= 10,
+          headerIsTopbar: header.classList.contains("practice-topbar"),
           controlsKeepInset: controls.getBoundingClientRect().left >= 10,
         };
       }),
     )
     .toEqual({
       canvasReachesEdges: true,
-      headerKeepsInset: true,
+      headerIsTopbar: true,
       controlsKeepInset: true,
     });
   await expectNoHorizontalOverflow(page);
