@@ -65,7 +65,7 @@ async function closePracticeMenu(page: Page): Promise<void> {
   );
 
   if (isOpen) {
-    await details.locator(":scope > summary").click();
+    await details.getByRole("button", { name: "メニューを閉じる" }).click();
   }
 }
 
@@ -130,8 +130,8 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
     .toBeGreaterThan(0);
 
   await openPlaybackSettings(page);
-  await speedInput.fill("2");
-  await expect(canvas).toHaveAttribute("data-playback-rate", "2.0");
+  await speedInput.selectOption("2");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "2");
   await closePracticeMenu(page);
   const beatAfterRateChange = Number(
     await canvas.getAttribute("data-current-beat"),
@@ -152,7 +152,9 @@ test("横表示でプリカウント中に助走表示が進む", async ({ page 
 
   await openPlaybackSettings(page);
   await page.getByLabel("プリカウント").selectOption("1");
-  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("2");
+  await page
+    .locator("#horizontal-playback-controls-playback-rate-menu")
+    .selectOption("2");
   await closePracticeMenu(page);
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
@@ -306,8 +308,10 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
   await openPlaybackSettings(page);
-  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("0.8");
-  await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
+  await page
+    .locator("#horizontal-playback-controls-playback-rate-menu")
+    .selectOption("0.75");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "0.75");
   await closePracticeMenu(page);
   await expectNoHorizontalOverflow(page);
   await page.setViewportSize({ width: 720, height: 760 });

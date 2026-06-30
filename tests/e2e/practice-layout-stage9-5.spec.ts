@@ -134,6 +134,26 @@ async function expectMenuSections(page: Page): Promise<void> {
   await expect(page.getByTestId("practice-export-song-button")).toBeVisible();
   await expect(page.getByTestId("practice-saved-list-button")).toBeVisible();
   await expect(page.getByRole("button", { name: "ロード画面へ戻る" })).toBeVisible();
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const content = document.querySelector(".practice-menu__content");
+
+        if (content === null) {
+          return false;
+        }
+
+        const bounds = content.getBoundingClientRect();
+        return (
+          bounds.top >= 0 &&
+          bounds.left >= 0 &&
+          bounds.right <= window.innerWidth &&
+          bounds.bottom <= window.innerHeight
+        );
+      }),
+    )
+    .toBe(true);
 }
 
 test("縦表示の通常練習モードは最小操作列、シーク、下側Canvasに分離される", async ({
@@ -145,10 +165,18 @@ test("縦表示の通常練習モードは最小操作列、シーク、下側Ca
 
   const topbar = page.locator(".practice-topbar");
   await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "スタート" })).toHaveText("▶");
   await expect(topbar.getByRole("button", { name: "一時停止" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "一時停止" })).toHaveText("❚❚");
   await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "先頭" })).toHaveText("⏮");
   await expect(page.locator("#vertical-playback-controls-playback-rate")).toBeVisible();
+  await expect(page.locator("#vertical-playback-controls-playback-rate")).toHaveJSProperty(
+    "tagName",
+    "SELECT",
+  );
   await expect(topbar.locator("details.practice-menu > summary")).toBeVisible();
+  await expect(topbar.locator("details.practice-menu > summary")).toHaveText("☰");
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "横表示へ切り替え" })).toBeHidden();
   await expect(page.getByLabel("曲の現在位置")).toBeVisible();
@@ -199,6 +227,10 @@ test("横表示の通常練習モードと表示調整モードも同じ構造�
   await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
   await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
   await expect(page.locator("#horizontal-playback-controls-playback-rate")).toBeVisible();
+  await expect(page.locator("#horizontal-playback-controls-playback-rate")).toHaveJSProperty(
+    "tagName",
+    "SELECT",
+  );
   await expect(page.getByRole("button", { name: "縦表示へ切り替え" })).toBeHidden();
   await expect(page.getByLabel("五線の1間の幅")).toBeHidden();
   await expect(page.getByLabel("譜面の縦位置")).toBeHidden();
@@ -226,13 +258,13 @@ test("再生速度は通常練習モードとメニュー内で即時同期す�
   const menuSpeed = page.locator("#vertical-playback-controls-playback-rate-menu");
   const canvas = getVerticalCanvas(page);
 
-  await topSpeed.fill("1.5");
+  await topSpeed.selectOption("1.5");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
   await openPracticeMenu(page);
   await expect(menuSpeed).toHaveValue("1.5");
-  await menuSpeed.fill("0.8");
-  await expect(topSpeed).toHaveValue("0.8");
-  await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
+  await menuSpeed.selectOption("0.75");
+  await expect(topSpeed).toHaveValue("0.75");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "0.75");
   await expectNoHorizontalOverflow(page);
 });
 

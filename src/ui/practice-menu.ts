@@ -67,9 +67,10 @@ export function createPracticeMenu({
   const summary = createTextElement(
     "summary",
     "practice-menu__summary",
-    "練習メニュー",
+    "☰",
   );
   const content = document.createElement("div");
+  const closeButton = createButton("メニューを閉じる", "button button--secondary");
   const displaySection = createMenuSection("表示設定");
   const displayActions = document.createElement("div");
   const openDisplayAdjustmentButton = createButton("表示調整モードを開く");
@@ -95,6 +96,9 @@ export function createPracticeMenu({
 
   details.className = "practice-menu";
   content.className = "practice-menu__content";
+  closeButton.classList.add("practice-menu__close");
+  summary.setAttribute("aria-label", "練習メニュー");
+  summary.title = "練習メニュー";
   displayActions.className = "practice-menu__actions";
   menuActions.className = "practice-menu__actions";
   facts.className = "practice-menu__facts";
@@ -144,11 +148,16 @@ export function createPracticeMenu({
   );
 
   content.append(
+    closeButton,
     playbackSettingsElement,
     displaySection,
     otherSection,
   );
   details.append(summary, content);
+
+  closeButton.addEventListener("click", () => {
+    details.open = false;
+  });
 
   openDisplayAdjustmentButton.addEventListener("click", () => {
     details.open = false;

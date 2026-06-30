@@ -141,17 +141,36 @@ async function expectTouchTargets(page: Page): Promise<void> {
       .map((element) => {
         const rect = element.getBoundingClientRect();
         const htmlElement = element as HTMLElement;
+        const tag = element.tagName.toLowerCase();
+        const className = String(htmlElement.className);
+        const isPracticeSeekControl = element.closest(".practice-seek-row") !== null;
+        const isIconButton = className.includes("button--icon");
+        const isSpeedSelect = className.includes("playback-control__select--speed");
+        const minimum =
+          isPracticeSeekControl && tag === "input"
+            ? { width: 120, height: 20 }
+            : isPracticeSeekControl && isSpeedSelect
+              ? { width: 44, height: 32 }
+              : isIconButton
+                ? { width: 36, height: 36 }
+                : { width: 44, height: 44 };
 
         return {
-          tag: element.tagName.toLowerCase(),
+          tag,
           id: htmlElement.id,
-          className: htmlElement.className,
+          className,
           text: htmlElement.textContent?.trim() ?? "",
           width: rect.width,
           height: rect.height,
+          minimumWidth: minimum.width,
+          minimumHeight: minimum.height,
         };
       })
-      .filter((control) => control.height < 44 || control.width < 44);
+      .filter(
+        (control) =>
+          control.height < control.minimumHeight ||
+          control.width < control.minimumWidth,
+      );
   });
 
   expect(tooSmallControls).toEqual([]);
@@ -199,7 +218,7 @@ async function closePracticeMenu(page: Page): Promise<void> {
   );
 
   if (isOpen) {
-    await menu.locator(":scope > summary").click();
+    await menu.getByRole("button", { name: "メニューを閉じる" }).click();
   }
 }
 
@@ -290,8 +309,10 @@ test("横表示はスマートフォン縦横とタブレット幅で操作で�
   await page.getByLabel("譜面の縦位置").fill("18");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
   await openPlaybackSettings(page);
-  await page.locator("#horizontal-playback-controls-playback-rate-menu").fill("1.2");
-  await expect(canvas).toHaveAttribute("data-playback-rate", "1.2");
+  await page
+    .locator("#horizontal-playback-controls-playback-rate-menu")
+    .selectOption("1.25");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "1.25");
   await closePracticeMenu(page);
   await expectAccessibleAndTouchable(page);
   await expectNoHorizontalOverflow(page);

@@ -90,7 +90,8 @@ describe("共通タイムライン", () => {
 
   it("再生速度と再生位置を許容範囲へ正規化する", () => {
     expect(normalizePlaybackRate(0.1)).toBe(0.5);
-    expect(normalizePlaybackRate(1.26)).toBe(1.3);
+    expect(normalizePlaybackRate(1.26)).toBe(1.25);
+    expect(normalizePlaybackRate(1.74)).toBe(1.75);
     expect(normalizePlaybackRate(3)).toBe(2);
     expect(normalizePlaybackRate(Number.NaN)).toBe(1);
     expect(clampBeat(-1, 4.25)).toBe(0);

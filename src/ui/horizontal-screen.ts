@@ -1,5 +1,9 @@
 import { STAFF_LINE_SPACING } from "../core/staff-position";
-import { calculateDisplayBeat, formatBeat } from "../core/timeline";
+import {
+  calculateDisplayBeat,
+  formatBeat,
+  formatPlaybackRate,
+} from "../core/timeline";
 import type { PlaybackState } from "../core/timeline";
 import type { HorizontalViewSettings } from "../core/app-settings";
 import {
@@ -289,7 +293,9 @@ export function mountHorizontalScreen(
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
     canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
-    canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
+    canvas.dataset.playbackRate = formatPlaybackRate(
+      playbackState.playbackRate,
+    );
     canvas.dataset.playbackStatus = playbackState.status;
     drawHorizontalScene(context, scene);
 

@@ -1,7 +1,6 @@
 import {
-  MAX_PLAYBACK_RATE,
-  MIN_PLAYBACK_RATE,
   formatBeat,
+  formatPlaybackRate,
   type PlaybackState,
 } from "../core/timeline";
 import {
@@ -41,10 +40,6 @@ function createButton(text: string, className = "button"): HTMLButtonElement {
   return button;
 }
 
-function formatPlaybackRate(playbackRate: number): string {
-  return playbackRate.toFixed(1);
-}
-
 function formatStatus(status: PlaybackState["status"]): string {
   switch (status) {
     case "stopped":
@@ -68,28 +63,66 @@ function formatDetailedStatus(state: PlaybackState): string {
   return `状態: ${formatStatus(state.status)}`;
 }
 
-function createRangeControl({
+const PLAYBACK_RATE_OPTIONS = [
+  ["2", "2倍"],
+  ["1.75", "1.75倍"],
+  ["1.5", "1.5倍"],
+  ["1.25", "1.25倍"],
+  ["1", "1倍"],
+  ["0.75", "0.75倍"],
+  ["0.5", "0.5倍"],
+] as const;
+
+function configureIconButton(
+  button: HTMLButtonElement,
+  icon: string,
+  label: string,
+): void {
+  button.classList.add("button--icon");
+  button.textContent = icon;
+  button.setAttribute("aria-label", label);
+  button.title = label;
+}
+
+function appendPlaybackRateOptions(select: HTMLSelectElement): void {
+  PLAYBACK_RATE_OPTIONS.forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.append(option);
+  });
+}
+
+function setPlaybackRateSelectValue(
+  select: HTMLSelectElement,
+  playbackRate: number,
+): void {
+  const value = formatPlaybackRate(playbackRate);
+
+  if (
+    !PLAYBACK_RATE_OPTIONS.some(([optionValue]) => optionValue === value) &&
+    !Array.from(select.options).some((option) => option.value === value)
+  ) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = `${value}倍`;
+    select.append(option);
+  }
+
+  select.value = value;
+}
+
+function createSpeedSelectControl({
   id,
   label,
-  min,
-  max,
-  step,
-  value,
   className,
-  unit,
 }: {
   readonly id: string;
   readonly label: string;
-  readonly min: string;
-  readonly max: string;
-  readonly step: string;
-  readonly value: string;
   readonly className: string;
-  readonly unit?: string;
 }): {
   readonly group: HTMLDivElement;
-  readonly input: HTMLInputElement;
-  readonly output: HTMLOutputElement;
+  readonly select: HTMLSelectElement;
 } {
   const group = document.createElement("div");
   const controlLabel = createTextElement(
@@ -97,30 +130,18 @@ function createRangeControl({
     "playback-control__label",
     label,
   );
-  const valueWrap = document.createElement("span");
-  const output = document.createElement("output");
-  const input = document.createElement("input");
+  const select = document.createElement("select");
 
-  input.id = id;
-  input.type = "range";
-  input.min = min;
-  input.max = max;
-  input.step = step;
-  input.value = value;
-  input.className = "playback-control__range";
+  select.id = id;
+  select.className = "playback-control__select playback-control__select--speed";
+  select.setAttribute("aria-label", label);
+  select.title = label;
   controlLabel.htmlFor = id;
-  output.htmlFor = id;
-  valueWrap.className = "playback-control__value";
-  valueWrap.append(output);
-
-  if (unit !== undefined) {
-    valueWrap.append(document.createTextNode(` ${unit}`));
-  }
-
+  appendPlaybackRateOptions(select);
   group.className = className;
-  group.append(controlLabel, valueWrap, input);
+  group.append(controlLabel, select);
 
-  return { group, input, output };
+  return { group, select };
 }
 
 export function mountPlaybackControls(
@@ -134,6 +155,9 @@ export function mountPlaybackControls(
   const startButton = createButton("スタート", "button button--primary");
   const pauseButton = createButton("一時停止");
   const resetButton = createButton("先頭");
+  configureIconButton(startButton, "▶", "スタート");
+  configureIconButton(pauseButton, "❚❚", "一時停止");
+  configureIconButton(resetButton, "⏮", "先頭");
   const seekSection = document.createElement("section");
   const seekGroup = document.createElement("div");
   const seekLabel = createTextElement(
@@ -144,25 +168,15 @@ export function mountPlaybackControls(
   const seekValue = document.createElement("span");
   const seekOutput = document.createElement("output");
   const seekInput = document.createElement("input");
-  const primarySpeed = createRangeControl({
+  const primarySpeed = createSpeedSelectControl({
     id: `${className}-playback-rate`,
     label: "再生速度",
-    min: String(MIN_PLAYBACK_RATE),
-    max: String(MAX_PLAYBACK_RATE),
-    step: "0.1",
-    value: "1.0",
     className: "playback-control playback-control--speed playback-control--top-speed",
-    unit: "倍",
   });
-  const menuSpeed = createRangeControl({
+  const menuSpeed = createSpeedSelectControl({
     id: `${className}-playback-rate-menu`,
     label: "再生速度（メニュー）",
-    min: String(MIN_PLAYBACK_RATE),
-    max: String(MAX_PLAYBACK_RATE),
-    step: "0.1",
-    value: "1.0",
     className: "playback-control playback-control--speed playback-control--menu-speed",
-    unit: "倍",
   });
   const metronomeGroup = document.createElement("div");
   const metronomeLabel = createTextElement(
@@ -272,16 +286,12 @@ export function mountPlaybackControls(
     secondaryHeading.id,
   );
   secondaryContent.className = "playback-controls__secondary-content";
-  secondaryContent.append(
-    menuSpeed.group,
-    metronomeGroup,
-    volumeGroup,
-    precountGroup,
-  );
+  secondaryContent.append(menuSpeed.group, metronomeGroup, volumeGroup, precountGroup);
   secondarySection.append(secondaryHeading, secondaryContent);
 
-  primaryControls.append(buttons, primarySpeed.group, status);
+  primaryControls.append(buttons, status);
   section.append(primaryControls);
+  seekSection.prepend(primarySpeed.group);
 
   function update(state: PlaybackState): void {
     const currentBeatText = formatBeat(state.currentBeat);
@@ -308,12 +318,8 @@ export function mountPlaybackControls(
     seekInput.value = currentBeatText;
     seekOutput.value = `${currentBeatText} / ${endBeatText} 拍`;
     seekOutput.textContent = `${currentBeatText} / ${endBeatText} 拍`;
-    primarySpeed.input.value = playbackRateText;
-    primarySpeed.output.value = playbackRateText;
-    primarySpeed.output.textContent = playbackRateText;
-    menuSpeed.input.value = playbackRateText;
-    menuSpeed.output.value = playbackRateText;
-    menuSpeed.output.textContent = playbackRateText;
+    setPlaybackRateSelectValue(primarySpeed.select, state.playbackRate);
+    setPlaybackRateSelectValue(menuSpeed.select, state.playbackRate);
     metronomeInput.checked = state.metronomeEnabled;
     metronomeState.textContent = state.metronomeEnabled ? "ON" : "OFF";
     volumeInput.value = String(Math.round(state.metronomeVolume * 100));
@@ -345,13 +351,13 @@ export function mountPlaybackControls(
     controller.seek(Number(seekInput.value));
   });
 
-  primarySpeed.input.addEventListener("input", () => {
-    controller.setPlaybackRate(Number(primarySpeed.input.value));
+  primarySpeed.select.addEventListener("change", () => {
+    controller.setPlaybackRate(Number(primarySpeed.select.value));
     notifySettingsChange();
   });
 
-  menuSpeed.input.addEventListener("input", () => {
-    controller.setPlaybackRate(Number(menuSpeed.input.value));
+  menuSpeed.select.addEventListener("change", () => {
+    controller.setPlaybackRate(Number(menuSpeed.select.value));
     notifySettingsChange();
   });
 

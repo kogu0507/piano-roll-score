@@ -8,7 +8,11 @@ import {
   preserveContentCenterOffset,
   resolveSongPitchRange,
 } from "../core/keyboard-geometry";
-import { calculateDisplayBeat, formatBeat } from "../core/timeline";
+import {
+  calculateDisplayBeat,
+  formatBeat,
+  formatPlaybackRate,
+} from "../core/timeline";
 import { createVerticalScene } from "../core/vertical-layout";
 import type { VerticalViewSettings } from "../core/app-settings";
 import type { PlaybackState } from "../core/timeline";
@@ -313,7 +317,9 @@ export function mountVerticalScreen(
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
     canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
-    canvas.dataset.playbackRate = playbackState.playbackRate.toFixed(1);
+    canvas.dataset.playbackRate = formatPlaybackRate(
+      playbackState.playbackRate,
+    );
     canvas.dataset.playbackStatus = playbackState.status;
     drawVerticalScene(context, scene);
 

@@ -45,8 +45,12 @@ export function normalizePlaybackRate(playbackRate: number): number {
 
   return Math.min(
     MAX_PLAYBACK_RATE,
-    Math.max(MIN_PLAYBACK_RATE, Math.round(playbackRate * 10) / 10),
+    Math.max(MIN_PLAYBACK_RATE, Math.round(playbackRate * 4) / 4),
   );
+}
+
+export function formatPlaybackRate(playbackRate: number): string {
+  return String(normalizePlaybackRate(playbackRate));
 }
 
 export function calculateBeatsPerSecond(

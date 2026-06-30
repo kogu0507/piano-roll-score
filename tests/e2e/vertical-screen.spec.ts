@@ -65,7 +65,7 @@ async function closePracticeMenu(page: Page): Promise<void> {
   );
 
   if (isOpen) {
-    await details.locator(":scope > summary").click();
+    await details.getByRole("button", { name: "メニューを閉じる" }).click();
   }
 }
 
@@ -125,8 +125,8 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
     .toBeGreaterThan(0);
 
   await openPlaybackSettings(page);
-  await speedInput.fill("2");
-  await expect(canvas).toHaveAttribute("data-playback-rate", "2.0");
+  await speedInput.selectOption("2");
+  await expect(canvas).toHaveAttribute("data-playback-rate", "2");
   await closePracticeMenu(page);
   const beatAfterRateChange = Number(
     await canvas.getAttribute("data-current-beat"),
@@ -142,7 +142,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expect(canvas).toHaveAttribute("data-current-beat", "1.25");
 
   await openPlaybackSettings(page);
-  await speedInput.fill("1.5");
+  await speedInput.selectOption("1.5");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
   await closePracticeMenu(page);
 
@@ -175,7 +175,9 @@ test("メトロノーム、音量、プリカウントを操作できる", async
     "data-precount-measures",
     "1",
   );
-  await page.locator("#vertical-playback-controls-playback-rate-menu").fill("2");
+  await page
+    .locator("#vertical-playback-controls-playback-rate-menu")
+    .selectOption("2");
   await closePracticeMenu(page);
 
   await page.getByRole("button", { name: "スタート" }).click();
