@@ -261,9 +261,12 @@ test("Canvasの横ドラッグを横位置スライダーへ同期する", async
     return;
   }
 
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const dragStartX = box.x + box.width / 2;
+  const dragStartY = box.y + box.height - 40;
+
+  await page.mouse.move(dragStartX, dragStartY);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 36, box.y + box.height / 2 + 2);
+  await page.mouse.move(dragStartX + 36, dragStartY + 2);
   await page.mouse.up();
 
   await expect

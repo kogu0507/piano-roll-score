@@ -7,12 +7,17 @@ import {
 import type { PlaybackState } from "../core/timeline";
 import type { HorizontalViewSettings } from "../core/app-settings";
 import {
+  HORIZONTAL_PIXELS_PER_BEAT,
   MAX_HORIZONTAL_LINE_SPACING,
   MIN_HORIZONTAL_LINE_SPACING,
   calculateFittedHorizontalLineSpacing,
   createHorizontalScene,
   normalizeHorizontalLineSpacing,
 } from "../core/horizontal-layout";
+import {
+  percentToTimeScale,
+  timeScaleToPercent,
+} from "../core/time-scale";
 import type { PlaybackController } from "../playback/playback-controller";
 import { resizeCanvasForDisplay } from "../renderers/canvas";
 import { drawHorizontalScene } from "../renderers/horizontal-renderer";
@@ -23,6 +28,7 @@ import type { Song } from "../types/song";
 interface HorizontalScreenState {
   lineSpacing: number;
   verticalOffset: number;
+  timeScale: number;
 }
 
 export interface HorizontalScreenOptions {
@@ -76,6 +82,8 @@ export function mountHorizontalScreen(
   const lineSpacingOutput = document.createElement("output");
   const verticalOffsetInput = document.createElement("input");
   const verticalOffsetOutput = document.createElement("output");
+  const timeScaleInput = document.createElement("input");
+  const timeScaleOutput = document.createElement("output");
   const fitButton = createButton("画面高に合わせる");
   const centerButton = createButton("中央に戻す");
   const playbackControls = mountPlaybackControls(
@@ -88,6 +96,7 @@ export function mountHorizontalScreen(
   const state: HorizontalScreenState = {
     lineSpacing: screenOptions.initialSettings?.lineSpacing ?? STAFF_LINE_SPACING,
     verticalOffset: screenOptions.initialSettings?.verticalOffset ?? 0,
+    timeScale: screenOptions.initialSettings?.timeScale ?? 1,
   };
 
   main.className = "practice-screen practice-screen--normal horizontal-screen";
@@ -142,6 +151,30 @@ export function mountHorizontalScreen(
   offsetValue.append(verticalOffsetOutput, document.createTextNode(" px"));
   offsetGroup.className = "horizontal-control";
   offsetGroup.append(offsetLabel, offsetValue, verticalOffsetInput, centerButton);
+
+  const timeScaleGroup = document.createElement("div");
+  const timeScaleLabel = createTextElement(
+    "label",
+    "horizontal-control__label",
+    "音価の幅",
+  );
+  const timeScaleValue = document.createElement("span");
+  const initialTimeScalePercent = timeScaleToPercent(state.timeScale);
+  timeScaleInput.id = "horizontal-time-scale";
+  timeScaleInput.type = "range";
+  timeScaleInput.min = "50";
+  timeScaleInput.max = "200";
+  timeScaleInput.step = "5";
+  timeScaleInput.value = String(initialTimeScalePercent);
+  timeScaleInput.className = "horizontal-control__range";
+  timeScaleLabel.htmlFor = timeScaleInput.id;
+  timeScaleOutput.htmlFor = timeScaleInput.id;
+  timeScaleOutput.value = String(initialTimeScalePercent);
+  timeScaleOutput.textContent = String(initialTimeScalePercent);
+  timeScaleValue.className = "horizontal-control__value";
+  timeScaleValue.append(timeScaleOutput, document.createTextNode(" %"));
+  timeScaleGroup.className = "horizontal-control";
+  timeScaleGroup.append(timeScaleLabel, timeScaleValue, timeScaleInput);
 
   legend.className = "horizontal-legend";
   legend.setAttribute("role", "group");
@@ -213,7 +246,7 @@ export function mountHorizontalScreen(
   canvasWrap.append(canvas);
   previewSection.append(canvasWrap);
 
-  controls.append(spacingGroup, offsetGroup);
+  controls.append(spacingGroup, offsetGroup, timeScaleGroup);
   adjustmentPanel.append(adjustmentHeader, controls);
   main.append(header, playbackControls.seekElement, adjustmentPanel, previewSection);
   root.replaceChildren(main);
@@ -253,8 +286,14 @@ export function mountHorizontalScreen(
     verticalOffsetInput.value = String(state.verticalOffset);
     verticalOffsetOutput.value = String(state.verticalOffset);
     verticalOffsetOutput.textContent = String(state.verticalOffset);
+    const timeScalePercent = timeScaleToPercent(state.timeScale);
+    timeScaleInput.value = String(timeScalePercent);
+    timeScaleOutput.value = String(timeScalePercent);
+    timeScaleOutput.textContent = String(timeScalePercent);
     canvas.dataset.staffLineSpacing = String(state.lineSpacing);
     canvas.dataset.verticalOffset = String(state.verticalOffset);
+    canvas.dataset.timeScale = String(state.timeScale);
+    canvas.dataset.timeScalePercent = String(timeScalePercent);
   }
 
   function persistViewSettings(): void {
@@ -262,6 +301,7 @@ export function mountHorizontalScreen(
     screenOptions.onSettingsChange?.({
       lineSpacing: state.lineSpacing,
       verticalOffset: state.verticalOffset,
+      timeScale: state.timeScale,
     });
   }
 
@@ -274,6 +314,7 @@ export function mountHorizontalScreen(
     const scene = createHorizontalScene(song, {
       width: size.width,
       height: size.height,
+      pixelsPerBeat: HORIZONTAL_PIXELS_PER_BEAT * state.timeScale,
       lineSpacing: state.lineSpacing,
       verticalOffset: state.verticalOffset,
       currentBeat: playbackState.currentBeat,
@@ -297,6 +338,7 @@ export function mountHorizontalScreen(
       playbackState.playbackRate,
     );
     canvas.dataset.playbackStatus = playbackState.status;
+    canvas.dataset.pixelsPerBeat = String(scene.pixelsPerBeat);
     drawHorizontalScene(context, scene);
 
     if (
@@ -354,6 +396,12 @@ export function mountHorizontalScreen(
 
   verticalOffsetInput.addEventListener("input", () => {
     state.verticalOffset = Number(verticalOffsetInput.value);
+    persistViewSettings();
+    scheduleRender();
+  });
+
+  timeScaleInput.addEventListener("input", () => {
+    state.timeScale = percentToTimeScale(Number(timeScaleInput.value));
     persistViewSettings();
     scheduleRender();
   });

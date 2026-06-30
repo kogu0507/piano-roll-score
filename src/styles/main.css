@@ -350,9 +350,8 @@ textarea:focus-visible {
   grid-template-areas:
     "topbar"
     "seek"
-    "adjust"
     "canvas";
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   width: 100%;
   height: 100vh;
   height: 100dvh;
@@ -707,19 +706,29 @@ textarea:focus-visible {
 }
 
 .practice-adjustment-panel {
+  grid-area: canvas;
+  position: relative;
+  z-index: 15;
   display: none;
-  grid-area: adjust;
+  align-self: start;
+  justify-self: center;
+  width: min(32rem, calc(100% - 1rem));
+  max-height: min(46vh, calc(100% - 1rem));
   gap: 0.75rem;
   min-width: 0;
+  margin: 0.5rem;
   padding:
     0.65rem
     max(0.75rem, env(safe-area-inset-right))
     0.65rem
     max(0.75rem, env(safe-area-inset-left));
   overflow: auto;
-  background: rgb(255 255 255 / 96%);
-  border-bottom: 1px solid #d6e2da;
+  overscroll-behavior: contain;
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid rgb(185 207 193 / 78%);
+  border-radius: 0.85rem;
   box-shadow: 0 0.8rem 1.5rem rgb(37 63 49 / 8%);
+  backdrop-filter: blur(10px);
 }
 
 .practice-screen--adjusting .practice-adjustment-panel {
@@ -727,7 +736,7 @@ textarea:focus-visible {
 }
 
 .practice-screen--adjusting .practice-seek-row {
-  display: none;
+  display: grid;
 }
 
 .practice-adjustment-panel__header {
@@ -747,6 +756,7 @@ textarea:focus-visible {
 
 .practice-canvas-region {
   grid-area: canvas;
+  position: relative;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -1024,6 +1034,13 @@ textarea:focus-visible {
     width: auto;
     max-width: none;
   }
+
+  .practice-adjustment-panel {
+    justify-self: start;
+    width: min(30rem, calc(100% - 0.7rem));
+    max-height: min(44vh, calc(100% - 0.7rem));
+    margin: 0.35rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1120,6 +1137,11 @@ textarea:focus-visible {
     padding: 0.65rem;
     border-radius: 0.85rem;
   }
+
+  .practice-adjustment-panel {
+    max-height: min(42vh, calc(100% - 0.7rem));
+    padding: 0.55rem;
+  }
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
@@ -1157,5 +1179,10 @@ textarea:focus-visible {
   .practice-seek-row {
     padding-top: 0.18rem;
     padding-bottom: 0.18rem;
+  }
+
+  .practice-adjustment-panel {
+    max-height: min(62vh, calc(100% - 0.6rem));
+    padding: 0.45rem;
   }
 }

@@ -335,4 +335,44 @@ describe("横表示シーン", () => {
       ),
     ).toBe(false);
   });
+
+  it("音価の幅を小さくすると横方向の音符幅と移動量を圧縮する", () => {
+    const compactPixelsPerBeat = HORIZONTAL_PIXELS_PER_BEAT * 0.5;
+    const normal = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0,
+    });
+    const compact = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      pixelsPerBeat: compactPixelsPerBeat,
+      currentBeat: 0,
+    });
+    const normalAfter = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0.5,
+    });
+    const compactAfter = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      pixelsPerBeat: compactPixelsPerBeat,
+      currentBeat: 0.5,
+    });
+    const normalNote = normal.notes.find((note) => note.id === "d-flat");
+    const compactNote = compact.notes.find((note) => note.id === "d-flat");
+    const normalAfterNote = normalAfter.notes.find(
+      (note) => note.id === "d-flat",
+    );
+    const compactAfterNote = compactAfter.notes.find(
+      (note) => note.id === "d-flat",
+    );
+
+    expect(compact.pixelsPerBeat).toBe(compactPixelsPerBeat);
+    expect(compactNote?.width).toBe((normalNote?.width ?? 0) * 0.5);
+    expect((compactAfterNote?.x ?? 0) - (compactNote?.x ?? 0)).toBe(
+      ((normalAfterNote?.x ?? 0) - (normalNote?.x ?? 0)) * 0.5,
+    );
+  });
 });

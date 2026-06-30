@@ -33,6 +33,7 @@ export interface VerticalScene {
   readonly height: number;
   readonly playbackGuideY: number;
   readonly judgmentLineY: number;
+  readonly pixelsPerBeat: number;
   readonly displayBeat: number;
   readonly currentBeat: number;
   readonly keyboard: KeyboardGeometry;
@@ -47,6 +48,7 @@ export interface VerticalSceneOptions {
   readonly height: number;
   readonly whiteKeyWidth: number;
   readonly horizontalOffset: number;
+  readonly pixelsPerBeat?: number;
   readonly currentBeat?: number;
   readonly displayBeat?: number;
 }
@@ -100,6 +102,7 @@ export function createVerticalScene(
   options: VerticalSceneOptions,
 ): VerticalScene {
   const displayBeat = options.displayBeat ?? options.currentBeat ?? 0;
+  const pixelsPerBeat = options.pixelsPerBeat ?? PIXELS_PER_BEAT;
   const keyboard = createKeyboardGeometry(
     resolveSongPitchRange(song),
     options.whiteKeyWidth,
@@ -132,7 +135,7 @@ export function createVerticalScene(
       note.time,
       note.duration,
       playbackGuideY,
-      PIXELS_PER_BEAT,
+      pixelsPerBeat,
       displayBeat,
     );
     const rectangle: SceneRectangle = {
@@ -164,6 +167,7 @@ export function createVerticalScene(
     height: options.height,
     playbackGuideY,
     judgmentLineY: playbackGuideY,
+    pixelsPerBeat,
     displayBeat,
     currentBeat: displayBeat,
     keyboard,

@@ -10,6 +10,7 @@ import {
   MIN_PLAYBACK_RATE,
   normalizePlaybackRate,
 } from "./timeline";
+import { DEFAULT_TIME_SCALE, normalizeTimeScale } from "./time-scale";
 import {
   DEFAULT_METRONOME_VOLUME,
   normalizeMetronomeVolume,
@@ -27,11 +28,13 @@ export type ViewOrientation = "portrait" | "landscape";
 export interface VerticalViewSettings {
   readonly whiteKeyWidth: number;
   readonly horizontalOffset: number;
+  readonly timeScale: number;
 }
 
 export interface HorizontalViewSettings {
   readonly lineSpacing: number;
   readonly verticalOffset: number;
+  readonly timeScale: number;
 }
 
 export interface PlaybackSettings {
@@ -51,6 +54,7 @@ export interface AppSettings {
 export const DEFAULT_HORIZONTAL_VIEW_SETTINGS: HorizontalViewSettings = {
   lineSpacing: STAFF_LINE_SPACING,
   verticalOffset: 0,
+  timeScale: DEFAULT_TIME_SCALE,
 };
 
 export const DEFAULT_PLAYBACK_SETTINGS: PlaybackSettings = {
@@ -66,6 +70,7 @@ const DEFAULT_VERTICAL_VIEW_SETTINGS: VerticalViewSettings = {
     Math.max(MIN_WHITE_KEY_WIDTH, 64),
   ),
   horizontalOffset: 0,
+  timeScale: DEFAULT_TIME_SCALE,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -108,6 +113,11 @@ export function normalizeVerticalViewSettings(
       input.horizontalOffset,
       fallback.horizontalOffset,
     ),
+    timeScale: normalizeTimeScale(
+      typeof input.timeScale === "number"
+        ? input.timeScale
+        : fallback.timeScale,
+    ),
   };
 }
 
@@ -128,6 +138,11 @@ export function normalizeHorizontalViewSettings(
     verticalOffset: normalizeStoredOffset(
       input.verticalOffset,
       fallback.verticalOffset,
+    ),
+    timeScale: normalizeTimeScale(
+      typeof input.timeScale === "number"
+        ? input.timeScale
+        : fallback.timeScale,
     ),
   };
 }

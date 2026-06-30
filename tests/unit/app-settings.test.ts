@@ -36,15 +36,18 @@ describe("app settings", () => {
         portrait: {
           whiteKeyWidth: 999,
           horizontalOffset: -999_999,
+          timeScale: 9,
         },
         landscape: {
           whiteKeyWidth: 8,
           horizontalOffset: 999_999,
+          timeScale: 0.1,
         },
       },
       horizontal: {
         lineSpacing: 99,
         verticalOffset: 999_999,
+        timeScale: 1.76,
       },
       playback: {
         playbackRate: 9,
@@ -57,14 +60,17 @@ describe("app settings", () => {
     expect(settings.vertical.portrait).toEqual({
       whiteKeyWidth: 320,
       horizontalOffset: MIN_STORED_VIEW_OFFSET,
+      timeScale: 2,
     });
     expect(settings.vertical.landscape).toEqual({
       whiteKeyWidth: 16,
       horizontalOffset: MAX_STORED_VIEW_OFFSET,
+      timeScale: 0.5,
     });
     expect(settings.horizontal).toEqual({
       lineSpacing: 40,
       verticalOffset: MAX_STORED_VIEW_OFFSET,
+      timeScale: 1.75,
     });
     expect(settings.playback).toEqual({
       playbackRate: 2,
@@ -85,6 +91,7 @@ describe("app settings", () => {
     expect(settings.horizontal).toEqual({
       lineSpacing: 18,
       verticalOffset: 0,
+      timeScale: 1,
     });
     expect(settings.playback).toEqual({
       playbackRate: 1,
@@ -101,10 +108,12 @@ describe("app settings", () => {
     store.updateVertical("portrait", {
       whiteKeyWidth: 96,
       horizontalOffset: 12,
+      timeScale: 1.25,
     });
     store.updateHorizontal({
       lineSpacing: 30,
       verticalOffset: -24,
+      timeScale: 0.75,
     });
     store.updatePlayback({
       playbackRate: 1.5,
@@ -118,10 +127,12 @@ describe("app settings", () => {
     expect(settings.vertical.portrait).toEqual({
       whiteKeyWidth: 96,
       horizontalOffset: 12,
+      timeScale: 1.25,
     });
     expect(settings.horizontal).toEqual({
       lineSpacing: 30,
       verticalOffset: -24,
+      timeScale: 0.75,
     });
     expect(settings.playback).toEqual({
       playbackRate: 1.5,

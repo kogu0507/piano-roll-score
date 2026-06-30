@@ -13,7 +13,14 @@ import {
   formatBeat,
   formatPlaybackRate,
 } from "../core/timeline";
-import { createVerticalScene } from "../core/vertical-layout";
+import {
+  PIXELS_PER_BEAT,
+  createVerticalScene,
+} from "../core/vertical-layout";
+import {
+  percentToTimeScale,
+  timeScaleToPercent,
+} from "../core/time-scale";
 import type { VerticalViewSettings } from "../core/app-settings";
 import type { PlaybackState } from "../core/timeline";
 import type { PlaybackController } from "../playback/playback-controller";
@@ -28,6 +35,7 @@ import type { Song } from "../types/song";
 interface VerticalScreenState {
   whiteKeyWidth: number;
   horizontalOffset: number;
+  timeScale: number;
   initialized: boolean;
 }
 
@@ -81,6 +89,8 @@ export function mountVerticalScreen(
   const whiteWidthOutput = document.createElement("output");
   const offsetInput = document.createElement("input");
   const offsetOutput = document.createElement("output");
+  const timeScaleInput = document.createElement("input");
+  const timeScaleOutput = document.createElement("output");
   const fitButton = createButton("画面幅に合わせる");
   const centerButton = createButton("中央に戻す");
   const playbackControls = mountPlaybackControls(
@@ -95,6 +105,7 @@ export function mountVerticalScreen(
   const state: VerticalScreenState = {
     whiteKeyWidth: screenOptions.initialSettings?.whiteKeyWidth ?? 64,
     horizontalOffset: screenOptions.initialSettings?.horizontalOffset ?? 0,
+    timeScale: screenOptions.initialSettings?.timeScale ?? 1,
     initialized: screenOptions.initialSettings !== undefined,
   };
 
@@ -149,6 +160,30 @@ export function mountVerticalScreen(
   offsetGroup.className = "vertical-control";
   offsetGroup.append(offsetLabel, offsetValue, offsetInput, centerButton);
 
+  const timeScaleGroup = document.createElement("div");
+  const timeScaleLabel = createTextElement(
+    "label",
+    "vertical-control__label",
+    "音価の幅",
+  );
+  const timeScaleValue = document.createElement("span");
+  const initialTimeScalePercent = timeScaleToPercent(state.timeScale);
+  timeScaleInput.id = "vertical-time-scale";
+  timeScaleInput.type = "range";
+  timeScaleInput.min = "50";
+  timeScaleInput.max = "200";
+  timeScaleInput.step = "5";
+  timeScaleInput.value = String(initialTimeScalePercent);
+  timeScaleInput.className = "vertical-control__range";
+  timeScaleLabel.htmlFor = timeScaleInput.id;
+  timeScaleOutput.htmlFor = timeScaleInput.id;
+  timeScaleOutput.value = String(initialTimeScalePercent);
+  timeScaleOutput.textContent = String(initialTimeScalePercent);
+  timeScaleValue.className = "vertical-control__value";
+  timeScaleValue.append(timeScaleOutput, document.createTextNode(" %"));
+  timeScaleGroup.className = "vertical-control";
+  timeScaleGroup.append(timeScaleLabel, timeScaleValue, timeScaleInput);
+
   const legend = document.createElement("div");
   legend.className = "vertical-legend";
   legend.setAttribute("role", "group");
@@ -169,7 +204,7 @@ export function mountVerticalScreen(
     legend.append(item);
   });
 
-  controls.append(widthGroup, offsetGroup);
+  controls.append(widthGroup, offsetGroup, timeScaleGroup);
 
   adjustmentPanel.className =
     "practice-adjustment-panel vertical-adjustment-panel";
@@ -273,6 +308,7 @@ export function mountVerticalScreen(
     screenOptions.onSettingsChange?.({
       whiteKeyWidth: state.whiteKeyWidth,
       horizontalOffset: state.horizontalOffset,
+      timeScale: state.timeScale,
     });
   }
 
@@ -299,13 +335,20 @@ export function mountVerticalScreen(
     updateOffsetControl(size.width, geometry.totalWidth);
     whiteWidthInput.value = String(state.whiteKeyWidth);
     whiteWidthOutput.value = String(state.whiteKeyWidth);
+    const timeScalePercent = timeScaleToPercent(state.timeScale);
+    timeScaleInput.value = String(timeScalePercent);
+    timeScaleOutput.value = String(timeScalePercent);
+    timeScaleOutput.textContent = String(timeScalePercent);
     canvas.dataset.whiteKeyWidth = String(state.whiteKeyWidth);
+    canvas.dataset.timeScale = String(state.timeScale);
+    canvas.dataset.timeScalePercent = String(timeScalePercent);
 
     const scene = createVerticalScene(song, {
       width: size.width,
       height: size.height,
       whiteKeyWidth: state.whiteKeyWidth,
       horizontalOffset: state.horizontalOffset,
+      pixelsPerBeat: PIXELS_PER_BEAT * state.timeScale,
       currentBeat: playbackState.currentBeat,
       displayBeat,
     });
@@ -321,6 +364,7 @@ export function mountVerticalScreen(
       playbackState.playbackRate,
     );
     canvas.dataset.playbackStatus = playbackState.status;
+    canvas.dataset.pixelsPerBeat = String(scene.pixelsPerBeat);
     drawVerticalScene(context, scene);
 
     if (
@@ -386,6 +430,12 @@ export function mountVerticalScreen(
 
   offsetInput.addEventListener("input", () => {
     state.horizontalOffset = Number(offsetInput.value);
+    persistViewSettings();
+    scheduleRender();
+  });
+
+  timeScaleInput.addEventListener("input", () => {
+    state.timeScale = percentToTimeScale(Number(timeScaleInput.value));
     persistViewSettings();
     scheduleRender();
   });

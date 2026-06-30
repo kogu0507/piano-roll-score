@@ -172,4 +172,52 @@ describe("縦表示シーン", () => {
       ),
     ).toBe(false);
   });
+
+  it("音価の幅を小さくすると縦方向の音符長と移動量を圧縮する", () => {
+    const compactPixelsPerBeat = PIXELS_PER_BEAT * 0.5;
+    const normal = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+    });
+    const compact = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      pixelsPerBeat: compactPixelsPerBeat,
+      currentBeat: 0,
+    });
+    const normalAfter = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0.5,
+    });
+    const compactAfter = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      pixelsPerBeat: compactPixelsPerBeat,
+      currentBeat: 0.5,
+    });
+    const normalNote = normal.notes.find((note) => note.id === "d-flat");
+    const compactNote = compact.notes.find((note) => note.id === "d-flat");
+    const normalAfterNote = normalAfter.notes.find(
+      (note) => note.id === "d-flat",
+    );
+    const compactAfterNote = compactAfter.notes.find(
+      (note) => note.id === "d-flat",
+    );
+
+    expect(compact.pixelsPerBeat).toBe(compactPixelsPerBeat);
+    expect(compactNote?.height).toBe((normalNote?.height ?? 0) * 0.5);
+    expect((compactAfterNote?.y ?? 0) - (compactNote?.y ?? 0)).toBe(
+      ((normalAfterNote?.y ?? 0) - (normalNote?.y ?? 0)) * 0.5,
+    );
+  });
 });

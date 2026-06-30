@@ -195,14 +195,33 @@ test("縦表示の表示調整モードは開閉でき、調整値を維持す�
   await openBuiltinLoadScreen(page);
   await getVerticalPreviewButton(page).click();
   const canvas = getVerticalCanvas(page);
+  const canvasBoxBefore = await canvas.boundingBox();
 
   await openDisplayAdjustmentMode(page);
   await expect(page.locator(".practice-adjustment-panel")).toBeVisible();
-  await expect(page.getByLabel("曲の現在位置")).toBeHidden();
+  await expect(page.locator(".practice-seek-row")).toBeVisible();
+  await expect
+    .poll(async () => {
+      const canvasBoxAfter = await canvas.boundingBox();
+
+      if (canvasBoxBefore === null || canvasBoxAfter === null) {
+        return false;
+      }
+
+      return (
+        Math.abs(canvasBoxBefore.x - canvasBoxAfter.x) <= 1 &&
+        Math.abs(canvasBoxBefore.y - canvasBoxAfter.y) <= 1 &&
+        Math.abs(canvasBoxBefore.width - canvasBoxAfter.width) <= 1 &&
+        Math.abs(canvasBoxBefore.height - canvasBoxAfter.height) <= 1
+      );
+    })
+    .toBe(true);
   await page.getByLabel("白鍵1鍵の幅").fill("120");
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await page.getByLabel("譜面の横位置").fill("10");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+  await page.getByLabel("音価の幅").fill("50");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "50");
 
   await page.getByRole("button", { name: "表示調整を閉じる" }).click();
   await expect(page.locator(".practice-screen")).toHaveAttribute(
@@ -213,6 +232,7 @@ test("縦表示の表示調整モードは開閉でき、調整値を維持す�
   await expect(page.getByLabel("曲の現在位置")).toBeVisible();
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "50");
   await expectNoHorizontalOverflow(page);
 });
 
@@ -237,15 +257,35 @@ test("横表示の通常練習モードと表示調整モードも同じ構造�
   await expectNormalPracticeShell(page, ".horizontal-canvas");
   await expectMenuSections(page);
 
-  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
   const canvas = getHorizontalCanvas(page);
+  const canvasBoxBefore = await canvas.boundingBox();
+  await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+  await expect
+    .poll(async () => {
+      const canvasBoxAfter = await canvas.boundingBox();
+
+      if (canvasBoxBefore === null || canvasBoxAfter === null) {
+        return false;
+      }
+
+      return (
+        Math.abs(canvasBoxBefore.x - canvasBoxAfter.x) <= 1 &&
+        Math.abs(canvasBoxBefore.y - canvasBoxAfter.y) <= 1 &&
+        Math.abs(canvasBoxBefore.width - canvasBoxAfter.width) <= 1 &&
+        Math.abs(canvasBoxBefore.height - canvasBoxAfter.height) <= 1
+      );
+    })
+    .toBe(true);
   await page.getByLabel("五線の1間の幅").fill("30");
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
   await page.getByLabel("譜面の縦位置").fill("18");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
+  await page.getByLabel("音価の幅").fill("150");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "150");
   await page.getByRole("button", { name: "表示調整を閉じる" }).click();
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "150");
   await expectNoHorizontalOverflow(page);
 });
 

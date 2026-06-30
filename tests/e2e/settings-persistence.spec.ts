@@ -76,6 +76,8 @@ test("縦表示と再生設定をlocalStorageへ保存し、次回表示時に�
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await page.locator("#horizontal-offset").fill("10");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+  await page.locator("#vertical-time-scale").fill("125");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "125");
   await openPlaybackSettings(page);
   await page
     .locator("#vertical-playback-controls-playback-rate-menu")
@@ -96,6 +98,10 @@ test("縦表示と再生設定をlocalStorageへ保存し、次回表示時に�
   await expect(getVerticalCanvas(page)).toHaveAttribute(
     "data-horizontal-offset",
     "10",
+  );
+  await expect(getVerticalCanvas(page)).toHaveAttribute(
+    "data-time-scale-percent",
+    "125",
   );
   await expect(page.locator(".playback-controls")).toHaveAttribute(
     "data-playback-rate",
@@ -128,6 +134,8 @@ test("横表示の五線間隔と譜面縦位置をlocalStorageへ保存し、�
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "30");
   await page.locator("#horizontal-vertical-offset").fill("24");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "24");
+  await page.locator("#horizontal-time-scale").fill("75");
+  await expect(canvas).toHaveAttribute("data-time-scale-percent", "75");
 
   await page.reload();
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
@@ -140,6 +148,10 @@ test("横表示の五線間隔と譜面縦位置をlocalStorageへ保存し、�
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-vertical-offset",
     "24",
+  );
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-time-scale-percent",
+    "75",
   );
   await expectNoHorizontalOverflow(page);
 });
