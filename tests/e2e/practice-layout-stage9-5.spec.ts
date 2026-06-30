@@ -117,23 +117,28 @@ async function expectNormalPracticeShell(
 
 async function expectMenuSections(page: Page): Promise<void> {
   await openPracticeMenu(page);
+  const expectMenuItem = async (locator: ReturnType<Page["locator"]>) => {
+    await locator.scrollIntoViewIfNeeded();
+    await expect(locator).toBeVisible();
+  };
+
   await expect(
     page.locator(
       ".practice-menu__content > .practice-menu__section > .practice-menu__heading",
     ),
   ).toHaveText(["再生設定", "表示設定", "その他"]);
-  await expect(
+  await expectMenuItem(
     page.locator("#vertical-playback-controls-playback-rate-menu, #horizontal-playback-controls-playback-rate-menu"),
-  ).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "メトロノーム" })).toBeVisible();
-  await expect(page.getByLabel("メトロノーム音量")).toBeVisible();
-  await expect(page.getByLabel("プリカウント")).toBeVisible();
-  await expect(page.getByRole("button", { name: "表示調整モードを開く" })).toBeVisible();
-  await expect(page.getByText("曲情報")).toBeVisible();
-  await expect(page.getByTestId("practice-save-song-button")).toBeVisible();
-  await expect(page.getByTestId("practice-export-song-button")).toBeVisible();
-  await expect(page.getByTestId("practice-saved-list-button")).toBeVisible();
-  await expect(page.getByRole("button", { name: "ロード画面へ戻る" })).toBeVisible();
+  );
+  await expectMenuItem(page.getByRole("checkbox", { name: "メトロノーム" }));
+  await expectMenuItem(page.getByLabel("メトロノーム音量"));
+  await expectMenuItem(page.getByLabel("プリカウント"));
+  await expectMenuItem(page.getByRole("button", { name: "表示調整モードを開く" }));
+  await expectMenuItem(page.getByText("曲情報"));
+  await expectMenuItem(page.getByTestId("practice-save-song-button"));
+  await expectMenuItem(page.getByTestId("practice-export-song-button"));
+  await expectMenuItem(page.getByTestId("practice-saved-list-button"));
+  await expectMenuItem(page.getByRole("button", { name: "ロード画面へ戻る" }));
 
   await expect
     .poll(() =>
@@ -154,6 +159,58 @@ async function expectMenuSections(page: Page): Promise<void> {
       }),
     )
     .toBe(true);
+}
+
+async function getPanelLayoutMetrics(page: Page): Promise<{
+  panelLeft: number;
+  panelTop: number;
+  panelRight: number;
+  panelBottom: number;
+  panelWidth: number;
+  panelHeight: number;
+  canvasTop: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  panelToCanvasAreaRatio: number;
+  backgroundAlpha: number;
+}> {
+  return page.evaluate(() => {
+    const panel = document.querySelector(".practice-adjustment-panel");
+    const canvas = document.querySelector("canvas");
+
+    if (panel === null || canvas === null) {
+      throw new Error("表示調整パネルまたはCanvasが見つかりません。");
+    }
+
+    const panelBounds = panel.getBoundingClientRect();
+    const canvasBounds = canvas.getBoundingClientRect();
+    const backgroundColor = window.getComputedStyle(panel).backgroundColor;
+    const alphaMatch = backgroundColor.match(/rgba?\(([^)]+)\)/);
+    const alpha =
+      alphaMatch === null
+        ? 1
+        : Number(alphaMatch[1]?.split(",").map((part) => part.trim())[3] ?? 1);
+
+    return {
+      panelLeft: panelBounds.left,
+      panelTop: panelBounds.top,
+      panelRight: panelBounds.right,
+      panelBottom: panelBounds.bottom,
+      panelWidth: panelBounds.width,
+      panelHeight: panelBounds.height,
+      canvasTop: canvasBounds.top,
+      canvasWidth: canvasBounds.width,
+      canvasHeight: canvasBounds.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      panelToCanvasAreaRatio:
+        (panelBounds.width * panelBounds.height) /
+        Math.max(1, canvasBounds.width * canvasBounds.height),
+      backgroundAlpha: alpha,
+    };
+  });
 }
 
 test("縦表示の通常練習モードは最小操作列、シーク、下側Canvasに分離される", async ({
@@ -186,6 +243,46 @@ test("縦表示の通常練習モードは最小操作列、シーク、下側Ca
 
   await expectNormalPracticeShell(page, ".vertical-canvas");
   await expectMenuSections(page);
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン幅の練習メニューはドロワー表示で背景タップから閉じられる", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+  await openPracticeMenu(page);
+
+  const menu = page.locator("details.practice-menu");
+  const content = page.locator(".practice-menu__content");
+  const drawerMetrics = await content.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+
+    return {
+      left: bounds.left,
+      right: bounds.right,
+      width: bounds.width,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  expect(drawerMetrics.width / drawerMetrics.viewportWidth).toBeGreaterThan(0.72);
+  expect(drawerMetrics.width / drawerMetrics.viewportWidth).toBeLessThan(0.86);
+  expect(drawerMetrics.left).toBeGreaterThan(0);
+  expect(drawerMetrics.right).toBeLessThanOrEqual(drawerMetrics.viewportWidth);
+
+  await content.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect(page.getByRole("button", { name: "メニューを閉じる" })).toBeVisible();
+  await page.mouse.click(12, drawerMetrics.viewportHeight / 2);
+  await expect
+    .poll(() =>
+      menu.evaluate((element) => (element as HTMLDetailsElement).open),
+    )
+    .toBe(false);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -233,6 +330,66 @@ test("縦表示の表示調整モードは開閉でき、調整値を維持す�
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
   await expect(canvas).toHaveAttribute("data-time-scale-percent", "50");
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン横向きの表示調整フロートは画面上部基準で3項目を見つけやすくする", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+  const canvas = getVerticalCanvas(page);
+  const canvasBoxBefore = await canvas.boundingBox();
+
+  await openDisplayAdjustmentMode(page);
+  const metrics = await getPanelLayoutMetrics(page);
+  const cardsFitInPanel = await page.evaluate(() => {
+    const panel = document.querySelector(".practice-adjustment-panel");
+    const inputIds = ["white-key-width", "horizontal-offset", "vertical-time-scale"];
+
+    if (panel === null) {
+      return false;
+    }
+
+    const panelBounds = panel.getBoundingClientRect();
+
+    return inputIds.every((id) => {
+      const card = document.getElementById(id)?.closest(".vertical-control");
+
+      if (card === null || card === undefined) {
+        return false;
+      }
+
+      const bounds = card.getBoundingClientRect();
+      return (
+        bounds.top >= panelBounds.top - 1 &&
+        bounds.bottom <= panelBounds.bottom + 1
+      );
+    });
+  });
+
+  expect(metrics.panelTop).toBeLessThan(metrics.canvasTop);
+  expect(metrics.panelToCanvasAreaRatio).toBeLessThan(0.65);
+  expect(metrics.backgroundAlpha).toBeLessThan(0.9);
+  expect(cardsFitInPanel).toBe(true);
+  await expect(page.getByLabel("白鍵1鍵の幅")).toBeVisible();
+  await expect(page.getByLabel("譜面の横位置")).toBeVisible();
+  await expect(page.getByLabel("音価の幅")).toBeVisible();
+  await expect
+    .poll(async () => {
+      const canvasBoxAfter = await canvas.boundingBox();
+
+      if (canvasBoxBefore === null || canvasBoxAfter === null) {
+        return false;
+      }
+
+      return (
+        Math.abs(canvasBoxBefore.width - canvasBoxAfter.width) <= 1 &&
+        Math.abs(canvasBoxBefore.height - canvasBoxAfter.height) <= 1
+      );
+    })
+    .toBe(true);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -287,6 +444,68 @@ test("横表示の通常練習モードと表示調整モードも同じ構造�
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
   await expect(canvas).toHaveAttribute("data-time-scale-percent", "150");
   await expectNoHorizontalOverflow(page);
+});
+
+test("PC幅とタブレット相当幅の表示調整はサイド寄せでCanvasを見ながら操作できる", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 1024, height: 768 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await openBuiltinLoadScreen(page);
+    await getHorizontalPreviewButton(page).click();
+    const canvas = getHorizontalCanvas(page);
+    const canvasBoxBefore = await canvas.boundingBox();
+
+    await openPracticeMenu(page);
+    const menuMetrics = await page.locator(".practice-menu__content").evaluate(
+      (element) => {
+        const bounds = element.getBoundingClientRect();
+
+        return {
+          left: bounds.left,
+          width: bounds.width,
+          viewportWidth: window.innerWidth,
+        };
+      },
+    );
+
+    expect(menuMetrics.width / menuMetrics.viewportWidth).toBeLessThan(0.55);
+    expect(menuMetrics.left).toBeGreaterThan(menuMetrics.viewportWidth * 0.4);
+    await page.getByRole("button", { name: "表示調整モードを開く" }).click();
+
+    const panelMetrics = await getPanelLayoutMetrics(page);
+    expect(panelMetrics.panelWidth / panelMetrics.viewportWidth).toBeLessThan(0.55);
+    expect(panelMetrics.panelLeft).toBeGreaterThan(
+      panelMetrics.viewportWidth * 0.4,
+    );
+    expect(panelMetrics.panelToCanvasAreaRatio).toBeLessThan(0.55);
+    expect(panelMetrics.backgroundAlpha).toBeLessThan(0.9);
+    await expect(page.getByLabel("五線の1間の幅")).toBeVisible();
+    await expect(page.getByLabel("譜面の縦位置")).toBeVisible();
+    await expect(page.getByLabel("音価の幅")).toBeVisible();
+    await page.getByLabel("音価の幅").fill("50");
+    await expect(canvas).toHaveAttribute("data-time-scale-percent", "50");
+    await expect(canvas).toHaveAttribute("data-playback-rate", "1");
+    await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
+    await expect
+      .poll(async () => {
+        const canvasBoxAfter = await canvas.boundingBox();
+
+        if (canvasBoxBefore === null || canvasBoxAfter === null) {
+          return false;
+        }
+
+        return (
+          Math.abs(canvasBoxBefore.width - canvasBoxAfter.width) <= 1 &&
+          Math.abs(canvasBoxBefore.height - canvasBoxAfter.height) <= 1
+        );
+      })
+      .toBe(true);
+    await expectNoHorizontalOverflow(page);
+  }
 });
 
 test("再生速度は通常練習モードとメニュー内で即時同期する", async ({

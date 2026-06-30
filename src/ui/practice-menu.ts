@@ -159,6 +159,21 @@ export function createPracticeMenu({
     details.open = false;
   });
 
+  details.addEventListener("click", (event) => {
+    const target = event.target;
+
+    if (
+      !details.open ||
+      !(target instanceof Node) ||
+      summary.contains(target) ||
+      content.contains(target)
+    ) {
+      return;
+    }
+
+    details.open = false;
+  });
+
   openDisplayAdjustmentButton.addEventListener("click", () => {
     details.open = false;
     onOpenDisplayAdjustment();
