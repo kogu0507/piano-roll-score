@@ -32,6 +32,28 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
     .toBe(true);
 }
 
+async function openPlaybackSettings(page: Page): Promise<void> {
+  const details = page.locator("details.playback-controls__secondary");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
+async function openPracticeMenu(page: Page): Promise<void> {
+  const details = page.locator("details.practice-menu");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 async function openBuiltinHorizontalPreview(page: Page): Promise<void> {
   await page.goto("./?id=001");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
@@ -78,6 +100,7 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
   const canvas = getHorizontalCanvas(page);
   const speedInput = page.getByLabel("再生速度");
 
+  await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
@@ -104,6 +127,7 @@ test("横表示でプリカウント中に助走表示が進む", async ({ page 
   const canvas = getHorizontalCanvas(page);
   const playbackControls = page.locator(".playback-controls");
 
+  await openPlaybackSettings(page);
   await page.getByLabel("プリカウント").selectOption("1");
   await page.getByLabel("再生速度").fill("2");
   await page.getByRole("button", { name: "スタート" }).click();
@@ -171,6 +195,7 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
   const json = await getJsonEditor(page).inputValue();
   await getHorizontalPreviewButton(page).click();
 
+  await openPracticeMenu(page);
   await page.getByRole("button", { name: "ロード画面へ戻る" }).click();
 
   await expect(getJsonEditor(page)).toHaveValue(json);
@@ -184,6 +209,7 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
   const seekInput = page.getByLabel("曲の現在位置");
   const playbackControls = page.locator(".playback-controls");
 
+  await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByLabel("メトロノーム音量").fill("42");
   await page.getByLabel("プリカウント").selectOption("2");
@@ -249,6 +275,7 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   await expect(canvas).toHaveAttribute("data-vertical-offset", "16");
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
+  await openPlaybackSettings(page);
   await page.getByLabel("再生速度").fill("0.8");
   await expect(canvas).toHaveAttribute("data-playback-rate", "0.8");
   await expectNoHorizontalOverflow(page);

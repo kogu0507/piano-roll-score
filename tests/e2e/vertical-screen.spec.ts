@@ -32,6 +32,28 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
     .toBe(true);
 }
 
+async function openPlaybackSettings(page: Page): Promise<void> {
+  const details = page.locator("details.playback-controls__secondary");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
+async function openPracticeMenu(page: Page): Promise<void> {
+  const details = page.locator("details.practice-menu");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await page.goto("./");
   await expect(getPreviewButton(page)).toBeDisabled();
@@ -72,6 +94,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
   await expect(canvas).toHaveAttribute("data-end-beat", "5.00");
 
+  await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByRole("button", { name: "スタート" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
@@ -108,6 +131,7 @@ test("メトロノーム、音量、プリカウントを操作できる", async
   const canvas = getCanvas(page);
   const playbackControls = page.locator(".playback-controls");
 
+  await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await expect(playbackControls).toHaveAttribute(
     "data-metronome-enabled",
@@ -229,6 +253,7 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
   const json = await getJsonEditor(page).inputValue();
   await getPreviewButton(page).click();
 
+  await openPracticeMenu(page);
   await page.getByRole("button", { name: "ロード画面へ戻る" }).click();
 
   await expect(getJsonEditor(page)).toHaveValue(json);

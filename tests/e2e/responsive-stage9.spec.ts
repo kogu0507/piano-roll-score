@@ -162,6 +162,17 @@ async function expectAccessibleAndTouchable(page: Page): Promise<void> {
   await expectTouchTargets(page);
 }
 
+async function openPlaybackSettings(page: Page): Promise<void> {
+  const details = page.locator("details.playback-controls__secondary");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 async function openLoadScreen(
   page: Page,
   viewport: ViewportCase,
@@ -207,6 +218,7 @@ test("縦表示はスマートフォン縦横とタブレット幅で操作で�
   await expect(canvas).toHaveAttribute("data-white-key-width", "112");
   await page.getByLabel("譜面の横位置").fill("8");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "8");
+  await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await page.getByLabel("曲の現在位置").fill("0.75");
   await expect(canvas).toHaveAttribute("data-current-beat", "0.75");
@@ -242,6 +254,7 @@ test("横表示はスマートフォン縦横とタブレット幅で操作で�
   await expect(canvas).toHaveAttribute("data-staff-line-spacing", "28");
   await page.getByLabel("譜面の縦位置").fill("18");
   await expect(canvas).toHaveAttribute("data-vertical-offset", "18");
+  await openPlaybackSettings(page);
   await page.getByLabel("再生速度").fill("1.2");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.2");
   await expectAccessibleAndTouchable(page);

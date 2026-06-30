@@ -72,6 +72,7 @@ export function mountPlaybackControls(
   options: PlaybackControlsOptions = {},
 ): PlaybackControlsMount {
   const section = document.createElement("section");
+  const primaryControls = document.createElement("div");
   const buttons = document.createElement("div");
   const startButton = createButton("スタート", "button button--primary");
   const pauseButton = createButton("一時停止");
@@ -127,9 +128,18 @@ export function mountPlaybackControls(
     "playback-controls__status",
     "停止中",
   );
+  const secondaryDetails = document.createElement("details");
+  const secondarySummary = createTextElement(
+    "summary",
+    "playback-controls__secondary-summary",
+    "再生補助設定",
+  );
+  const secondaryContent = document.createElement("div");
 
   section.className = `playback-controls ${className}`;
   section.setAttribute("aria-label", "再生操作");
+
+  primaryControls.className = "playback-controls__primary";
 
   buttons.className = "playback-controls__buttons";
   buttons.append(startButton, pauseButton, resetButton);
@@ -196,14 +206,20 @@ export function mountPlaybackControls(
   precountGroup.className = "playback-control playback-control--precount";
   precountGroup.append(precountLabel, precountSelect);
 
-  section.append(
-    buttons,
-    seekGroup,
+  secondaryDetails.className = "playback-controls__secondary";
+  secondaryContent.className = "playback-controls__secondary-content";
+  secondaryContent.append(
     speedGroup,
     metronomeGroup,
     volumeGroup,
     precountGroup,
-    status,
+  );
+  secondaryDetails.append(secondarySummary, secondaryContent);
+
+  primaryControls.append(buttons, seekGroup, status);
+  section.append(
+    primaryControls,
+    secondaryDetails,
   );
 
   function update(state: PlaybackState): void {

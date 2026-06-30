@@ -13,6 +13,7 @@ import type { PlaybackController } from "../playback/playback-controller";
 import { resizeCanvasForDisplay } from "../renderers/canvas";
 import { drawHorizontalScene } from "../renderers/horizontal-renderer";
 import { mountPlaybackControls } from "./playback-controls";
+import { createPracticeMenu } from "./practice-menu";
 import type { Song } from "../types/song";
 
 interface HorizontalScreenState {
@@ -56,8 +57,12 @@ export function mountHorizontalScreen(
   const main = document.createElement("main");
   const header = document.createElement("header");
   const navigation = document.createElement("div");
-  const backButton = createButton("ロード画面へ戻る");
-  const switchButton = createButton("縦表示へ切り替え");
+  const backButton = createButton("ロード画面へ戻る", "button button--secondary");
+  const switchButton = createButton(
+    "縦表示へ切り替え",
+    "button button--primary button--view-switch",
+  );
+  const priorityPanel = document.createElement("section");
   const controls = document.createElement("section");
   const previewSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -84,11 +89,18 @@ export function mountHorizontalScreen(
   main.className = "horizontal-screen";
   header.className = "horizontal-header";
   navigation.className = "screen-navigation";
-  navigation.append(backButton);
 
   if (switchToVertical !== undefined) {
     navigation.append(switchButton);
   }
+  navigation.append(
+    createPracticeMenu({
+      song,
+      backButton,
+      modeDescription:
+        "横表示では、五線の1間の幅と譜面の縦位置を見やすさに合わせて調整します。",
+    }),
+  );
 
   header.append(
     navigation,
@@ -100,6 +112,10 @@ export function mountHorizontalScreen(
       "音符ブロックが右から左へ流れる横表示です。縦表示で覚えた鍵盤上の動きを、五線に近い上下位置へ結び付けます。",
     ),
   );
+
+  priorityPanel.className =
+    "practice-priority-panel horizontal-priority-panel";
+  priorityPanel.setAttribute("aria-label", "練習中によく使う操作");
 
   controls.className = "horizontal-controls";
   controls.setAttribute("aria-label", "横表示の表示調整");
@@ -194,7 +210,8 @@ export function mountHorizontalScreen(
   );
 
   controls.append(spacingGroup, offsetGroup, legend);
-  main.append(header, playbackControls.element, controls, previewSection);
+  priorityPanel.append(playbackControls.element, controls);
+  main.append(header, priorityPanel, previewSection);
   root.replaceChildren(main);
 
   let frameId = 0;

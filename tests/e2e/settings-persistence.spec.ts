@@ -28,6 +28,17 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
     .toBe(true);
 }
 
+async function openPlaybackSettings(page: Page): Promise<void> {
+  const details = page.locator("details.playback-controls__secondary");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 async function openBuiltinLoadScreen(page: Page): Promise<void> {
   await page.goto("./?id=001");
   await expect(getVerticalPreviewButton(page)).toBeEnabled();
@@ -45,6 +56,7 @@ test("縦表示と再生設定をlocalStorageへ保存し、次回表示時に�
   await expect(canvas).toHaveAttribute("data-white-key-width", "120");
   await page.locator("#horizontal-offset").fill("10");
   await expect(canvas).toHaveAttribute("data-horizontal-offset", "10");
+  await openPlaybackSettings(page);
   await page.locator("#vertical-playback-controls-playback-rate").fill("1.5");
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
   await page.locator("#vertical-playback-controls-metronome").check();

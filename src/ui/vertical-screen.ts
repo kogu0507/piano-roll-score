@@ -18,6 +18,7 @@ import {
   resizeCanvasForDisplay,
 } from "../renderers/vertical-renderer";
 import { mountPlaybackControls } from "./playback-controls";
+import { createPracticeMenu } from "./practice-menu";
 import type { Song } from "../types/song";
 
 interface VerticalScreenState {
@@ -62,8 +63,12 @@ export function mountVerticalScreen(
   const main = document.createElement("main");
   const header = document.createElement("header");
   const navigation = document.createElement("div");
-  const backButton = createButton("ロード画面へ戻る");
-  const switchButton = createButton("横表示へ切り替え");
+  const backButton = createButton("ロード画面へ戻る", "button button--secondary");
+  const switchButton = createButton(
+    "横表示へ切り替え",
+    "button button--primary button--view-switch",
+  );
+  const priorityPanel = document.createElement("section");
   const controls = document.createElement("section");
   const canvasSection = document.createElement("section");
   const canvasWrap = document.createElement("div");
@@ -92,11 +97,18 @@ export function mountVerticalScreen(
   main.className = "vertical-screen";
   header.className = "vertical-header";
   navigation.className = "screen-navigation";
-  navigation.append(backButton);
 
   if (switchToHorizontal !== undefined) {
     navigation.append(switchButton);
   }
+  navigation.append(
+    createPracticeMenu({
+      song,
+      backButton,
+      modeDescription:
+        "縦表示では、白鍵幅と譜面の横位置を実鍵盤に合わせて調整します。",
+    }),
+  );
 
   header.append(
     navigation,
@@ -108,6 +120,10 @@ export function mountVerticalScreen(
       "音符ブロックが上から下へ流れる縦表示です。白鍵幅と横位置を実際の鍵盤に合わせて調整できます。",
     ),
   );
+
+  priorityPanel.className =
+    "practice-priority-panel vertical-priority-panel";
+  priorityPanel.setAttribute("aria-label", "練習中によく使う操作");
 
   controls.className = "vertical-controls";
   controls.setAttribute("aria-label", "鍵盤位置調整");
@@ -175,6 +191,7 @@ export function mountVerticalScreen(
   });
 
   controls.append(widthGroup, offsetGroup, legend);
+  priorityPanel.append(playbackControls.element, controls);
 
   canvasSection.className = "vertical-preview";
   canvasSection.setAttribute("aria-labelledby", "vertical-preview-title");
@@ -202,7 +219,7 @@ export function mountVerticalScreen(
     canvasWrap,
   );
 
-  main.append(header, playbackControls.element, controls, canvasSection);
+  main.append(header, priorityPanel, canvasSection);
   root.replaceChildren(main);
 
   let frameId = 0;
