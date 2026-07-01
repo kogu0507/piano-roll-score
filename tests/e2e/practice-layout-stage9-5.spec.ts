@@ -213,6 +213,26 @@ async function getPanelLayoutMetrics(page: Page): Promise<{
   });
 }
 
+async function getVerticalKeyboardGuideMetrics(page: Page): Promise<{
+  scale: number;
+  whiteHeight: number;
+  blackHeight: number;
+  playbackGuideY: number;
+  cssHeight: number;
+}> {
+  return getVerticalCanvas(page).evaluate((element) => {
+    const canvas = element as HTMLCanvasElement;
+
+    return {
+      scale: Number(canvas.dataset.keyboardGuideHeightScale),
+      whiteHeight: Number(canvas.dataset.whiteKeyGuideHeight),
+      blackHeight: Number(canvas.dataset.blackKeyGuideHeight),
+      playbackGuideY: Number(canvas.dataset.playbackGuideY),
+      cssHeight: Number(canvas.dataset.cssHeight),
+    };
+  });
+}
+
 test("縦表示の通常練習モードは最小操作列、シーク、下側Canvasに分離される", async ({
   page,
 }) => {
@@ -390,6 +410,49 @@ test("スマートフォン横向きの表示調整フロートは画面上部�
       );
     })
     .toBe(true);
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン横向きの縦表示だけ簡易鍵盤ガイドを薄いガイドへ圧縮する", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+
+  const canvas = getVerticalCanvas(page);
+  await expect(canvas).toHaveAttribute(
+    "data-keyboard-guide-height-scale",
+    "0.56",
+  );
+  const landscapeMetrics = await getVerticalKeyboardGuideMetrics(page);
+
+  expect(landscapeMetrics.whiteHeight).toBeGreaterThanOrEqual(72 * 0.5);
+  expect(landscapeMetrics.whiteHeight).toBeLessThanOrEqual(72 * 0.6);
+  expect(landscapeMetrics.blackHeight).toBeGreaterThanOrEqual(42 * 0.5);
+  expect(landscapeMetrics.blackHeight).toBeLessThanOrEqual(42 * 0.6);
+  expect(landscapeMetrics.playbackGuideY).toBeCloseTo(
+    landscapeMetrics.cssHeight - landscapeMetrics.whiteHeight,
+    1,
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect
+    .poll(async () => getVerticalKeyboardGuideMetrics(page))
+    .toMatchObject({
+      scale: 1,
+      whiteHeight: 72,
+      blackHeight: 42,
+    });
+
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await expect
+    .poll(async () => getVerticalKeyboardGuideMetrics(page))
+    .toMatchObject({
+      scale: 1,
+      whiteHeight: 72,
+      blackHeight: 42,
+    });
   await expectNoHorizontalOverflow(page);
 });
 

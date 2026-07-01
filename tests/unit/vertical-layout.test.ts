@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BLACK_KEY_GUIDE_HEIGHT,
+  COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
   PIXELS_PER_BEAT,
+  WHITE_KEY_GUIDE_HEIGHT,
   calculateNoteVerticalRectangle,
   createVerticalScene,
   isRectangleVisible,
+  shouldUseCompactKeyboardGuide,
 } from "../../src/core/vertical-layout";
 import type { Song } from "../../src/schema/song-schema";
 
@@ -218,6 +222,66 @@ describe("縦表示シーン", () => {
     expect(compactNote?.height).toBe((normalNote?.height ?? 0) * 0.5);
     expect((compactAfterNote?.y ?? 0) - (compactNote?.y ?? 0)).toBe(
       ((normalAfterNote?.y ?? 0) - (normalNote?.y ?? 0)) * 0.5,
+    );
+  });
+
+  it("スマートフォン横向き用の鍵盤ガイド圧縮でも横方向の鍵盤位置と音符位置は維持する", () => {
+    const normal = createVerticalScene(enharmonicSong, {
+      width: 844,
+      height: 280,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+    });
+    const compact = createVerticalScene(enharmonicSong, {
+      width: 844,
+      height: 280,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      keyboardGuideHeightScale: COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
+    });
+    const normalNote = normal.notes.find((note) => note.id === "c-sharp");
+    const compactNote = compact.notes.find((note) => note.id === "c-sharp");
+
+    expect(compact.keyboardGuideHeightScale).toBe(
+      COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
+    );
+    expect(compact.whiteKeyGuideHeight).toBeCloseTo(
+      WHITE_KEY_GUIDE_HEIGHT * COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
+    );
+    expect(compact.blackKeyGuideHeight).toBeCloseTo(
+      BLACK_KEY_GUIDE_HEIGHT * COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
+    );
+    expect(compact.whiteKeyGuideHeight).toBeGreaterThanOrEqual(
+      WHITE_KEY_GUIDE_HEIGHT * 0.5,
+    );
+    expect(compact.whiteKeyGuideHeight).toBeLessThanOrEqual(
+      WHITE_KEY_GUIDE_HEIGHT * 0.6,
+    );
+    expect(compact.blackKeyGuideHeight).toBeGreaterThanOrEqual(
+      BLACK_KEY_GUIDE_HEIGHT * 0.5,
+    );
+    expect(compact.blackKeyGuideHeight).toBeLessThanOrEqual(
+      BLACK_KEY_GUIDE_HEIGHT * 0.6,
+    );
+    expect(compact.playbackGuideY).toBeGreaterThan(normal.playbackGuideY);
+    expect(compactNote?.x).toBe(normalNote?.x);
+    expect(compactNote?.width).toBe(normalNote?.width);
+    expect(compact.keyboard.whiteKeys).toEqual(normal.keyboard.whiteKeys);
+    expect(compact.keyboard.blackKeys).toEqual(normal.keyboard.blackKeys);
+  });
+
+  it("短い横向きスマートフォン相当だけ鍵盤ガイド圧縮対象にする", () => {
+    expect(shouldUseCompactKeyboardGuide({ width: 844, height: 390 })).toBe(
+      true,
+    );
+    expect(shouldUseCompactKeyboardGuide({ width: 390, height: 844 })).toBe(
+      false,
+    );
+    expect(shouldUseCompactKeyboardGuide({ width: 1024, height: 768 })).toBe(
+      false,
+    );
+    expect(shouldUseCompactKeyboardGuide({ width: 1280, height: 720 })).toBe(
+      false,
     );
   });
 });

@@ -11,6 +11,10 @@ import type { Song, SongNote } from "../schema/song-schema";
 export const PIXELS_PER_BEAT = 64;
 export const WHITE_KEY_GUIDE_HEIGHT = 72;
 export const BLACK_KEY_GUIDE_HEIGHT = 42;
+export const COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE = 0.56;
+
+const COMPACT_KEYBOARD_GUIDE_MAX_VIEWPORT_WIDTH = 900;
+const COMPACT_KEYBOARD_GUIDE_MAX_VIEWPORT_HEIGHT = 480;
 
 export interface SceneRectangle {
   readonly x: number;
@@ -33,6 +37,9 @@ export interface VerticalScene {
   readonly height: number;
   readonly playbackGuideY: number;
   readonly judgmentLineY: number;
+  readonly keyboardGuideHeightScale: number;
+  readonly whiteKeyGuideHeight: number;
+  readonly blackKeyGuideHeight: number;
   readonly pixelsPerBeat: number;
   readonly displayBeat: number;
   readonly currentBeat: number;
@@ -51,6 +58,31 @@ export interface VerticalSceneOptions {
   readonly pixelsPerBeat?: number;
   readonly currentBeat?: number;
   readonly displayBeat?: number;
+  readonly keyboardGuideHeightScale?: number;
+}
+
+export interface ViewportSize {
+  readonly width: number;
+  readonly height: number;
+}
+
+export function shouldUseCompactKeyboardGuide({
+  width,
+  height,
+}: ViewportSize): boolean {
+  return (
+    width > height &&
+    width <= COMPACT_KEYBOARD_GUIDE_MAX_VIEWPORT_WIDTH &&
+    height <= COMPACT_KEYBOARD_GUIDE_MAX_VIEWPORT_HEIGHT
+  );
+}
+
+function normalizeKeyboardGuideHeightScale(scale: number | undefined): number {
+  if (scale === undefined || !Number.isFinite(scale) || scale <= 0) {
+    return 1;
+  }
+
+  return scale;
 }
 
 function offsetKey(
@@ -107,13 +139,20 @@ export function createVerticalScene(
     resolveSongPitchRange(song),
     options.whiteKeyWidth,
   );
-  const playbackGuideY = Math.max(0, options.height - WHITE_KEY_GUIDE_HEIGHT);
+  const keyboardGuideHeightScale = normalizeKeyboardGuideHeightScale(
+    options.keyboardGuideHeightScale,
+  );
+  const whiteKeyGuideHeight =
+    WHITE_KEY_GUIDE_HEIGHT * keyboardGuideHeightScale;
+  const blackKeyGuideHeight =
+    BLACK_KEY_GUIDE_HEIGHT * keyboardGuideHeightScale;
+  const playbackGuideY = Math.max(0, options.height - whiteKeyGuideHeight);
   const whiteKeys = keyboard.whiteKeys.map((key) =>
     offsetKey(
       key,
       options.horizontalOffset,
       playbackGuideY,
-      WHITE_KEY_GUIDE_HEIGHT,
+      whiteKeyGuideHeight,
     ),
   );
   const blackKeys = keyboard.blackKeys.map((key) =>
@@ -121,7 +160,7 @@ export function createVerticalScene(
       key,
       options.horizontalOffset,
       playbackGuideY,
-      BLACK_KEY_GUIDE_HEIGHT,
+      blackKeyGuideHeight,
     ),
   );
   const notes = song.notes.flatMap<VerticalNoteScene>((note) => {
@@ -167,6 +206,9 @@ export function createVerticalScene(
     height: options.height,
     playbackGuideY,
     judgmentLineY: playbackGuideY,
+    keyboardGuideHeightScale,
+    whiteKeyGuideHeight,
+    blackKeyGuideHeight,
     pixelsPerBeat,
     displayBeat,
     currentBeat: displayBeat,

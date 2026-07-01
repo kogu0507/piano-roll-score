@@ -14,8 +14,10 @@ import {
   formatPlaybackRate,
 } from "../core/timeline";
 import {
+  COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
   PIXELS_PER_BEAT,
   createVerticalScene,
+  shouldUseCompactKeyboardGuide,
 } from "../core/vertical-layout";
 import {
   percentToTimeScale,
@@ -339,9 +341,18 @@ export function mountVerticalScreen(
     timeScaleInput.value = String(timeScalePercent);
     timeScaleOutput.value = String(timeScalePercent);
     timeScaleOutput.textContent = String(timeScalePercent);
+    const keyboardGuideHeightScale = shouldUseCompactKeyboardGuide({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    })
+      ? COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE
+      : 1;
     canvas.dataset.whiteKeyWidth = String(state.whiteKeyWidth);
     canvas.dataset.timeScale = String(state.timeScale);
     canvas.dataset.timeScalePercent = String(timeScalePercent);
+    canvas.dataset.keyboardGuideHeightScale = String(
+      keyboardGuideHeightScale,
+    );
 
     const scene = createVerticalScene(song, {
       width: size.width,
@@ -351,6 +362,7 @@ export function mountVerticalScreen(
       pixelsPerBeat: PIXELS_PER_BEAT * state.timeScale,
       currentBeat: playbackState.currentBeat,
       displayBeat,
+      keyboardGuideHeightScale,
     });
     const context = resizeCanvasForDisplay(canvas, {
       cssWidth: size.width,
@@ -365,6 +377,9 @@ export function mountVerticalScreen(
     );
     canvas.dataset.playbackStatus = playbackState.status;
     canvas.dataset.pixelsPerBeat = String(scene.pixelsPerBeat);
+    canvas.dataset.whiteKeyGuideHeight = scene.whiteKeyGuideHeight.toFixed(2);
+    canvas.dataset.blackKeyGuideHeight = scene.blackKeyGuideHeight.toFixed(2);
+    canvas.dataset.playbackGuideY = scene.playbackGuideY.toFixed(2);
     drawVerticalScene(context, scene);
 
     if (
