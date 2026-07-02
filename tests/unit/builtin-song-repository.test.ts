@@ -35,13 +35,13 @@ function response(body: string, status = 200): Response {
 }
 
 describe("内蔵曲URL", () => {
-  it("/app/を基準に一覧と曲のURLを組み立てる", () => {
-    expect(buildBuiltinSongIndexUrl("/app/")).toBe(
-      "/app/data/songs/index.json",
+  it("/app/piano-roll-score/を基準に一覧と曲のURLを組み立てる", () => {
+    expect(buildBuiltinSongIndexUrl("/app/piano-roll-score/")).toBe(
+      "/app/piano-roll-score/data/songs/index.json",
     );
-    expect(buildBuiltinSongUrl("/app/", "001")).toEqual({
+    expect(buildBuiltinSongUrl("/app/piano-roll-score/", "001")).toEqual({
       success: true,
-      data: "/app/data/songs/001.json",
+      data: "/app/piano-roll-score/data/songs/001.json",
     });
   });
 
@@ -63,19 +63,47 @@ describe("内蔵曲取得", () => {
       const fetcher = vi.fn(async () =>
         response(JSON.stringify(song)),
       ) as FetchLike;
-      const result = await loadBuiltinSong("/app/", id, fetcher);
+      const result = await loadBuiltinSong(
+        "/app/piano-roll-score/",
+        id,
+        fetcher,
+      );
 
       expect(result.success).toBe(true);
-      expect(fetcher).toHaveBeenCalledWith(`/app/data/songs/${id}.json`);
+      expect(fetcher).toHaveBeenCalledWith(
+        `/app/piano-roll-score/data/songs/${id}.json`,
+        { cache: "no-cache" },
+      );
     },
   );
+
+  it("内蔵曲取得時は同一URLの更新を確認しやすいfetch設定を使う", async () => {
+    const fetcher = vi.fn(async () =>
+      response(JSON.stringify(validSong)),
+    ) as FetchLike;
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "001",
+      fetcher,
+    );
+
+    expect(result.success).toBe(true);
+    expect(fetcher).toHaveBeenCalledWith(
+      "/app/piano-roll-score/data/songs/001.json",
+      { cache: "no-cache" },
+    );
+  });
 
   it("内蔵曲データのID欠落を検証エラーにする", async () => {
     const { id: _id, ...songWithoutId } = validSong;
     const fetcher = vi.fn(async () =>
       response(JSON.stringify(songWithoutId)),
     ) as FetchLike;
-    const result = await loadBuiltinSong("/app/", "001", fetcher);
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "001",
+      fetcher,
+    );
 
     expect(result).toEqual({
       success: false,
@@ -96,7 +124,11 @@ describe("内蔵曲取得", () => {
     const fetcher = vi.fn(async () =>
       response(JSON.stringify({ ...validSong, id: "002" })),
     ) as FetchLike;
-    const result = await loadBuiltinSong("/app/", "001", fetcher);
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "001",
+      fetcher,
+    );
 
     expect(result).toEqual({
       success: false,
@@ -115,7 +147,11 @@ describe("内蔵曲取得", () => {
 
   it("404を区別する", async () => {
     const fetcher = vi.fn(async () => response("", 404)) as FetchLike;
-    const result = await loadBuiltinSong("/app/", "missing", fetcher);
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "missing",
+      fetcher,
+    );
 
     expect(result).toEqual({
       success: false,
@@ -125,7 +161,11 @@ describe("内蔵曲取得", () => {
 
   it("JSON不正を区別する", async () => {
     const fetcher = vi.fn(async () => response("{")) as FetchLike;
-    const result = await loadBuiltinSong("/app/", "001", fetcher);
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "001",
+      fetcher,
+    );
 
     expect(result).toEqual({
       success: false,
@@ -137,7 +177,11 @@ describe("内蔵曲取得", () => {
     const fetcher = vi.fn(async () =>
       response(JSON.stringify({ ...validSong, notes: [] })),
     ) as FetchLike;
-    const result = await loadBuiltinSong("/app/", "001", fetcher);
+    const result = await loadBuiltinSong(
+      "/app/piano-roll-score/",
+      "001",
+      fetcher,
+    );
 
     expect(result).toEqual({
       success: false,

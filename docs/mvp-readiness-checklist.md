@@ -2,7 +2,7 @@
 
 最終更新日: 2026年7月3日
 
-この資料は、`spec.md` の「19. 完成条件」を第10.5段階完了時点の実装、テスト、手動確認結果と照合するための記録である。
+この資料は、`spec.md` の「19. 完成条件」を第11段階完了時点の実装、テスト、手動確認結果と照合するための記録である。
 
 ## 判定区分
 
@@ -19,7 +19,7 @@
 |---:|---|---|---|---|
 | 1 | `npm install` 後に開発サーバーを起動できる | 達成済み / 自動テストで確認済み | Vite構成、npm scripts、Playwright global setupでViteサーバー起動を確認 | 新しい環境ではREADMEに従って `npm install` から確認する |
 | 2 | 型検査、単体テスト、E2Eテスト、ビルドをnpmスクリプトから実行できる | 達成済み / 自動テストで確認済み | `npm.cmd run typecheck`、`test`、`test:e2e`、`build` を第10段階で実行 | なし |
-| 3 | 静的ビルドを `/app/` 相当のサブパスへ配置して動作する | 達成済み / 自動テストで確認済み | `vite.config.ts` の `base: "/app/"`、Playwright baseURL `/app/`、ビルド成功 | 実ホスティング環境へ置く場合は配置先URLで再確認する |
+| 3 | 静的ビルドを `/app/piano-roll-score/` 相当のサブパスへ配置して動作する | 達成済み / 自動テストで確認済み | `vite.config.ts` の `base: "/app/piano-roll-score/"`、Playwright baseURL `/app/piano-roll-score/`、ビルド成功、`dist/index.html` のassets参照確認 | 実ホスティング環境へ置く場合は `https://<ドメイン>/app/piano-roll-score/` で再確認する |
 | 4 | ロード画面から内蔵サンプルを選択できる | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts` | なし |
 | 5 | `?id=001` で内蔵サンプルを直接開ける | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts`、`vertical-screen.spec.ts`、`horizontal-screen.spec.ts` | なし |
 | 6 | JSONの貼り付け、編集、検証ができる | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts`、`tests/unit/song-json.test.ts` | なし |

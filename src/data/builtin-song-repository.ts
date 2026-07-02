@@ -75,7 +75,7 @@ async function fetchJson(
   let response: Response;
 
   try {
-    response = await fetcher(url);
+    response = await fetcher(url, { cache: "no-cache" });
   } catch {
     return {
       success: false,
