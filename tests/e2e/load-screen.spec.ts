@@ -63,6 +63,8 @@ test("URLのIDからJSON欄と楽曲概要を表示する", async ({ page }) => 
   await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
   await expect(page.getByText("JSONは有効です。")).toBeVisible();
   await expect(page.getByText("80", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "縦表示を確認" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "横表示を確認" })).toBeEnabled();
 
   await page.goto("./?id=002");
   await expect(getJsonEditor(page)).toHaveValue(/"id": "002"/);
@@ -71,6 +73,30 @@ test("URLのIDからJSON欄と楽曲概要を表示する", async ({ page }) => 
       .getByRole("region", { name: "確認結果" })
       .getByText("ド♯とレ♭", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "縦表示を確認" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "横表示を確認" })).toBeEnabled();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("URLのID 002から縦表示と横表示の練習画面へ進める", async ({
+  page,
+}) => {
+  await page.goto("./?id=002");
+  await page.getByRole("button", { name: "縦表示を確認" }).click();
+  await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
+  await expect(page.locator("canvas.vertical-canvas")).toHaveAttribute(
+    "data-current-beat",
+    "0.00",
+  );
+  await expectNoHorizontalOverflow(page);
+
+  await page.goto("./?id=002");
+  await page.getByRole("button", { name: "横表示を確認" }).click();
+  await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
+  await expect(page.locator("canvas.horizontal-canvas")).toHaveAttribute(
+    "data-current-beat",
+    "0.00",
+  );
   await expectNoHorizontalOverflow(page);
 });
 

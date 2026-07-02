@@ -114,7 +114,7 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     createTextElement(
       "p",
       "app-header__description",
-      "楽曲JSONを読み込み、編集し、内容を確認できます。",
+      "内蔵サンプルや楽曲JSONを読み込み、縦表示・横表示で練習できます。",
     ),
     status,
   );
@@ -135,7 +135,7 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     createTextElement(
       "p",
       "section-card__description",
-      "サンプルを選ぶと、JSON欄へ読み込んで内容を確認します。",
+      "サンプルを選ぶと、JSON欄へ読み込み、練習画面へ進めます。",
     ),
     sampleList,
   );
@@ -254,7 +254,7 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     createTextElement(
       "p",
       "section-card__description",
-      "直接編集できます。編集後は「JSONを確認」を押してください。",
+      "直接編集できます。編集後は「JSONを確認」を押すと、練習画面へ進めます。",
     ),
     inputLabel,
     jsonInput,
