@@ -23,7 +23,11 @@ import {
   percentToTimeScale,
   timeScaleToPercent,
 } from "../core/time-scale";
-import type { VerticalViewSettings } from "../core/app-settings";
+import {
+  DEFAULT_DISPLAY_TEXT_SETTINGS,
+  type DisplayTextSettings,
+  type VerticalViewSettings,
+} from "../core/app-settings";
 import type { PlaybackState } from "../core/timeline";
 import type { PlaybackController } from "../playback/playback-controller";
 import {
@@ -43,7 +47,11 @@ interface VerticalScreenState {
 
 export interface VerticalScreenOptions {
   readonly initialSettings?: VerticalViewSettings;
+  readonly displayTextSettings?: DisplayTextSettings;
   readonly onSettingsChange?: (settings: VerticalViewSettings) => void;
+  readonly onDisplayTextSettingsChange?: (
+    settings: DisplayTextSettings,
+  ) => void;
   readonly onPlaybackSettingsChange?: (state: PlaybackState) => void;
 }
 
@@ -110,6 +118,8 @@ export function mountVerticalScreen(
     timeScale: screenOptions.initialSettings?.timeScale ?? 1,
     initialized: screenOptions.initialSettings !== undefined,
   };
+  let displayTextSettings =
+    screenOptions.displayTextSettings ?? DEFAULT_DISPLAY_TEXT_SETTINGS;
 
   main.className = "practice-screen practice-screen--normal vertical-screen";
   main.dataset.practiceMode = "practice";
@@ -229,11 +239,13 @@ export function mountVerticalScreen(
         "音符ブロックが上から下へ流れる縦表示です。薄い帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。Canvasを横へドラッグして位置を微調整できます。",
       playbackSettingsElement: playbackControls.settingsElement,
       legend,
+      displayTextSettings,
       switchViewLabel:
         switchToHorizontal === undefined ? undefined : "横表示へ切り替え",
       onOpenDisplayAdjustment: () => {
         setPracticeMode("adjustment");
       },
+      onDisplayTextSettingsChange: updateDisplayTextSettings,
       onSwitchView:
         switchToHorizontal === undefined
           ? undefined
@@ -314,6 +326,12 @@ export function mountVerticalScreen(
     });
   }
 
+  function updateDisplayTextSettings(settings: DisplayTextSettings): void {
+    displayTextSettings = settings;
+    screenOptions.onDisplayTextSettingsChange?.(settings);
+    scheduleRender();
+  }
+
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
@@ -353,6 +371,10 @@ export function mountVerticalScreen(
     canvas.dataset.keyboardGuideHeightScale = String(
       keyboardGuideHeightScale,
     );
+    canvas.dataset.showNoteNames = String(displayTextSettings.showNoteNames);
+    canvas.dataset.showFingerNumbers = String(
+      displayTextSettings.showFingerNumbers,
+    );
 
     const scene = createVerticalScene(song, {
       width: size.width,
@@ -380,7 +402,7 @@ export function mountVerticalScreen(
     canvas.dataset.whiteKeyGuideHeight = scene.whiteKeyGuideHeight.toFixed(2);
     canvas.dataset.blackKeyGuideHeight = scene.blackKeyGuideHeight.toFixed(2);
     canvas.dataset.playbackGuideY = scene.playbackGuideY.toFixed(2);
-    drawVerticalScene(context, scene);
+    drawVerticalScene(context, scene, displayTextSettings);
 
     if (
       playbackState.status === "playing" ||

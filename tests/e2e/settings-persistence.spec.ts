@@ -122,6 +122,66 @@ test("縦表示と再生設定をlocalStorageへ保存し、次回表示時に�
   await expectNoHorizontalOverflow(page);
 });
 
+test("音名表示と指番号表示の切替をlocalStorageへ保存し縦横表示へ反映する", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openBuiltinLoadScreen(page);
+  await getVerticalPreviewButton(page).click();
+  const verticalCanvas = getVerticalCanvas(page);
+
+  await expect(verticalCanvas).toHaveAttribute("data-show-note-names", "true");
+  await expect(verticalCanvas).toHaveAttribute(
+    "data-show-finger-numbers",
+    "true",
+  );
+  await openPlaybackSettings(page);
+  const noteNameToggle = page.getByTestId("practice-show-note-names");
+  const fingerNumberToggle = page.getByTestId("practice-show-finger-numbers");
+
+  await expect(noteNameToggle).toBeChecked();
+  await expect(fingerNumberToggle).toBeChecked();
+  await noteNameToggle.uncheck();
+  await expect(verticalCanvas).toHaveAttribute("data-show-note-names", "false");
+  await fingerNumberToggle.uncheck();
+  await expect(verticalCanvas).toHaveAttribute(
+    "data-show-finger-numbers",
+    "false",
+  );
+  await noteNameToggle.check();
+  await fingerNumberToggle.check();
+  await expect(verticalCanvas).toHaveAttribute("data-show-note-names", "true");
+  await expect(verticalCanvas).toHaveAttribute(
+    "data-show-finger-numbers",
+    "true",
+  );
+  await noteNameToggle.uncheck();
+  await fingerNumberToggle.uncheck();
+
+  await page.reload();
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  const horizontalCanvas = getHorizontalCanvas(page);
+
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-show-note-names",
+    "false",
+  );
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-show-finger-numbers",
+    "false",
+  );
+  await openPlaybackSettings(page);
+  await page.getByTestId("practice-show-note-names").check();
+  await page.getByTestId("practice-show-finger-numbers").check();
+  await expect(horizontalCanvas).toHaveAttribute("data-show-note-names", "true");
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-show-finger-numbers",
+    "true",
+  );
+  await expectNoHorizontalOverflow(page);
+});
+
 test("横表示の五線間隔と譜面縦位置をlocalStorageへ保存し、次回表示時に復元する", async ({
   page,
 }) => {

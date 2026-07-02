@@ -44,17 +44,28 @@ export interface PlaybackSettings {
   readonly precountMeasures: PrecountMeasures;
 }
 
+export interface DisplayTextSettings {
+  readonly showNoteNames: boolean;
+  readonly showFingerNumbers: boolean;
+}
+
 export interface AppSettings {
   readonly version: typeof APP_SETTINGS_VERSION;
   readonly vertical: Partial<Record<ViewOrientation, VerticalViewSettings>>;
   readonly horizontal: HorizontalViewSettings;
   readonly playback: PlaybackSettings;
+  readonly displayText: DisplayTextSettings;
 }
 
 export const DEFAULT_HORIZONTAL_VIEW_SETTINGS: HorizontalViewSettings = {
   lineSpacing: STAFF_LINE_SPACING,
   verticalOffset: 0,
   timeScale: DEFAULT_TIME_SCALE,
+};
+
+export const DEFAULT_DISPLAY_TEXT_SETTINGS: DisplayTextSettings = {
+  showNoteNames: true,
+  showFingerNumbers: true,
 };
 
 export const DEFAULT_PLAYBACK_SETTINGS: PlaybackSettings = {
@@ -178,6 +189,26 @@ export function normalizePlaybackSettings(
   };
 }
 
+export function normalizeDisplayTextSettings(
+  input: unknown,
+  fallback: DisplayTextSettings = DEFAULT_DISPLAY_TEXT_SETTINGS,
+): DisplayTextSettings {
+  if (!isRecord(input)) {
+    return fallback;
+  }
+
+  return {
+    showNoteNames:
+      typeof input.showNoteNames === "boolean"
+        ? input.showNoteNames
+        : fallback.showNoteNames,
+    showFingerNumbers:
+      typeof input.showFingerNumbers === "boolean"
+        ? input.showFingerNumbers
+        : fallback.showFingerNumbers,
+  };
+}
+
 export function normalizeAppSettings(input: unknown): AppSettings {
   if (!isRecord(input) || input.version !== APP_SETTINGS_VERSION) {
     return createDefaultAppSettings();
@@ -204,6 +235,7 @@ export function normalizeAppSettings(input: unknown): AppSettings {
     vertical,
     horizontal: normalizeHorizontalViewSettings(input.horizontal),
     playback: normalizePlaybackSettings(input.playback),
+    displayText: normalizeDisplayTextSettings(input.displayText),
   };
 }
 
@@ -213,6 +245,7 @@ export function createDefaultAppSettings(): AppSettings {
     vertical: {},
     horizontal: DEFAULT_HORIZONTAL_VIEW_SETTINGS,
     playback: DEFAULT_PLAYBACK_SETTINGS,
+    displayText: DEFAULT_DISPLAY_TEXT_SETTINGS,
   };
 }
 

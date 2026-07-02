@@ -6,9 +6,15 @@ import { HAND_RENDERING_STYLES } from "./hand-styles";
 
 const PLAYBACK_GUIDE_BAND_WIDTH = 12;
 
+export interface HorizontalRenderOptions {
+  readonly showNoteNames?: boolean;
+  readonly showFingerNumbers?: boolean;
+}
+
 function drawRoundedBlock(
   context: CanvasRenderingContext2D,
   note: HorizontalNoteScene,
+  options: HorizontalRenderOptions,
 ): void {
   const colors = HAND_RENDERING_STYLES[note.hand];
   const radius = Math.min(7, note.height / 3, note.width / 4);
@@ -31,7 +37,7 @@ function drawRoundedBlock(
   context.textAlign = "center";
   context.font = `800 ${Math.max(11, Math.min(15, note.width * 0.22))}px sans-serif`;
 
-  if (note.width >= 28) {
+  if (options.showNoteNames !== false && note.width >= 28) {
     context.fillText(
       note.label,
       note.x + note.width / 2,
@@ -44,7 +50,11 @@ function drawRoundedBlock(
   context.font = "800 9px sans-serif";
   context.fillText(colors.marker, note.x + 4, note.y + note.height / 2);
 
-  if (note.finger !== undefined && note.width >= 44) {
+  if (
+    options.showFingerNumbers !== false &&
+    note.finger !== undefined &&
+    note.width >= 44
+  ) {
     context.textAlign = "right";
     context.font = "800 10px sans-serif";
     context.fillText(
@@ -60,6 +70,7 @@ function drawRoundedBlock(
 export function drawHorizontalScene(
   context: CanvasRenderingContext2D,
   scene: HorizontalScene,
+  options: HorizontalRenderOptions = {},
 ): void {
   context.clearRect(0, 0, scene.width, scene.height);
   context.fillStyle = "#f7faf8";
@@ -113,7 +124,7 @@ export function drawHorizontalScene(
     });
 
   scene.notes.filter((note) => note.visible).forEach((note) => {
-    drawRoundedBlock(context, note);
+    drawRoundedBlock(context, note, options);
   });
 
   context.fillStyle = "rgba(37, 99, 115, 0.14)";

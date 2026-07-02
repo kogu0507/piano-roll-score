@@ -4,9 +4,15 @@ export { resizeCanvasForDisplay } from "./canvas";
 
 const PLAYBACK_GUIDE_BAND_HEIGHT = 10;
 
+export interface VerticalRenderOptions {
+  readonly showNoteNames?: boolean;
+  readonly showFingerNumbers?: boolean;
+}
+
 function drawNote(
   context: CanvasRenderingContext2D,
   note: VerticalNoteScene,
+  options: VerticalRenderOptions,
 ): void {
   const colors = HAND_RENDERING_STYLES[note.hand];
   const radius = Math.min(8, note.width / 4, note.height / 4);
@@ -28,7 +34,7 @@ function drawNote(
   context.textBaseline = "middle";
   context.font = `700 ${Math.max(10, Math.min(15, note.width * 0.28))}px sans-serif`;
 
-  if (note.width >= 18 && note.height >= 18) {
+  if (options.showNoteNames !== false && note.width >= 18 && note.height >= 18) {
     context.fillText(
       note.label,
       note.x + note.width / 2,
@@ -42,7 +48,12 @@ function drawNote(
   context.font = "700 9px sans-serif";
   context.fillText(colors.marker, note.x + 3, note.y + 3);
 
-  if (note.finger !== undefined && note.width >= 18 && note.height >= 24) {
+  if (
+    options.showFingerNumbers !== false &&
+    note.finger !== undefined &&
+    note.width >= 18 &&
+    note.height >= 24
+  ) {
     context.textAlign = "right";
     context.textBaseline = "bottom";
     context.font = "700 10px sans-serif";
@@ -59,6 +70,7 @@ function drawNote(
 export function drawVerticalScene(
   context: CanvasRenderingContext2D,
   scene: VerticalScene,
+  options: VerticalRenderOptions = {},
 ): void {
   context.clearRect(0, 0, scene.width, scene.height);
   context.fillStyle = "#f2f7f4";
@@ -84,7 +96,7 @@ export function drawVerticalScene(
   });
 
   scene.notes.filter((note) => note.visible).forEach((note) => {
-    drawNote(context, note);
+    drawNote(context, note, options);
   });
   context.restore();
 

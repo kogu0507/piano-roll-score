@@ -134,6 +134,8 @@ async function expectMenuSections(page: Page): Promise<void> {
   await expectMenuItem(page.getByLabel("メトロノーム音量"));
   await expectMenuItem(page.getByLabel("プリカウント"));
   await expectMenuItem(page.getByRole("button", { name: "表示調整モードを開く" }));
+  await expectMenuItem(page.getByTestId("practice-show-note-names"));
+  await expectMenuItem(page.getByTestId("practice-show-finger-numbers"));
   await expectMenuItem(page.getByText("曲情報"));
   await expectMenuItem(page.getByTestId("practice-save-song-button"));
   await expectMenuItem(page.getByTestId("practice-export-song-button"));

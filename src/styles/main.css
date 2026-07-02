@@ -518,6 +518,33 @@ textarea:focus-visible {
   gap: 0.5rem;
 }
 
+.practice-menu__toggles {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.practice-menu__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.45rem;
+  color: #17201c;
+  background: #ffffff;
+  border: 1px solid #d6e2da;
+  border-radius: 0.55rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.practice-menu__toggle-input {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0;
+}
+
 .practice-menu__facts {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);

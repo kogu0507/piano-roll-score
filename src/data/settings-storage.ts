@@ -2,10 +2,12 @@ import {
   APP_SETTINGS_VERSION,
   createDefaultAppSettings,
   normalizeAppSettings,
+  normalizeDisplayTextSettings,
   normalizeHorizontalViewSettings,
   normalizePlaybackSettings,
   normalizeVerticalViewSettings,
   type AppSettings,
+  type DisplayTextSettings,
   type HorizontalViewSettings,
   type PlaybackSettings,
   type VerticalViewSettings,
@@ -28,6 +30,7 @@ export interface AppSettingsStore {
   ) => void;
   updateHorizontal: (settings: HorizontalViewSettings) => void;
   updatePlayback: (settings: PlaybackSettings) => void;
+  updateDisplayText: (settings: DisplayTextSettings) => void;
 }
 
 export function readAppSettings(
@@ -100,6 +103,13 @@ export function createAppSettingsStore(
       writeAppSettings(storage, {
         ...current,
         playback: normalizePlaybackSettings(settings),
+      });
+    },
+    updateDisplayText: (settings) => {
+      const current = readAppSettings(storage);
+      writeAppSettings(storage, {
+        ...current,
+        displayText: normalizeDisplayTextSettings(settings),
       });
     },
   };

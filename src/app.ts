@@ -5,6 +5,7 @@ import { PlaybackController } from "./playback/playback-controller";
 import { WebAudioMetronome } from "./audio/metronome";
 import { getViewportOrientation } from "./core/app-settings";
 import { createBrowserAppSettingsStore } from "./data/settings-storage";
+import type { DisplayTextSettings } from "./core/app-settings";
 import type { PlaybackState } from "./core/timeline";
 import type { Song } from "./types/song";
 
@@ -39,6 +40,10 @@ export async function mountApp(
     });
   }
 
+  function saveDisplayTextSettings(settings: DisplayTextSettings): void {
+    settingsStore.updateDisplayText(settings);
+  }
+
   function getCurrentOrientation() {
     return getViewportOrientation(window.innerWidth, window.innerHeight);
   }
@@ -48,8 +53,9 @@ export async function mountApp(
     returnToLoadScreen: () => void,
     playbackController = createPlaybackController(song),
   ): void {
+    const settingsSnapshot = settingsStore.getSnapshot();
     const initialSettings =
-      settingsStore.getSnapshot().vertical[getCurrentOrientation()];
+      settingsSnapshot.vertical[getCurrentOrientation()];
 
     mountVerticalScreen(
       root,
@@ -61,10 +67,12 @@ export async function mountApp(
       },
       {
         initialSettings,
+        displayTextSettings: settingsSnapshot.displayText,
         onSettingsChange: (settings) => {
           settingsStore.updateVertical(getCurrentOrientation(), settings);
         },
         onPlaybackSettingsChange: savePlaybackSettings,
+        onDisplayTextSettingsChange: saveDisplayTextSettings,
       },
     );
   }
@@ -74,6 +82,8 @@ export async function mountApp(
     returnToLoadScreen: () => void,
     playbackController = createPlaybackController(song),
   ): void {
+    const settingsSnapshot = settingsStore.getSnapshot();
+
     mountHorizontalScreen(
       root,
       song,
@@ -83,11 +93,13 @@ export async function mountApp(
         mountVerticalPreview(song, returnToLoadScreen, playbackController);
       },
       {
-        initialSettings: settingsStore.getSnapshot().horizontal,
+        initialSettings: settingsSnapshot.horizontal,
+        displayTextSettings: settingsSnapshot.displayText,
         onSettingsChange: (settings) => {
           settingsStore.updateHorizontal(settings);
         },
         onPlaybackSettingsChange: savePlaybackSettings,
+        onDisplayTextSettingsChange: saveDisplayTextSettings,
       },
     );
   }

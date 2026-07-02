@@ -55,6 +55,10 @@ describe("app settings", () => {
         metronomeVolume: 2,
         precountMeasures: 2,
       },
+      displayText: {
+        showNoteNames: "yes",
+        showFingerNumbers: false,
+      },
     });
 
     expect(settings.vertical.portrait).toEqual({
@@ -78,6 +82,10 @@ describe("app settings", () => {
       metronomeVolume: 1,
       precountMeasures: 2,
     });
+    expect(settings.displayText).toEqual({
+      showNoteNames: true,
+      showFingerNumbers: false,
+    });
   });
 
   test("壊れたlocalStorage値は初期値へ戻す", () => {
@@ -98,6 +106,10 @@ describe("app settings", () => {
       metronomeEnabled: false,
       metronomeVolume: 0.55,
       precountMeasures: 0,
+    });
+    expect(settings.displayText).toEqual({
+      showNoteNames: true,
+      showFingerNumbers: true,
     });
   });
 
@@ -121,6 +133,10 @@ describe("app settings", () => {
       metronomeVolume: 0.35,
       precountMeasures: 1,
     });
+    store.updateDisplayText({
+      showNoteNames: false,
+      showFingerNumbers: true,
+    });
 
     const settings = store.getSnapshot();
 
@@ -139,6 +155,10 @@ describe("app settings", () => {
       metronomeEnabled: true,
       metronomeVolume: 0.35,
       precountMeasures: 1,
+    });
+    expect(settings.displayText).toEqual({
+      showNoteNames: false,
+      showFingerNumbers: true,
     });
   });
 });

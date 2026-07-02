@@ -5,7 +5,11 @@ import {
   formatPlaybackRate,
 } from "../core/timeline";
 import type { PlaybackState } from "../core/timeline";
-import type { HorizontalViewSettings } from "../core/app-settings";
+import {
+  DEFAULT_DISPLAY_TEXT_SETTINGS,
+  type DisplayTextSettings,
+  type HorizontalViewSettings,
+} from "../core/app-settings";
 import {
   HORIZONTAL_PIXELS_PER_BEAT,
   MAX_HORIZONTAL_LINE_SPACING,
@@ -33,7 +37,11 @@ interface HorizontalScreenState {
 
 export interface HorizontalScreenOptions {
   readonly initialSettings?: HorizontalViewSettings;
+  readonly displayTextSettings?: DisplayTextSettings;
   readonly onSettingsChange?: (settings: HorizontalViewSettings) => void;
+  readonly onDisplayTextSettingsChange?: (
+    settings: DisplayTextSettings,
+  ) => void;
   readonly onPlaybackSettingsChange?: (state: PlaybackState) => void;
 }
 
@@ -98,6 +106,8 @@ export function mountHorizontalScreen(
     verticalOffset: screenOptions.initialSettings?.verticalOffset ?? 0,
     timeScale: screenOptions.initialSettings?.timeScale ?? 1,
   };
+  let displayTextSettings =
+    screenOptions.displayTextSettings ?? DEFAULT_DISPLAY_TEXT_SETTINGS;
 
   main.className = "practice-screen practice-screen--normal horizontal-screen";
   main.dataset.practiceMode = "practice";
@@ -215,11 +225,13 @@ export function mountHorizontalScreen(
         "音符ブロックが右から左へ流れる横表示です。薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
       playbackSettingsElement: playbackControls.settingsElement,
       legend,
+      displayTextSettings,
       switchViewLabel:
         switchToVertical === undefined ? undefined : "縦表示へ切り替え",
       onOpenDisplayAdjustment: () => {
         setPracticeMode("adjustment");
       },
+      onDisplayTextSettingsChange: updateDisplayTextSettings,
       onSwitchView:
         switchToVertical === undefined
           ? undefined
@@ -305,6 +317,12 @@ export function mountHorizontalScreen(
     });
   }
 
+  function updateDisplayTextSettings(settings: DisplayTextSettings): void {
+    displayTextSettings = settings;
+    screenOptions.onDisplayTextSettingsChange?.(settings);
+    scheduleRender();
+  }
+
   function render(): void {
     frameId = 0;
     const playbackState = playbackController.tick();
@@ -339,7 +357,11 @@ export function mountHorizontalScreen(
     );
     canvas.dataset.playbackStatus = playbackState.status;
     canvas.dataset.pixelsPerBeat = String(scene.pixelsPerBeat);
-    drawHorizontalScene(context, scene);
+    canvas.dataset.showNoteNames = String(displayTextSettings.showNoteNames);
+    canvas.dataset.showFingerNumbers = String(
+      displayTextSettings.showFingerNumbers,
+    );
+    drawHorizontalScene(context, scene, displayTextSettings);
 
     if (
       playbackState.status === "playing" ||

@@ -3,6 +3,7 @@ import {
   createSongJsonBlob,
   startBlobDownload,
 } from "../data/import-export";
+import type { DisplayTextSettings } from "../core/app-settings";
 import { createSavedSongRepository } from "../data/saved-song-repository";
 import type { Song } from "../types/song";
 
@@ -11,8 +12,10 @@ interface PracticeMenuOptions {
   readonly modeDescription: string;
   readonly playbackSettingsElement: HTMLElement;
   readonly legend: HTMLElement;
+  readonly displayTextSettings: DisplayTextSettings;
   readonly switchViewLabel?: string;
   readonly onOpenDisplayAdjustment: () => void;
+  readonly onDisplayTextSettingsChange: (settings: DisplayTextSettings) => void;
   readonly onSwitchView?: () => void;
   readonly onReturnToLoadScreen: () => void;
 }
@@ -53,13 +56,34 @@ function createMenuSection(title: string): HTMLElement {
   return section;
 }
 
+function createToggleControl(
+  labelText: string,
+  checked: boolean,
+  testId: string,
+): { input: HTMLInputElement; label: HTMLLabelElement } {
+  const label = document.createElement("label");
+  const input = document.createElement("input");
+
+  label.className = "practice-menu__toggle";
+  input.type = "checkbox";
+  input.className = "practice-menu__toggle-input";
+  input.checked = checked;
+  input.setAttribute("data-testid", testId);
+
+  label.append(input, document.createTextNode(labelText));
+
+  return { input, label };
+}
+
 export function createPracticeMenu({
   song,
   modeDescription,
   playbackSettingsElement,
   legend,
+  displayTextSettings,
   switchViewLabel,
   onOpenDisplayAdjustment,
+  onDisplayTextSettingsChange,
   onSwitchView,
   onReturnToLoadScreen,
 }: PracticeMenuOptions): HTMLDetailsElement {
@@ -76,6 +100,17 @@ export function createPracticeMenu({
   const openDisplayAdjustmentButton = createButton("表示調整モードを開く");
   const switchViewButton =
     switchViewLabel === undefined ? undefined : createButton(switchViewLabel);
+  const displayTextControls = document.createElement("div");
+  const noteNameToggle = createToggleControl(
+    "音名を表示",
+    displayTextSettings.showNoteNames,
+    "practice-show-note-names",
+  );
+  const fingerNumberToggle = createToggleControl(
+    "指番号を表示",
+    displayTextSettings.showFingerNumbers,
+    "practice-show-finger-numbers",
+  );
   const songInfoHeading = createTextElement(
     "h3",
     "practice-menu__subheading",
@@ -100,6 +135,7 @@ export function createPracticeMenu({
   summary.setAttribute("aria-label", "練習メニュー");
   summary.title = "練習メニュー";
   displayActions.className = "practice-menu__actions";
+  displayTextControls.className = "practice-menu__toggles";
   menuActions.className = "practice-menu__actions";
   facts.className = "practice-menu__facts";
   status.setAttribute("aria-live", "polite");
@@ -122,8 +158,11 @@ export function createPracticeMenu({
     displayActions.append(switchViewButton);
   }
 
+  displayTextControls.append(noteNameToggle.label, fingerNumberToggle.label);
+
   displaySection.append(
     displayActions,
+    displayTextControls,
     createTextElement("p", "practice-menu__description", modeDescription),
     legend,
     songInfoHeading,
@@ -183,6 +222,22 @@ export function createPracticeMenu({
     details.open = false;
     onSwitchView?.();
   });
+
+  function emitDisplayTextSettingsChange(): void {
+    onDisplayTextSettingsChange({
+      showNoteNames: noteNameToggle.input.checked,
+      showFingerNumbers: fingerNumberToggle.input.checked,
+    });
+  }
+
+  noteNameToggle.input.addEventListener(
+    "change",
+    emitDisplayTextSettingsChange,
+  );
+  fingerNumberToggle.input.addEventListener(
+    "change",
+    emitDisplayTextSettingsChange,
+  );
 
   saveButton.addEventListener("click", async () => {
     saveButton.disabled = true;
