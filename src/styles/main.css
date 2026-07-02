@@ -117,9 +117,12 @@ select {
   border-radius: 1rem;
 }
 
+.section-card--start,
+.section-card--song-detail,
 .section-card--editor,
 .section-card--result,
-.section-card--saved {
+.section-card--saved,
+.data-management {
   grid-column: 1 / -1;
 }
 
@@ -130,6 +133,63 @@ select {
 
 .section-card__description {
   margin: 0.5rem 0 1rem;
+}
+
+.song-select-control {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 42rem;
+}
+
+.song-select__label {
+  font-weight: 800;
+}
+
+.song-select {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.55rem 0.7rem;
+  color: #17201c;
+  background: #ffffff;
+  border: 1px solid #aebdb4;
+  border-radius: 0.65rem;
+}
+
+.load-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.load-start-actions .button {
+  min-width: 10rem;
+}
+
+.song-detail__empty {
+  margin: 0;
+  color: #55625b;
+  line-height: 1.6;
+}
+
+.data-management__summary {
+  cursor: pointer;
+  color: #17201c;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.data-management__content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.data-management__content > .section-card--editor,
+.data-management__content > .section-card--result,
+.data-management__content > .section-card--saved {
+  grid-column: 1 / -1;
 }
 
 .sample-list {
@@ -573,7 +633,7 @@ textarea:focus-visible {
 
 .playback-controls__buttons {
   display: grid;
-  grid-template-columns: repeat(3, minmax(2.5rem, 1fr));
+  grid-template-columns: repeat(4, minmax(2.5rem, 1fr));
   gap: 0.35rem;
   min-width: 0;
 }
@@ -1023,10 +1083,18 @@ textarea:focus-visible {
     gap: 0.75rem;
   }
 
+  .section-card--start,
+  .section-card--song-detail,
   .section-card--editor,
   .section-card--result,
-  .section-card--saved {
+  .section-card--saved,
+  .data-management {
     grid-column: auto;
+  }
+
+  .data-management__content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .sample-item,
@@ -1049,6 +1117,14 @@ textarea:focus-visible {
   }
 
   .button-row .button {
+    width: 100%;
+  }
+
+  .load-start-actions {
+    flex-direction: column;
+  }
+
+  .load-start-actions .button {
     width: 100%;
   }
 

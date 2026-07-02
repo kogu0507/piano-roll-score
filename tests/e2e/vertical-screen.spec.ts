@@ -1,11 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 function getJsonEditor(page: Page) {
-  return page.getByRole("textbox", { name: "楽曲JSON", exact: true });
+  return page.locator("#song-json");
 }
 
 function getPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "縦表示を確認" });
+  return page.getByRole("button", { name: "ピアノ表示", exact: true });
 }
 
 function getCanvas(page: Page) {
@@ -69,6 +69,17 @@ async function closePracticeMenu(page: Page): Promise<void> {
   }
 }
 
+async function openDataManagement(page: Page): Promise<void> {
+  const details = page.getByTestId("data-management");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await page.goto("./");
   await expect(getPreviewButton(page)).toBeDisabled();
@@ -76,10 +87,11 @@ test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await page.goto("./?id=001");
   await expect(getPreviewButton(page)).toBeEnabled();
 
+  await openDataManagement(page);
   await getJsonEditor(page).fill("{");
   await expect(getPreviewButton(page)).toBeDisabled();
   await page.getByRole("button", { name: "JSONを確認" }).click();
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("alert").first()).toBeVisible();
   await expect(getPreviewButton(page)).toBeDisabled();
 });
 
@@ -118,7 +130,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await closePracticeMenu(page);
-  await page.getByRole("button", { name: "スタート" }).click();
+  await page.getByRole("button", { name: "再生" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
@@ -146,7 +158,7 @@ test("縦表示で再生、一時停止、シーク、速度変更、先頭戻�
   await expect(canvas).toHaveAttribute("data-playback-rate", "1.5");
   await closePracticeMenu(page);
 
-  await page.getByRole("button", { name: "先頭" }).click();
+  await page.getByRole("button", { name: "最初から" }).click();
   await expect(canvas).toHaveAttribute("data-current-beat", "0.00");
   await expect(canvas).toHaveAttribute("data-playback-status", "stopped");
   await expectNoHorizontalOverflow(page);
@@ -180,7 +192,7 @@ test("メトロノーム、音量、プリカウントを操作できる", async
     .selectOption("2");
   await closePracticeMenu(page);
 
-  await page.getByRole("button", { name: "スタート" }).click();
+  await page.getByRole("button", { name: "再生" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
@@ -288,11 +300,22 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
   await getPreviewButton(page).click();
 
   await openPracticeMenu(page);
-  await page.getByRole("button", { name: "ロード画面へ戻る" }).click();
+  await page.getByRole("button", { name: "ホームへ戻る" }).click();
 
   await expect(getJsonEditor(page)).toHaveValue(json);
+  await openDataManagement(page);
   await expect(page.getByText("JSONは有効です。")).toBeVisible();
   await expect(getPreviewButton(page)).toBeEnabled();
+});
+
+test("上部のホームボタンからload画面へ戻れる", async ({ page }) => {
+  await openBuiltinPreview(page);
+
+  await page.getByRole("button", { name: "ホーム" }).click();
+
+  await expect(page.getByTestId("song-select")).toBeVisible();
+  await expect(getPreviewButton(page)).toBeEnabled();
+  await expectNoHorizontalOverflow(page);
 });
 
 test("画面サイズ変更後もCanvas内部サイズをCSSサイズとDPRへ合わせる", async ({

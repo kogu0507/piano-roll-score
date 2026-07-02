@@ -1,11 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 function getVerticalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "縦表示を確認" });
+  return page.getByRole("button", { name: "ピアノ表示", exact: true });
 }
 
 function getHorizontalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "横表示を確認" });
+  return page.getByRole("button", { name: "スコア表示", exact: true });
 }
 
 function getVerticalCanvas(page: Page) {
@@ -140,7 +140,7 @@ async function expectMenuSections(page: Page): Promise<void> {
   await expectMenuItem(page.getByTestId("practice-save-song-button"));
   await expectMenuItem(page.getByTestId("practice-export-song-button"));
   await expectMenuItem(page.getByTestId("practice-saved-list-button"));
-  await expectMenuItem(page.getByRole("button", { name: "ロード画面へ戻る" }));
+  await expectMenuItem(page.getByRole("button", { name: "ホームへ戻る" }));
 
   await expect
     .poll(() =>
@@ -243,12 +243,38 @@ test("縦表示の通常練習モードは最小操作列、シーク、下側Ca
   await getVerticalPreviewButton(page).click();
 
   const topbar = page.locator(".practice-topbar");
-  await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
-  await expect(topbar.getByRole("button", { name: "スタート" })).toHaveText("▶");
+  await expect(topbar.getByRole("button", { name: "ホーム" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "ホーム" })).toHaveText("⌂");
+  await expect(topbar.getByRole("button", { name: "最初から" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "最初から" })).toHaveText("⏮");
+  await expect(topbar.getByRole("button", { name: "再生" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "再生" })).toHaveText("▶");
   await expect(topbar.getByRole("button", { name: "一時停止" })).toBeVisible();
   await expect(topbar.getByRole("button", { name: "一時停止" })).toHaveText("❚❚");
-  await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
-  await expect(topbar.getByRole("button", { name: "先頭" })).toHaveText("⏮");
+  await expect
+    .poll(() =>
+      topbar.evaluate((element) =>
+        Array.from(element.querySelectorAll("button, summary"))
+          .filter((control) => {
+            const bounds = control.getBoundingClientRect();
+            const style = window.getComputedStyle(control);
+
+            return (
+              bounds.width > 0 &&
+              bounds.height > 0 &&
+              style.display !== "none" &&
+              style.visibility !== "hidden"
+            );
+          })
+          .map(
+            (control) =>
+              control.getAttribute("aria-label") ??
+              control.textContent?.trim() ??
+              "",
+          ),
+      ),
+    )
+    .toEqual(["ホーム", "最初から", "再生", "一時停止", "メニュー"]);
   await expect(page.locator("#vertical-playback-controls-playback-rate")).toBeVisible();
   await expect(page.locator("#vertical-playback-controls-playback-rate")).toHaveJSProperty(
     "tagName",
@@ -257,7 +283,7 @@ test("縦表示の通常練習モードは最小操作列、シーク、下側Ca
   await expect(topbar.locator("details.practice-menu > summary")).toBeVisible();
   await expect(topbar.locator("details.practice-menu > summary")).toHaveText("☰");
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "横表示へ切り替え" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "スコア表示へ切り替え" })).toBeHidden();
   await expect(page.getByLabel("曲の現在位置")).toBeVisible();
   await expect(page.getByLabel("白鍵1鍵の幅")).toBeHidden();
   await expect(page.getByLabel("譜面の横位置")).toBeHidden();
@@ -466,14 +492,15 @@ test("横表示の通常練習モードと表示調整モードも同じ構造�
   await getHorizontalPreviewButton(page).click();
 
   const topbar = page.locator(".practice-topbar");
-  await expect(topbar.getByRole("button", { name: "スタート" })).toBeVisible();
-  await expect(topbar.getByRole("button", { name: "先頭" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "ホーム" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "最初から" })).toBeVisible();
+  await expect(topbar.getByRole("button", { name: "再生" })).toBeVisible();
   await expect(page.locator("#horizontal-playback-controls-playback-rate")).toBeVisible();
   await expect(page.locator("#horizontal-playback-controls-playback-rate")).toHaveJSProperty(
     "tagName",
     "SELECT",
   );
-  await expect(page.getByRole("button", { name: "縦表示へ切り替え" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "ピアノ表示へ切り替え" })).toBeHidden();
   await expect(page.getByLabel("五線の1間の幅")).toBeHidden();
   await expect(page.getByLabel("譜面の縦位置")).toBeHidden();
   await expectNormalPracticeShell(page, ".horizontal-canvas");
@@ -598,7 +625,7 @@ test("練習メニューから表示切り替え、保存、JSON書き出し、�
   await openBuiltinLoadScreen(page);
   await getVerticalPreviewButton(page).click();
   await openPracticeMenu(page);
-  await page.getByRole("button", { name: "横表示へ切り替え" }).click();
+  await page.getByRole("button", { name: "スコア表示へ切り替え" }).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
 
   await openPracticeMenu(page);

@@ -1,15 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
 function getJsonEditor(page: Page) {
-  return page.getByRole("textbox", { name: "楽曲JSON", exact: true });
+  return page.locator("#song-json");
 }
 
 function getHorizontalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "横表示を確認" });
+  return page.getByRole("button", { name: "スコア表示", exact: true });
 }
 
 function getVerticalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "縦表示を確認" });
+  return page.getByRole("button", { name: "ピアノ表示", exact: true });
 }
 
 function getHorizontalCanvas(page: Page) {
@@ -69,6 +69,17 @@ async function closePracticeMenu(page: Page): Promise<void> {
   }
 }
 
+async function openDataManagement(page: Page): Promise<void> {
+  const details = page.getByTestId("data-management");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 async function openBuiltinHorizontalPreview(page: Page): Promise<void> {
   await page.goto("./?id=001");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
@@ -84,10 +95,11 @@ test("検証済み楽曲だけ横表示へ進める", async ({ page }) => {
   await page.goto("./?id=001");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
 
+  await openDataManagement(page);
   await getJsonEditor(page).fill("{");
   await expect(getHorizontalPreviewButton(page)).toBeDisabled();
   await page.getByRole("button", { name: "JSONを確認" }).click();
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("alert").first()).toBeVisible();
   await expect(getHorizontalPreviewButton(page)).toBeDisabled();
 });
 
@@ -103,7 +115,7 @@ test("横表示画面に通常練習モード、曲情報メニュー、Canvas�
     "ドからソまで",
   );
   await expect(
-    page.getByText("音符ブロックが右から左へ流れる横表示です。"),
+    page.getByText("音符ブロックが右から左へ流れるスコア表示です。"),
   ).toBeVisible();
   await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
@@ -123,7 +135,7 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
   await openPlaybackSettings(page);
   await page.getByRole("checkbox", { name: "メトロノーム" }).check();
   await closePracticeMenu(page);
-  await page.getByRole("button", { name: "スタート" }).click();
+  await page.getByRole("button", { name: "再生" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "playing");
   await expect
     .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
@@ -156,7 +168,7 @@ test("横表示でプリカウント中に助走表示が進む", async ({ page 
     .locator("#horizontal-playback-controls-playback-rate-menu")
     .selectOption("2");
   await closePracticeMenu(page);
-  await page.getByRole("button", { name: "スタート" }).click();
+  await page.getByRole("button", { name: "再生" }).click();
   await expect(canvas).toHaveAttribute("data-playback-status", "precount");
   await expect(playbackControls).toHaveAttribute(
     "data-precount-remaining-beats",
@@ -223,9 +235,10 @@ test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ p
   await getHorizontalPreviewButton(page).click();
 
   await openPracticeMenu(page);
-  await page.getByRole("button", { name: "ロード画面へ戻る" }).click();
+  await page.getByRole("button", { name: "ホームへ戻る" }).click();
 
   await expect(getJsonEditor(page)).toHaveValue(json);
+  await openDataManagement(page);
   await expect(page.getByText("JSONは有効です。")).toBeVisible();
   await expect(getVerticalPreviewButton(page)).toBeEnabled();
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
@@ -252,7 +265,7 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
   );
 
   await openPracticeMenu(page);
-  await page.getByRole("button", { name: "縦表示へ切り替え" }).click();
+  await page.getByRole("button", { name: "ピアノ表示へ切り替え" }).click();
   await expect(getVerticalCanvas(page)).toBeVisible();
   await expect(getVerticalCanvas(page)).toHaveAttribute(
     "data-white-key-width",
@@ -272,7 +285,7 @@ test("縦表示と横表示を相互に切り替えられる", async ({ page }) 
   );
 
   await openPracticeMenu(page);
-  await page.getByRole("button", { name: "横表示へ切り替え" }).click();
+  await page.getByRole("button", { name: "スコア表示へ切り替え" }).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-note-count",

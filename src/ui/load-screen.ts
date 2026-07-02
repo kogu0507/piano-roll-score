@@ -41,12 +41,15 @@ interface LoadScreenState {
   isDirty: boolean;
   validatedSong?: Song;
   savedSongId?: string;
+  selectedSongValue?: string;
 }
 
 interface LoadScreenElements {
   readonly main: HTMLElement;
   readonly status: HTMLParagraphElement;
-  readonly sampleList: HTMLUListElement;
+  readonly songSelect: HTMLSelectElement;
+  readonly songDetail: HTMLDivElement;
+  readonly dataManagement: HTMLDetailsElement;
   readonly fileInput: HTMLInputElement;
   readonly jsonInput: HTMLTextAreaElement;
   readonly validateButton: HTMLButtonElement;
@@ -114,31 +117,91 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     createTextElement(
       "p",
       "app-header__description",
-      "内蔵サンプルや楽曲JSONを読み込み、縦表示・横表示で練習できます。",
+      "曲を選び、ピアノ表示またはスコア表示で練習できます。",
     ),
     status,
   );
 
-  const samples = document.createElement("section");
-  const sampleHeading = createTextElement(
+  const startSection = document.createElement("section");
+  const startHeading = createTextElement(
     "h2",
     "section-card__title",
-    "内蔵サンプル",
+    "曲選択",
   );
-  const sampleList = document.createElement("ul");
-  samples.className = "section-card section-card--samples";
-  samples.setAttribute("aria-labelledby", "sample-heading");
-  sampleHeading.id = "sample-heading";
-  sampleList.className = "sample-list";
-  samples.append(
-    sampleHeading,
+  const songSelectGroup = document.createElement("div");
+  const songSelectLabel = createTextElement(
+    "label",
+    "song-select__label",
+    "曲を選ぶ",
+  );
+  const songSelect = document.createElement("select");
+  const startActions = document.createElement("div");
+  const verticalPreviewButton = createButton(
+    "ピアノ表示",
+    "button button--preview",
+  );
+  const horizontalPreviewButton = createButton(
+    "スコア表示",
+    "button button--horizontal-preview",
+  );
+  verticalPreviewButton.disabled = true;
+  horizontalPreviewButton.disabled = true;
+
+  startSection.className = "section-card section-card--start load-start-card";
+  startSection.setAttribute("aria-labelledby", "song-select-heading");
+  startHeading.id = "song-select-heading";
+  songSelect.id = "song-select";
+  songSelect.className = "song-select";
+  songSelect.setAttribute("data-testid", "song-select");
+  songSelectLabel.htmlFor = songSelect.id;
+  songSelectGroup.className = "song-select-control";
+  startActions.className = "load-start-actions";
+  songSelectGroup.append(songSelectLabel, songSelect);
+  startActions.append(verticalPreviewButton, horizontalPreviewButton);
+  startSection.append(
+    startHeading,
     createTextElement(
       "p",
       "section-card__description",
-      "サンプルを選ぶと、JSON欄へ読み込み、練習画面へ進めます。",
+      "サンプル曲と保存曲を選び、使う表示を選んで始めます。",
     ),
-    sampleList,
+    songSelectGroup,
+    startActions,
   );
+
+  const songDetailSection = document.createElement("section");
+  const songDetailHeading = createTextElement(
+    "h2",
+    "section-card__title",
+    "曲の詳細",
+  );
+  const songDetail = document.createElement("div");
+  songDetailSection.className =
+    "section-card section-card--song-detail song-detail-card";
+  songDetailSection.setAttribute("aria-labelledby", "song-detail-heading");
+  songDetailHeading.id = "song-detail-heading";
+  songDetail.className = "song-detail";
+  songDetail.setAttribute("data-testid", "song-detail");
+  songDetail.append(
+    createTextElement(
+      "p",
+      "song-detail__empty",
+      "曲を選ぶと、曲名や拍子などの詳細を表示します。",
+    ),
+  );
+  songDetailSection.append(songDetailHeading, songDetail);
+
+  const dataManagement = document.createElement("details");
+  const dataManagementSummary = createTextElement(
+    "summary",
+    "data-management__summary",
+    "データ管理",
+  );
+  const dataManagementContent = document.createElement("div");
+  dataManagement.className = "section-card data-management";
+  dataManagement.setAttribute("data-testid", "data-management");
+  dataManagementContent.className = "data-management__content";
+  dataManagement.append(dataManagementSummary, dataManagementContent);
 
   const fileSection = document.createElement("section");
   const fileHeading = createTextElement(
@@ -218,17 +281,6 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   const clearButton = createButton("入力をクリア");
   const exportButton = createButton("JSONを書き出す");
   const saveSongButton = createButton("端末内に保存");
-  const verticalPreviewButton = createButton(
-    "縦表示を確認",
-    "button button--preview",
-  );
-  const horizontalPreviewButton = createButton(
-    "横表示を確認",
-    "button button--horizontal-preview",
-  );
-  verticalPreviewButton.disabled = true;
-  horizontalPreviewButton.disabled = true;
-
   editor.className = "section-card section-card--editor";
   editor.setAttribute("aria-labelledby", "editor-heading");
   editorHeading.id = "editor-heading";
@@ -246,8 +298,6 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     clearButton,
     exportButton,
     saveSongButton,
-    verticalPreviewButton,
-    horizontalPreviewButton,
   );
   editor.append(
     editorHeading,
@@ -275,14 +325,17 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   result.setAttribute("aria-live", "polite");
   resultSection.append(resultHeading, result);
 
-  content.append(samples, fileSection, savedSection, editor, resultSection);
+  dataManagementContent.append(fileSection, savedSection, editor, resultSection);
+  content.append(startSection, songDetailSection, dataManagement);
   main.append(header, content);
   root.replaceChildren(main);
 
   return {
     main,
     status,
-    sampleList,
+    songSelect,
+    songDetail,
+    dataManagement,
     fileInput,
     jsonInput,
     validateButton,
@@ -321,6 +374,39 @@ function createSummary(song: Song): HTMLElement {
   wrapper.append(
     createTextElement("p", "validation-success__message", "JSONは有効です。"),
   );
+  facts.className = "song-facts";
+
+  entries.forEach(([term, value]) => {
+    facts.append(
+      createTextElement("dt", "song-facts__term", term),
+      createTextElement("dd", "song-facts__value", value),
+    );
+  });
+
+  wrapper.append(facts);
+  return wrapper;
+}
+
+function createSongDetail(song: Song): HTMLElement {
+  const wrapper = document.createElement("div");
+  const facts = document.createElement("dl");
+  const displayRange =
+    song.displayRange.mode === "auto"
+      ? "自動"
+      : `固定（${song.displayRange.minPitch}～${song.displayRange.maxPitch}）`;
+  const entries = [
+    ["曲名", song.title],
+    ["説明", song.description || "説明はありません。"],
+    ["BPM", String(song.bpm)],
+    [
+      "拍子",
+      `${song.timeSignature.numerator}/${song.timeSignature.denominator}`,
+    ],
+    ["音符数", `${song.notes.length}件`],
+    ["表示音域", displayRange],
+  ] as const;
+
+  wrapper.className = "song-detail__content";
   facts.className = "song-facts";
 
   entries.forEach(([term, value]) => {
@@ -424,10 +510,62 @@ export async function mountLoadScreen(
     isDirty: false,
   };
   const savedSongRepository = createSavedSongRepository();
+  let builtinIndex: BuiltinSongIndex | undefined;
+  let savedSongSummaries: readonly SavedSongSummary[] = [];
   const showLoadScreen = (): void => {
     root.replaceChildren(elements.main);
     void refreshSavedSongs();
   };
+
+  function syncSongSelectValue(): void {
+    const selectedValue = state.selectedSongValue ?? "";
+    const hasOption = Array.from(elements.songSelect.options).some(
+      (option) => option.value === selectedValue,
+    );
+
+    elements.songSelect.value = hasOption ? selectedValue : "";
+  }
+
+  function renderSongSelect(): void {
+    const placeholder = document.createElement("option");
+    const sampleGroup = document.createElement("optgroup");
+    const savedGroup = document.createElement("optgroup");
+
+    placeholder.value = "";
+    placeholder.textContent = "曲を選択してください";
+    sampleGroup.label = "サンプル曲";
+    savedGroup.label = "保存曲";
+
+    (builtinIndex?.songs ?? []).forEach((sample) => {
+      const option = document.createElement("option");
+
+      option.value = `builtin:${sample.id}`;
+      option.textContent = `${sample.title}（${sample.level}）`;
+      sampleGroup.append(option);
+    });
+
+    if (savedSongSummaries.length === 0) {
+      const emptyOption = document.createElement("option");
+
+      emptyOption.value = "";
+      emptyOption.textContent = "保存曲はまだありません";
+      emptyOption.disabled = true;
+      savedGroup.append(emptyOption);
+    } else {
+      savedSongSummaries.forEach((summary) => {
+        const option = document.createElement("option");
+
+        option.value = `saved:${summary.id}`;
+        option.textContent = `${summary.title}（更新: ${formatSavedSongTimestamp(
+          summary.updatedAt,
+        )}）`;
+        savedGroup.append(option);
+      });
+    }
+
+    elements.songSelect.replaceChildren(placeholder, sampleGroup, savedGroup);
+    syncSongSelectValue();
+  }
 
   function setStatus(status: ScreenStatus, message: string): void {
     state.status = status;
@@ -437,9 +575,11 @@ export async function mountLoadScreen(
   function showError(error: SongJsonError | DataLoadError): void {
     state.validatedSong = undefined;
     state.savedSongId = undefined;
+    state.selectedSongValue = undefined;
     elements.verticalPreviewButton.disabled = true;
     elements.horizontalPreviewButton.disabled = true;
     setStatus("invalid", "入力内容を確認してください。");
+    elements.songDetail.replaceChildren(createErrorDetails(error));
     elements.result.replaceChildren(createErrorDetails(error));
   }
 
@@ -448,6 +588,7 @@ export async function mountLoadScreen(
     elements.verticalPreviewButton.disabled = false;
     elements.horizontalPreviewButton.disabled = false;
     setStatus("valid", "楽曲JSONを確認しました。");
+    elements.songDetail.replaceChildren(createSongDetail(song));
     elements.result.replaceChildren(createSummary(song));
   }
 
@@ -474,11 +615,18 @@ export async function mountLoadScreen(
       elements.jsonInput.value = result.formattedJson;
       state.isDirty = false;
       state.savedSongId = savedSongId;
+      state.selectedSongValue =
+        savedSongId !== undefined
+          ? `saved:${savedSongId}`
+          : updateUrlId === undefined
+            ? undefined
+            : `builtin:${updateUrlId}`;
       showValidSong(result.song);
     } else {
       elements.jsonInput.value = text;
       state.isDirty = false;
       state.savedSongId = undefined;
+      state.selectedSongValue = undefined;
       showError(result.error);
     }
 
@@ -488,6 +636,7 @@ export async function mountLoadScreen(
       setSongIdInUrl(updateUrlId);
     }
 
+    syncSongSelectValue();
     return result.success;
   }
 
@@ -546,10 +695,14 @@ export async function mountLoadScreen(
 
   async function refreshSavedSongs(): Promise<void> {
     try {
-      renderSavedSongs(await savedSongRepository.list());
+      savedSongSummaries = await savedSongRepository.list();
+      renderSavedSongs(savedSongSummaries);
+      renderSongSelect();
       setSavedSongStatus("保存一覧を更新しました。");
     } catch (error) {
+      savedSongSummaries = [];
       renderSavedSongs([]);
+      renderSongSelect();
       setSavedSongStatus(
         `端末内保存を利用できません: ${
           error instanceof Error ? error.message : "原因不明のエラー"
@@ -571,6 +724,7 @@ export async function mountLoadScreen(
     try {
       const record = await savedSongRepository.save(song, state.savedSongId);
       state.savedSongId = record.id;
+      state.selectedSongValue = `saved:${record.id}`;
       state.isDirty = false;
       await refreshSavedSongs();
       setSavedSongStatus(
@@ -587,9 +741,10 @@ export async function mountLoadScreen(
     }
   }
 
-  async function loadSavedSong(id: string): Promise<void> {
+  async function loadSavedSong(id: string): Promise<boolean> {
     if (!shouldReplaceEditedContent(state, elements.jsonInput.value)) {
-      return;
+      syncSongSelectValue();
+      return false;
     }
 
     setSavedSongStatus("保存済み楽曲を読み込んでいます。");
@@ -602,17 +757,20 @@ export async function mountLoadScreen(
           "保存データを読み込めませんでした。削除済み、または壊れている可能性があります。",
         );
         await refreshSavedSongs();
-        return;
+        return false;
       }
 
       setLoadedText(formatSongJson(record.song), undefined, record.id);
       setSavedSongStatus(`「${record.title}」を保存一覧から読み込みました。`);
+      return true;
     } catch (error) {
       setSavedSongStatus(
         `読み込みに失敗しました: ${
           error instanceof Error ? error.message : "原因不明のエラー"
         }`,
       );
+      syncSongSelectValue();
+      return false;
     }
   }
 
@@ -633,6 +791,7 @@ export async function mountLoadScreen(
 
       if (state.savedSongId === summary.id) {
         state.savedSongId = undefined;
+        state.selectedSongValue = undefined;
       }
 
       await refreshSavedSongs();
@@ -649,16 +808,18 @@ export async function mountLoadScreen(
   async function loadSample(
     sample: BuiltinSongSummary,
     requireConfirmation: boolean,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (
       requireConfirmation &&
       !shouldReplaceEditedContent(state, elements.jsonInput.value)
     ) {
-      return;
+      syncSongSelectValue();
+      return false;
     }
 
     state.validatedSong = undefined;
     state.savedSongId = undefined;
+    state.selectedSongValue = undefined;
     elements.verticalPreviewButton.disabled = true;
     elements.horizontalPreviewButton.disabled = true;
     setStatus("loading", `「${sample.title}」を読み込んでいます。`);
@@ -666,46 +827,33 @@ export async function mountLoadScreen(
 
     if (!result.success) {
       showError(result.error);
-      return;
+      syncSongSelectValue();
+      return false;
     }
 
-    setLoadedText(formatSongJson(result.data), sample.id);
+    return setLoadedText(formatSongJson(result.data), sample.id);
   }
 
   function renderSamples(index: BuiltinSongIndex): void {
-    elements.sampleList.replaceChildren();
-
-    index.songs.forEach((sample) => {
-      const item = document.createElement("li");
-      const body = document.createElement("div");
-      const button = createButton("JSON欄に読み込む", "button button--small");
-
-      item.className = "sample-item";
-      body.className = "sample-item__body";
-      body.append(
-        createTextElement("strong", "sample-item__title", sample.title),
-        createTextElement(
-          "span",
-          "sample-item__detail",
-          `${sample.level}・${sample.description}`,
-        ),
-      );
-      button.setAttribute("aria-label", `${sample.title}をJSON欄に読み込む`);
-      button.addEventListener("click", () => {
-        void loadSample(sample, true);
-      });
-      item.append(body, button);
-      elements.sampleList.append(item);
-    });
+    builtinIndex = index;
+    renderSongSelect();
   }
 
   elements.jsonInput.addEventListener("input", () => {
     state.isDirty = true;
     state.validatedSong = undefined;
     state.savedSongId = undefined;
+    state.selectedSongValue = undefined;
     elements.verticalPreviewButton.disabled = true;
     elements.horizontalPreviewButton.disabled = true;
     setStatus("editing", "編集中です。JSONを確認してください。");
+    elements.songDetail.replaceChildren(
+      createTextElement(
+        "p",
+        "song-detail__empty",
+        "JSONを確認すると、曲の詳細を表示します。",
+      ),
+    );
     elements.result.replaceChildren(
       createTextElement(
         "p",
@@ -714,6 +862,34 @@ export async function mountLoadScreen(
       ),
     );
     removeSongIdFromUrl();
+    syncSongSelectValue();
+  });
+
+  elements.songSelect.addEventListener("change", () => {
+    const selectedValue = elements.songSelect.value;
+
+    if (selectedValue.startsWith("builtin:")) {
+      const sampleId = selectedValue.slice("builtin:".length);
+      const sample = builtinIndex?.songs.find(
+        (candidate) => candidate.id === sampleId,
+      );
+
+      if (sample === undefined) {
+        syncSongSelectValue();
+        return;
+      }
+
+      void loadSample(sample, true);
+      return;
+    }
+
+    if (selectedValue.startsWith("saved:")) {
+      void loadSavedSong(selectedValue.slice("saved:".length));
+      return;
+    }
+
+    state.selectedSongValue = undefined;
+    syncSongSelectValue();
   });
 
   elements.validateButton.addEventListener("click", () => {
@@ -729,11 +905,20 @@ export async function mountLoadScreen(
     state.isDirty = false;
     state.validatedSong = undefined;
     state.savedSongId = undefined;
+    state.selectedSongValue = undefined;
     elements.verticalPreviewButton.disabled = true;
     elements.horizontalPreviewButton.disabled = true;
     setStatus("initial", "入力をクリアしました。");
+    elements.songDetail.replaceChildren(
+      createTextElement(
+        "p",
+        "song-detail__empty",
+        "曲を選ぶと、曲名や拍子などの詳細を表示します。",
+      ),
+    );
     elements.result.replaceChildren();
     removeSongIdFromUrl();
+    syncSongSelectValue();
   });
 
   elements.fileInput.addEventListener("change", () => {
@@ -751,6 +936,7 @@ export async function mountLoadScreen(
 
       state.validatedSong = undefined;
       state.savedSongId = undefined;
+      state.selectedSongValue = undefined;
       elements.verticalPreviewButton.disabled = true;
       elements.horizontalPreviewButton.disabled = true;
       setStatus("loading", `${file.name}を読み込んでいます。`);
@@ -814,7 +1000,7 @@ export async function mountLoadScreen(
 
   renderSamples(indexResult.data);
   await refreshSavedSongs();
-  setStatus("initial", "入力方法を選んでください。");
+  setStatus("initial", "曲を選んでください。");
 
   const idResult = getSongIdFromSearch(search);
 

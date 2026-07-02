@@ -28,11 +28,11 @@ const tabletLandscape: ViewportCase = {
 };
 
 function getVerticalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "縦表示を確認" });
+  return page.getByRole("button", { name: "ピアノ表示", exact: true });
 }
 
 function getHorizontalPreviewButton(page: Page) {
-  return page.getByRole("button", { name: "横表示を確認" });
+  return page.getByRole("button", { name: "スコア表示", exact: true });
 }
 
 function getVerticalCanvas(page: Page) {
@@ -211,6 +211,17 @@ async function openDisplayAdjustmentMode(page: Page): Promise<void> {
   );
 }
 
+async function openDataManagement(page: Page): Promise<void> {
+  const details = page.getByTestId("data-management");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 async function closePracticeMenu(page: Page): Promise<void> {
   const menu = page.locator("details.practice-menu");
   const isOpen = await menu.evaluate(
@@ -241,6 +252,7 @@ test("ロード画面と保存一覧は代表ビューポートで横スクロ�
     tabletLandscape,
   ]) {
     await openLoadScreen(page, viewport);
+    await openDataManagement(page);
     await page.getByTestId("save-song-button").click();
 
     await expect(page.getByTestId("saved-song-item")).toHaveCount(1);

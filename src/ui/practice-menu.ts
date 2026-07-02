@@ -17,6 +17,7 @@ interface PracticeMenuOptions {
   readonly onOpenDisplayAdjustment: () => void;
   readonly onDisplayTextSettingsChange: (settings: DisplayTextSettings) => void;
   readonly onSwitchView?: () => void;
+  readonly onOpenSavedList?: () => void;
   readonly onReturnToLoadScreen: () => void;
 }
 
@@ -85,6 +86,7 @@ export function createPracticeMenu({
   onOpenDisplayAdjustment,
   onDisplayTextSettingsChange,
   onSwitchView,
+  onOpenSavedList,
   onReturnToLoadScreen,
 }: PracticeMenuOptions): HTMLDetailsElement {
   const details = document.createElement("details");
@@ -121,7 +123,7 @@ export function createPracticeMenu({
   const saveButton = createButton("端末内に保存");
   const exportButton = createButton("JSONを書き出す");
   const savedListButton = createButton("保存一覧を開く");
-  const backButton = createButton("ロード画面へ戻る", "button button--secondary");
+  const backButton = createButton("ホームへ戻る", "button button--secondary");
   const status = createTextElement(
     "p",
     "practice-menu__status",
@@ -132,8 +134,8 @@ export function createPracticeMenu({
   details.className = "practice-menu";
   content.className = "practice-menu__content";
   closeButton.classList.add("practice-menu__close");
-  summary.setAttribute("aria-label", "練習メニュー");
-  summary.title = "練習メニュー";
+  summary.setAttribute("aria-label", "メニュー");
+  summary.title = "メニュー";
   displayActions.className = "practice-menu__actions";
   displayTextControls.className = "practice-menu__toggles";
   menuActions.className = "practice-menu__actions";
@@ -182,7 +184,7 @@ export function createPracticeMenu({
     createTextElement(
       "p",
       "practice-menu__description",
-      "保存一覧はロード画面にあります。必要なときは「保存一覧を開く」から移動できます。",
+      "保存一覧はホームにあります。必要なときは「保存一覧を開く」から移動できます。",
     ),
   );
 
@@ -246,7 +248,7 @@ export function createPracticeMenu({
     try {
       await createSavedSongRepository().save(song);
       status.textContent =
-        "端末内に保存しました。保存一覧はロード画面で確認できます。";
+        "端末内に保存しました。保存一覧はホームで確認できます。";
     } catch (error) {
       status.textContent =
         error instanceof Error
@@ -262,7 +264,10 @@ export function createPracticeMenu({
     status.textContent = "JSONを書き出しました。";
   });
 
-  savedListButton.addEventListener("click", onReturnToLoadScreen);
+  savedListButton.addEventListener(
+    "click",
+    onOpenSavedList ?? onReturnToLoadScreen,
+  );
   backButton.addEventListener("click", onReturnToLoadScreen);
 
   return details;

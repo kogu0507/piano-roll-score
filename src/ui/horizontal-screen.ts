@@ -94,10 +94,16 @@ export function mountHorizontalScreen(
   const timeScaleOutput = document.createElement("output");
   const fitButton = createButton("画面高に合わせる");
   const centerButton = createButton("中央に戻す");
+  const homeButton = createButton("ホーム", "button practice-home-button");
+  homeButton.classList.add("button--icon");
+  homeButton.textContent = "⌂";
+  homeButton.setAttribute("aria-label", "ホーム");
+  homeButton.title = "ホーム";
   const playbackControls = mountPlaybackControls(
     playbackController,
     "horizontal-playback-controls",
     {
+      leadingButton: homeButton,
       onSettingsChange: screenOptions.onPlaybackSettingsChange,
     },
   );
@@ -116,7 +122,7 @@ export function mountHorizontalScreen(
   header.append(playbackControls.element, navigation);
 
   controls.className = "horizontal-controls";
-  controls.setAttribute("aria-label", "横表示の表示調整");
+  controls.setAttribute("aria-label", "スコア表示の表示調整");
 
   const spacingGroup = document.createElement("div");
   const spacingLabel = createTextElement(
@@ -207,7 +213,7 @@ export function mountHorizontalScreen(
 
   adjustmentPanel.className =
     "practice-adjustment-panel horizontal-adjustment-panel";
-  adjustmentPanel.setAttribute("aria-label", "横表示の表示調整モード");
+  adjustmentPanel.setAttribute("aria-label", "スコア表示の表示調整モード");
   adjustmentHeader.className = "practice-adjustment-panel__header";
   adjustmentHeader.append(
     createTextElement(
@@ -218,16 +224,38 @@ export function mountHorizontalScreen(
     closeAdjustmentButton,
   );
 
+  function openDataManagementOnLoadScreen(): void {
+    const dataManagement = document.querySelector(
+      '[data-testid="data-management"]',
+    );
+
+    if (dataManagement instanceof HTMLDetailsElement) {
+      dataManagement.open = true;
+    }
+  }
+
+  function returnHome(): void {
+    cleanup();
+    returnToLoadScreen();
+  }
+
+  function returnHomeWithDataManagement(): void {
+    returnHome();
+    openDataManagementOnLoadScreen();
+  }
+
   navigation.append(
     createPracticeMenu({
       song,
       modeDescription:
-        "音符ブロックが右から左へ流れる横表示です。薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
+        "音符ブロックが右から左へ流れるスコア表示です。薄い縦帯が再生ガイドです。演奏判定ではなく、譜面の流れを見るための目安です。時間が進む音符ほど右側へ、音名の綴りに応じて上下へ配置されます。",
       playbackSettingsElement: playbackControls.settingsElement,
       legend,
       displayTextSettings,
       switchViewLabel:
-        switchToVertical === undefined ? undefined : "縦表示へ切り替え",
+        switchToVertical === undefined
+          ? undefined
+          : "ピアノ表示へ切り替え",
       onOpenDisplayAdjustment: () => {
         setPracticeMode("adjustment");
       },
@@ -239,20 +267,18 @@ export function mountHorizontalScreen(
               cleanup();
               switchToVertical();
             },
-      onReturnToLoadScreen: () => {
-        cleanup();
-        returnToLoadScreen();
-      },
+      onOpenSavedList: returnHomeWithDataManagement,
+      onReturnToLoadScreen: returnHome,
     }),
   );
 
   previewSection.className = "practice-canvas-region horizontal-preview";
-  previewSection.setAttribute("aria-label", "横表示Canvas");
+  previewSection.setAttribute("aria-label", "スコア表示Canvas");
   canvasWrap.className = "horizontal-canvas-wrap";
   canvas.className = "horizontal-canvas";
   canvas.setAttribute(
     "aria-label",
-    `${song.title}の横表示再生プレビュー`,
+    `${song.title}のスコア表示再生プレビュー`,
   );
   canvas.textContent = "Canvasに対応したブラウザで表示してください。";
   canvasWrap.append(canvas);
@@ -428,6 +454,7 @@ export function mountHorizontalScreen(
     scheduleRender();
   });
 
+  homeButton.addEventListener("click", returnHome);
   fitButton.addEventListener("click", fitToCanvasHeight);
   centerButton.addEventListener("click", centerContent);
   closeAdjustmentButton.addEventListener("click", () => {

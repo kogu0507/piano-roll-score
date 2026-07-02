@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 function getJsonEditor(page: Page) {
-  return page.getByRole("textbox", { name: "楽曲JSON", exact: true });
+  return page.locator("#song-json");
 }
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
@@ -16,12 +16,24 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
     .toBe(true);
 }
 
+async function openDataManagement(page: Page): Promise<void> {
+  const details = page.getByTestId("data-management");
+  const isOpen = await details.evaluate(
+    (element) => (element as HTMLDetailsElement).open,
+  );
+
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+}
+
 test("検証済み楽曲を明示操作で端末内保存し、再読み込み後も読み込みと削除ができる", async ({
   page,
 }) => {
   await page.goto("./?id=001");
 
   await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await openDataManagement(page);
   await expect(page.getByText(
     "この端末のこのブラウザ内だけ",
   )).toBeVisible();
@@ -36,6 +48,7 @@ test("検証済み楽曲を明示操作で端末内保存し、再読み込み�
   );
 
   await page.reload();
+  await openDataManagement(page);
   await expect(page.getByTestId("saved-song-item")).toHaveCount(1);
   await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
 

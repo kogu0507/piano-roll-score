@@ -18,6 +18,7 @@ export interface PlaybackControlsMount {
 }
 
 export interface PlaybackControlsOptions {
+  readonly leadingButton?: HTMLButtonElement;
   readonly onSettingsChange?: (state: PlaybackState) => void;
 }
 
@@ -152,12 +153,12 @@ export function mountPlaybackControls(
   const section = document.createElement("section");
   const primaryControls = document.createElement("div");
   const buttons = document.createElement("div");
-  const startButton = createButton("スタート", "button button--primary");
+  const startButton = createButton("再生", "button button--primary");
   const pauseButton = createButton("一時停止");
-  const resetButton = createButton("先頭");
-  configureIconButton(startButton, "▶", "スタート");
+  const resetButton = createButton("最初から");
+  configureIconButton(startButton, "▶", "再生");
   configureIconButton(pauseButton, "❚❚", "一時停止");
-  configureIconButton(resetButton, "⏮", "先頭");
+  configureIconButton(resetButton, "⏮", "最初から");
   const seekSection = document.createElement("section");
   const seekGroup = document.createElement("div");
   const seekLabel = createTextElement(
@@ -225,7 +226,12 @@ export function mountPlaybackControls(
   primaryControls.className = "playback-controls__primary";
 
   buttons.className = "playback-controls__buttons";
-  buttons.append(startButton, pauseButton, resetButton);
+  buttons.append(
+    ...(options.leadingButton === undefined ? [] : [options.leadingButton]),
+    resetButton,
+    startButton,
+    pauseButton,
+  );
 
   seekInput.id = `${className}-seek`;
   seekInput.type = "range";
