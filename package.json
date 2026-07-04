@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:catalog": "node scripts/generate-song-catalog.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "build": "tsc --noEmit && vite build"
+    "build": "npm run generate:catalog && tsc --noEmit && vite build"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",

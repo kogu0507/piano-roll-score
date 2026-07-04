@@ -2,7 +2,7 @@
 
 ピアノ教室での試用を目的とした、ピアノ表示とスコア表示を切り替えられるピアノロール譜アプリである。
 
-このプロジェクトは現在、第11段階「公開準備」まで完了し、MVPとして自作ホームページのアプリディレクトリへ配置できる状態である。PC、スマートフォン、Androidタブレット、Windowsタブレットで主要レイアウトの確認は完了した。第10段階ではMVP完成条件の監査、軽微な説明文・導線の仕上げ、教室試用用の確認資料を整え、第10.5段階ではホーム画面と練習画面の入口・戻り方を整理した。第11段階では公開パス、ビルド成果物、キャッシュ方針、公開手順を整理した。音源再生、演奏判定、クラウド同期は後続段階またはMVP対象外で扱う。
+このプロジェクトは現在、第11.5段階「サンプル曲追加と曲一覧ページ生成」まで完了し、MVPとして自作ホームページのアプリディレクトリへ配置できる状態である。PC、スマートフォン、Androidタブレット、Windowsタブレットで主要レイアウトの確認は完了した。第10段階ではMVP完成条件の監査、軽微な説明文・導線の仕上げ、教室試用用の確認資料を整え、第10.5段階ではホーム画面と練習画面の入口・戻り方を整理した。第11段階では公開パス、ビルド成果物、キャッシュ方針、公開手順を整理し、第11.5段階では標準サンプル曲と曲一覧ページを整えた。音源再生、演奏判定、クラウド同期は後続段階またはMVP対象外で扱う。
 
 ## 目的
 
@@ -28,6 +28,8 @@
   - 現在の実装段階と完了条件
 - [docs/deployment-guide.md](docs/deployment-guide.md)
   - MVPを自作ホームページへ配置する手順
+- [docs/future-todos.md](docs/future-todos.md)
+  - 第11.5段階で出た将来改善案
 - [docs/manual-checklist-stage3.md](docs/manual-checklist-stage3.md)
   - 第3段階のユーザー向け画面確認手順
 - [docs/manual-checklist-stage4.md](docs/manual-checklist-stage4.md)
@@ -114,6 +116,7 @@ Windows PowerShellで実行ポリシーにより `npm` や `npx` が起動でき
 
 ```text
 npm run dev
+npm run generate:catalog
 npm run typecheck
 npm run test
 npm run test:e2e
@@ -125,6 +128,8 @@ npm run build
 ```text
 http://localhost:5173/app/piano-roll-score/
 ```
+
+`npm run generate:catalog` は `public/data/songs/index.json` から `public/catalog.html` を生成する。`npm run build` ではcatalog生成、型検査、Viteビルドを順に実行する。
 
 `npm run test` はVitestの単体テスト、`npm run test:e2e` はPlaywrightのデスクトップ幅・スマートフォン幅のスモークテストを実行する。
 
@@ -140,6 +145,12 @@ https://example.com/app/piano-roll-score/
 
 ```text
 https://example.com/app/piano-roll-score/?id=001
+```
+
+曲IDと曲名の対応は、次の曲一覧ページでも確認できる。
+
+```text
+https://example.com/app/piano-roll-score/catalog.html
 ```
 
 専用のアプリケーションサーバーを必要としない構成をMVPの前提とする。
@@ -174,6 +185,7 @@ https://example.com/app/piano-roll-score/?id=001
 - 第10段階 教室での手動検証とMVP仕上げ: 完了
 - 第10.5段階 入口と練習画面ナビゲーション整理: 完了
 - 第11段階 公開準備: 完了
+- 第11.5段階 サンプル曲追加と曲一覧ページ生成: 完了
 - 次の作業: 公開URLでの確認、教室試用
 - 音源再生、演奏判定、クラウド同期: 未実装またはMVP対象外
 - 自動テスト環境: 構築済み

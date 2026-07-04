@@ -81,7 +81,7 @@ async function openDataManagement(page: Page): Promise<void> {
 }
 
 async function openBuiltinHorizontalPreview(page: Page): Promise<void> {
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
   await getHorizontalPreviewButton(page).click();
   await expect(getHorizontalCanvas(page)).toBeVisible();
@@ -92,7 +92,7 @@ test("検証済み楽曲だけ横表示へ進める", async ({ page }) => {
   await page.goto("./");
   await expect(getHorizontalPreviewButton(page)).toBeDisabled();
 
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
 
   await openDataManagement(page);
@@ -229,7 +229,7 @@ test("横表示の五線間隔、縦位置、画面高合わせを操作でき�
 });
 
 test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ page }) => {
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
   const json = await getJsonEditor(page).inputValue();
   await getHorizontalPreviewButton(page).click();

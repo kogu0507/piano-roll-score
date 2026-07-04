@@ -13,7 +13,7 @@ function getCanvas(page: Page) {
 }
 
 async function openBuiltinPreview(page: Page): Promise<void> {
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getPreviewButton(page)).toBeEnabled();
   await getPreviewButton(page).click();
   await expect(getCanvas(page)).toBeVisible();
@@ -84,7 +84,7 @@ test("検証済み楽曲だけ縦表示へ進める", async ({ page }) => {
   await page.goto("./");
   await expect(getPreviewButton(page)).toBeDisabled();
 
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getPreviewButton(page)).toBeEnabled();
 
   await openDataManagement(page);
@@ -294,7 +294,7 @@ test("Canvasの横ドラッグを横位置スライダーへ同期する", async
 });
 
 test("ロード画面へ戻るとJSONと検証結果を保持する", async ({ page }) => {
-  await page.goto("./?id=001");
+  await page.goto("./?id=901");
   await expect(getPreviewButton(page)).toBeEnabled();
   const json = await getJsonEditor(page).inputValue();
   await getPreviewButton(page).click();

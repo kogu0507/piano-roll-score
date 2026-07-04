@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "901",
+  "title": "ドからソまで",
+  "description": "自然音を使った短い右手の導入課題",
+  "bpm": 80,
+  "timeSignature": {
+    "numerator": 4,
+    "denominator": 4
+  },
+  "clef": "treble",
+  "displayRange": {
+    "mode": "fixed",
+    "minPitch": 60,
+    "maxPitch": 67
+  },
+  "notes": [
+    {
+      "id": "n1",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 0,
+      "duration": 1
+    },
+    {
+      "id": "n2",
+      "pitch": 62,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 2,
+      "time": 1,
+      "duration": 1
+    },
+    {
+      "id": "n3",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 2,
+      "duration": 1
+    },
+    {
+      "id": "n4",
+      "pitch": 65,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 4,
+      "time": 3,
+      "duration": 1
+    },
+    {
+      "id": "n5",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 4,
+      "duration": 1
+    }
+  ]
+}

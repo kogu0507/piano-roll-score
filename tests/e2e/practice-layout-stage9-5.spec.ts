@@ -641,6 +641,8 @@ test("練習メニューから表示切り替え、保存、JSON書き出し、�
 
   await page.getByTestId("practice-saved-list-button").click();
   await expect(page.getByTestId("saved-song-item")).toHaveCount(1);
-  await expect(page.getByTestId("saved-song-list")).toContainText("ドからソまで");
+  await expect(page.getByTestId("saved-song-list")).toContainText(
+    "メリーさんの羊",
+  );
   await expectNoHorizontalOverflow(page);
 });

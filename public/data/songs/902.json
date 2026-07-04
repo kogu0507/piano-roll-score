@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "902",
+  "title": "ド♯とレ♭",
+  "description": "同じ鍵盤位置を異なる音名で表す検証課題",
+  "bpm": 60,
+  "timeSignature": {
+    "numerator": 2,
+    "denominator": 4
+  },
+  "clef": "treble",
+  "displayRange": {
+    "mode": "fixed",
+    "minPitch": 60,
+    "maxPitch": 62
+  },
+  "notes": [
+    {
+      "id": "c-sharp-4",
+      "pitch": 61,
+      "spelling": {
+        "step": "C",
+        "accidental": "sharp",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 2,
+      "time": 0,
+      "duration": 1
+    },
+    {
+      "id": "d-flat-4",
+      "pitch": 61,
+      "spelling": {
+        "step": "D",
+        "accidental": "flat",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 1,
+      "duration": 1
+    }
+  ]
+}
