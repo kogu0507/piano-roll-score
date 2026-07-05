@@ -10,6 +10,10 @@ import {
   isStaffLineOffset,
   type StaffGeometry,
 } from "./staff-position";
+import {
+  createBeatGridLines,
+  type BeatGridLineKind,
+} from "./beat-grid";
 import type { Song, SongNote } from "../schema/song-schema";
 
 export const HORIZONTAL_PIXELS_PER_BEAT = 96;
@@ -43,6 +47,7 @@ export interface HorizontalGuideLine {
 export interface HorizontalBeatLine {
   readonly beat: number;
   readonly x: number;
+  readonly kind: BeatGridLineKind;
 }
 
 export interface HorizontalLedgerLine {
@@ -245,31 +250,25 @@ function createGuideLines(
 }
 
 function createBeatLines(
+  song: Song,
   width: number,
   judgmentLineX: number,
   pixelsPerBeat: number,
   currentBeat: number,
 ): readonly HorizontalBeatLine[] {
-  const firstVisibleBeat = Math.max(
-    0,
-    Math.floor(currentBeat - judgmentLineX / pixelsPerBeat),
-  );
-  const lastVisibleBeat = Math.max(
-    firstVisibleBeat,
-    Math.ceil(currentBeat + Math.max(0, width - judgmentLineX) / pixelsPerBeat),
-  );
-
-  return Array.from(
-    { length: lastVisibleBeat - firstVisibleBeat + 1 },
-    (_, index) => {
-      const beat = firstVisibleBeat + index;
-
-      return {
-        beat,
-        x: judgmentLineX + (beat - currentBeat) * pixelsPerBeat,
-      };
-    },
-  );
+  return createBeatGridLines({
+    beatsPerMeasure: song.timeSignature.numerator,
+    displayBeat: currentBeat,
+    pixelsPerBeat,
+    originPosition: judgmentLineX,
+    viewportStart: 0,
+    viewportEnd: width,
+    direction: 1,
+  }).map((line) => ({
+    beat: line.beat,
+    x: line.position,
+    kind: line.kind,
+  }));
 }
 
 function createLedgerLines(
@@ -367,6 +366,7 @@ export function createHorizontalScene(
     staffLines: staff.lines,
     guideLines: createGuideLines(staff, song.notes),
     beatLines: createBeatLines(
+      song,
       options.width,
       playbackGuideX,
       pixelsPerBeat,

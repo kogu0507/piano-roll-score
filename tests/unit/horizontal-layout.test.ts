@@ -375,4 +375,34 @@ describe("横表示シーン", () => {
       ((normalAfterNote?.x ?? 0) - (normalNote?.x ?? 0)) * 0.5,
     );
   });
+
+  it("拍線と小節線をスコア表示の時間軸へ配置し、音価の幅に追従する", () => {
+    const normal = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0,
+    });
+    const compact = createHorizontalScene(enharmonicSong, {
+      width: 640,
+      height: 360,
+      pixelsPerBeat: HORIZONTAL_PIXELS_PER_BEAT * 0.5,
+      currentBeat: 0,
+    });
+    const normalMeasure0 = normal.beatLines.find((line) => line.beat === 0);
+    const normalBeat1 = normal.beatLines.find((line) => line.beat === 1);
+    const normalMeasure4 = normal.beatLines.find((line) => line.beat === 4);
+    const compactMeasure0 = compact.beatLines.find((line) => line.beat === 0);
+    const compactBeat1 = compact.beatLines.find((line) => line.beat === 1);
+
+    expect(normalMeasure0?.kind).toBe("measure");
+    expect(normalBeat1?.kind).toBe("beat");
+    expect(normalMeasure4?.kind).toBe("measure");
+    expect(normalMeasure0?.x).toBe(normal.playbackGuideX);
+    expect((normalBeat1?.x ?? 0) - (normalMeasure0?.x ?? 0)).toBe(
+      HORIZONTAL_PIXELS_PER_BEAT,
+    );
+    expect((compactBeat1?.x ?? 0) - (compactMeasure0?.x ?? 0)).toBe(
+      HORIZONTAL_PIXELS_PER_BEAT * 0.5,
+    );
+  });
 });

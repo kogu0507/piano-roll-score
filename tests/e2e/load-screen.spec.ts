@@ -155,6 +155,32 @@ test("選択した曲からピアノ表示とスコア表示へ進める", async
   await expectNoHorizontalOverflow(page);
 });
 
+test("?id=001,002,003の代表曲からピアノ表示とスコア表示へ進める", async ({
+  page,
+}) => {
+  for (const [id, title] of builtinSongs.slice(0, 3)) {
+    await page.goto(`./?id=${id}`);
+    await expect(page.getByTestId("song-detail")).toContainText(title);
+    await getPianoButton(page).click();
+    await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
+    await expect(page.locator("canvas.vertical-canvas")).toHaveAttribute(
+      "data-measure-grid-line-count",
+      /^[1-9]\d*$/,
+    );
+    await expectNoHorizontalOverflow(page);
+
+    await page.goto(`./?id=${id}`);
+    await expect(page.getByTestId("song-detail")).toContainText(title);
+    await getScoreButton(page).click();
+    await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
+    await expect(page.locator("canvas.horizontal-canvas")).toHaveAttribute(
+      "data-measure-grid-line-count",
+      /^[1-9]\d*$/,
+    );
+    await expectNoHorizontalOverflow(page);
+  }
+});
+
 test("データ管理は初期状態で閉じ、開くとJSONと保存操作へ到達できる", async ({
   page,
 }) => {

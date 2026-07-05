@@ -116,6 +116,49 @@ test("縦表示画面に通常練習モード、曲情報メニュー、Canvas�
   await expectNoHorizontalOverflow(page);
 });
 
+test("ピアノ表示で拍線・小節線が再生と音価の幅に追従する", async ({ page }) => {
+  await openBuiltinPreview(page);
+  const canvas = getCanvas(page);
+
+  await expect(canvas).toHaveAttribute("data-beat-grid-line-count", /^[1-9]\d*$/);
+  await expect(canvas).toHaveAttribute(
+    "data-measure-grid-line-count",
+    /^[1-9]\d*$/,
+  );
+  await expect(canvas).toHaveAttribute("data-pixels-per-beat", "64");
+  const initialMeasurePosition = Number(
+    await canvas.getAttribute("data-first-measure-grid-line-position"),
+  );
+  const initialBeatPosition = Number(
+    await canvas.getAttribute("data-first-beat-grid-line-position"),
+  );
+
+  expect(initialMeasurePosition - initialBeatPosition).toBe(64);
+
+  await page.getByRole("button", { name: "再生" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "playing");
+  await expect
+    .poll(async () =>
+      Number(await canvas.getAttribute("data-first-beat-grid-line-position")),
+    )
+    .toBeGreaterThan(initialBeatPosition);
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await page.getByRole("button", { name: "最初から" }).click();
+
+  await openDisplayAdjustmentMode(page);
+  await page.getByLabel("音価の幅").fill("50");
+  await expect(canvas).toHaveAttribute("data-pixels-per-beat", "32");
+  const compactMeasurePosition = Number(
+    await canvas.getAttribute("data-first-measure-grid-line-position"),
+  );
+  const compactBeatPosition = Number(
+    await canvas.getAttribute("data-first-beat-grid-line-position"),
+  );
+
+  expect(compactMeasurePosition - compactBeatPosition).toBe(32);
+  await expectNoHorizontalOverflow(page);
+});
+
 test("縦表示で再生、一時停止、シーク、速度変更、先頭戻しができる", async ({
   page,
 }) => {

@@ -428,6 +428,19 @@ export function mountVerticalScreen(
     canvas.dataset.whiteKeyGuideHeight = scene.whiteKeyGuideHeight.toFixed(2);
     canvas.dataset.blackKeyGuideHeight = scene.blackKeyGuideHeight.toFixed(2);
     canvas.dataset.playbackGuideY = scene.playbackGuideY.toFixed(2);
+    const beatGridLines = scene.beatLines.filter(
+      (line) => line.kind === "beat",
+    );
+    const measureGridLines = scene.beatLines.filter(
+      (line) => line.kind === "measure",
+    );
+    canvas.dataset.timeGridLineCount = String(scene.beatLines.length);
+    canvas.dataset.beatGridLineCount = String(beatGridLines.length);
+    canvas.dataset.measureGridLineCount = String(measureGridLines.length);
+    canvas.dataset.firstBeatGridLinePosition =
+      beatGridLines[0]?.y.toFixed(2) ?? "";
+    canvas.dataset.firstMeasureGridLinePosition =
+      measureGridLines[0]?.y.toFixed(2) ?? "";
     drawVerticalScene(context, scene, displayTextSettings);
 
     if (

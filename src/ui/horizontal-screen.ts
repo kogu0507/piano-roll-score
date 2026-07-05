@@ -387,6 +387,19 @@ export function mountHorizontalScreen(
     canvas.dataset.showFingerNumbers = String(
       displayTextSettings.showFingerNumbers,
     );
+    const beatGridLines = scene.beatLines.filter(
+      (line) => line.kind === "beat",
+    );
+    const measureGridLines = scene.beatLines.filter(
+      (line) => line.kind === "measure",
+    );
+    canvas.dataset.timeGridLineCount = String(scene.beatLines.length);
+    canvas.dataset.beatGridLineCount = String(beatGridLines.length);
+    canvas.dataset.measureGridLineCount = String(measureGridLines.length);
+    canvas.dataset.firstBeatGridLinePosition =
+      beatGridLines[0]?.x.toFixed(2) ?? "";
+    canvas.dataset.firstMeasureGridLinePosition =
+      measureGridLines[0]?.x.toFixed(2) ?? "";
     drawHorizontalScene(context, scene, displayTextSettings);
 
     if (

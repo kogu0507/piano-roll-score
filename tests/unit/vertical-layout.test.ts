@@ -225,6 +225,40 @@ describe("縦表示シーン", () => {
     );
   });
 
+  it("拍線と小節線をピアノ表示の時間軸へ配置し、音価の幅に追従する", () => {
+    const normal = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+    });
+    const compact = createVerticalScene(enharmonicSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      pixelsPerBeat: PIXELS_PER_BEAT * 0.5,
+      currentBeat: 0,
+    });
+    const normalMeasure0 = normal.beatLines.find((line) => line.beat === 0);
+    const normalBeat1 = normal.beatLines.find((line) => line.beat === 1);
+    const normalMeasure4 = normal.beatLines.find((line) => line.beat === 4);
+    const compactMeasure0 = compact.beatLines.find((line) => line.beat === 0);
+    const compactBeat1 = compact.beatLines.find((line) => line.beat === 1);
+
+    expect(normalMeasure0?.kind).toBe("measure");
+    expect(normalBeat1?.kind).toBe("beat");
+    expect(normalMeasure4?.kind).toBe("measure");
+    expect(normalMeasure0?.y).toBe(normal.playbackGuideY);
+    expect((normalMeasure0?.y ?? 0) - (normalBeat1?.y ?? 0)).toBe(
+      PIXELS_PER_BEAT,
+    );
+    expect((compactMeasure0?.y ?? 0) - (compactBeat1?.y ?? 0)).toBe(
+      PIXELS_PER_BEAT * 0.5,
+    );
+  });
+
   it("スマートフォン横向き用の鍵盤ガイド圧縮でも横方向の鍵盤位置と音符位置は維持する", () => {
     const normal = createVerticalScene(enharmonicSong, {
       width: 844,

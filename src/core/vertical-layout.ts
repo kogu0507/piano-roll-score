@@ -5,6 +5,10 @@ import {
   type KeyboardGeometry,
   type KeyRectangle,
 } from "./keyboard-geometry";
+import {
+  createBeatGridLines,
+  type BeatGridLineKind,
+} from "./beat-grid";
 import { formatJapanesePitchClassName } from "./pitch";
 import type { Song, SongNote } from "../schema/song-schema";
 
@@ -32,6 +36,12 @@ export interface VerticalNoteScene extends SceneRectangle {
   readonly visible: boolean;
 }
 
+export interface VerticalBeatLine {
+  readonly beat: number;
+  readonly y: number;
+  readonly kind: BeatGridLineKind;
+}
+
 export interface VerticalScene {
   readonly width: number;
   readonly height: number;
@@ -46,6 +56,7 @@ export interface VerticalScene {
   readonly keyboard: KeyboardGeometry;
   readonly whiteKeys: readonly SceneRectangle[];
   readonly blackKeys: readonly SceneRectangle[];
+  readonly beatLines: readonly VerticalBeatLine[];
   readonly notes: readonly VerticalNoteScene[];
   readonly horizontalOffset: number;
 }
@@ -97,6 +108,27 @@ function offsetKey(
     width: key.width,
     height,
   };
+}
+
+function createVerticalBeatLines(
+  song: Song,
+  playbackGuideY: number,
+  pixelsPerBeat: number,
+  displayBeat: number,
+): readonly VerticalBeatLine[] {
+  return createBeatGridLines({
+    beatsPerMeasure: song.timeSignature.numerator,
+    displayBeat,
+    pixelsPerBeat,
+    originPosition: playbackGuideY,
+    viewportStart: 0,
+    viewportEnd: playbackGuideY,
+    direction: -1,
+  }).map((line) => ({
+    beat: line.beat,
+    y: line.position,
+    kind: line.kind,
+  }));
 }
 
 export function calculateNoteVerticalRectangle(
@@ -215,6 +247,12 @@ export function createVerticalScene(
     keyboard,
     whiteKeys,
     blackKeys,
+    beatLines: createVerticalBeatLines(
+      song,
+      playbackGuideY,
+      pixelsPerBeat,
+      displayBeat,
+    ),
     notes,
     horizontalOffset: options.horizontalOffset,
   };

@@ -95,6 +95,19 @@ export function drawVerticalScene(
     context.fillRect(key.x, 0, key.width, scene.judgmentLineY);
   });
 
+  scene.beatLines.forEach((line) => {
+    const isMeasure = line.kind === "measure";
+
+    context.strokeStyle = isMeasure
+      ? "rgba(37, 99, 115, 0.22)"
+      : "rgba(47, 85, 65, 0.11)";
+    context.lineWidth = isMeasure ? 1.6 : 1;
+    context.beginPath();
+    context.moveTo(0, line.y);
+    context.lineTo(scene.width, line.y);
+    context.stroke();
+  });
+
   scene.notes.filter((note) => note.visible).forEach((note) => {
     drawNote(context, note, options);
   });

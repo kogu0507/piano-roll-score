@@ -58,6 +58,10 @@ function createVerticalTestScene(): VerticalScene {
     keyboard: {} as VerticalScene["keyboard"],
     whiteKeys: [{ x: 0, y: 130, width: 40, height: 50 }],
     blackKeys: [{ x: 26, y: 130, width: 20, height: 28 }],
+    beatLines: [
+      { beat: 0, y: 130, kind: "measure" },
+      { beat: 1, y: 66, kind: "beat" },
+    ],
     horizontalOffset: 0,
     notes: [
       {
@@ -89,7 +93,7 @@ function createHorizontalTestScene(): HorizontalScene {
     staff: {} as HorizontalScene["staff"],
     staffLines: [{ indexFromBottom: 0, diatonicOffset: 0, y: 120 }],
     guideLines: [],
-    beatLines: [{ beat: 0, x: 72 }],
+    beatLines: [{ beat: 0, x: 72, kind: "measure" }],
     notes: [
       {
         id: "note",

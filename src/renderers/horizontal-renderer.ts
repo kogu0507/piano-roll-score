@@ -82,9 +82,11 @@ export function drawHorizontalScene(
   context.clip();
 
   scene.beatLines.forEach((line) => {
+    const isMeasure = line.kind === "measure";
+
     context.strokeStyle =
-      line.beat === 0 ? "rgba(37, 99, 115, 0.18)" : "rgba(47, 85, 65, 0.10)";
-    context.lineWidth = line.beat === 0 ? 1.5 : 1;
+      isMeasure ? "rgba(37, 99, 115, 0.22)" : "rgba(47, 85, 65, 0.10)";
+    context.lineWidth = isMeasure ? 1.6 : 1;
     context.beginPath();
     context.moveTo(line.x, 0);
     context.lineTo(line.x, scene.height);
