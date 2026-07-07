@@ -13,15 +13,15 @@ const ACCIDENTAL_ACCENT_STYLES: Readonly<
 > = {
   sharp: {
     kind: "sharp",
-    markerFill: "rgba(40, 112, 178, 0.82)",
-    stroke: "#236da8",
+    markerFill: "rgba(202, 132, 35, 0.82)",
+    stroke: "#b36b13",
     strokeWidth: 2.8,
     bandWidth: 5,
   },
   flat: {
     kind: "flat",
-    markerFill: "rgba(116, 75, 166, 0.82)",
-    stroke: "#704aa0",
+    markerFill: "rgba(72, 96, 184, 0.82)",
+    stroke: "#4559aa",
     strokeWidth: 2.8,
     bandWidth: 5,
   },
