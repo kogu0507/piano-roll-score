@@ -24,7 +24,10 @@ import {
 } from "../core/time-scale";
 import type { PlaybackController } from "../playback/playback-controller";
 import { resizeCanvasForDisplay } from "../renderers/canvas";
-import { drawHorizontalScene } from "../renderers/horizontal-renderer";
+import {
+  createHorizontalNoteLabelLayout,
+  drawHorizontalScene,
+} from "../renderers/horizontal-renderer";
 import { mountPlaybackControls } from "./playback-controls";
 import { createPracticeMenu } from "./practice-menu";
 import type { Song } from "../types/song";
@@ -400,6 +403,31 @@ export function mountHorizontalScreen(
       beatGridLines[0]?.x.toFixed(2) ?? "";
     canvas.dataset.firstMeasureGridLinePosition =
       measureGridLines[0]?.x.toFixed(2) ?? "";
+    const noteLabelLayouts = scene.notes
+      .filter((note) => note.visible)
+      .map((note) => ({
+        note,
+        layout: createHorizontalNoteLabelLayout(note, displayTextSettings),
+      }))
+      .filter(({ layout }) => layout.visible);
+    const representativeLabel =
+      noteLabelLayouts.find(
+        ({ note }) =>
+          displayTextSettings.showFingerNumbers !== false &&
+          note.finger !== undefined,
+      ) ?? noteLabelLayouts[0];
+    canvas.dataset.noteLabelAlign =
+      representativeLabel?.layout.textAlign ?? "none";
+    canvas.dataset.noteLabelText = representativeLabel?.layout.text ?? "";
+    canvas.dataset.noteLabelTexts = noteLabelLayouts
+      .map(({ layout }) => layout.text)
+      .join("|");
+    canvas.dataset.noteLabelX =
+      representativeLabel?.layout.x.toFixed(2) ?? "";
+    canvas.dataset.noteLabelNoteX =
+      representativeLabel?.note.x.toFixed(2) ?? "";
+    canvas.dataset.noteLabelMaxWidth =
+      representativeLabel?.layout.maxWidth.toFixed(2) ?? "";
     drawHorizontalScene(context, scene, displayTextSettings);
 
     if (

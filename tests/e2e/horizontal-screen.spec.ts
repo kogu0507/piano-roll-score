@@ -391,3 +391,77 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
   expect(sizes.height).toBe(Math.round(sizes.cssHeight * sizes.dpr));
   await expectNoHorizontalOverflow(page);
 });
+
+test("score display note labels are left aligned near the note block start", async ({
+  page,
+}) => {
+  await page.goto("./?id=001");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  const canvas = getHorizontalCanvas(page);
+
+  await expect(canvas).toHaveAttribute("data-note-label-align", "left");
+  await expect(canvas).toHaveAttribute("data-note-label-text", /\S/);
+  await expect(canvas).toHaveAttribute("data-note-label-text", /\d/);
+
+  const labelData = await canvas.evaluate((element) => {
+    const canvasElement = element as HTMLCanvasElement;
+
+    return {
+      labelX: Number(canvasElement.dataset.noteLabelX),
+      noteX: Number(canvasElement.dataset.noteLabelNoteX),
+      maxWidth: Number(canvasElement.dataset.noteLabelMaxWidth),
+    };
+  });
+
+  expect(labelData.labelX).toBeGreaterThan(labelData.noteX);
+  expect(labelData.labelX - labelData.noteX).toBeLessThanOrEqual(6);
+  expect(labelData.maxWidth).toBeGreaterThan(0);
+
+  await page.goto("./?id=902");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-note-label-align",
+    "left",
+  );
+  await expect(getHorizontalCanvas(page)).toHaveAttribute(
+    "data-note-label-texts",
+    /[♯♭]/,
+  );
+  await expectNoHorizontalOverflow(page);
+});
+
+test("score display label text follows note-name and finger toggles", async ({
+  page,
+}) => {
+  await page.goto("./?id=001");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  const canvas = getHorizontalCanvas(page);
+
+  await expect(canvas).toHaveAttribute("data-note-label-align", "left");
+  await expect(canvas).toHaveAttribute("data-note-label-text", /\D+\s\d/);
+
+  await openPracticeMenu(page);
+  const noteNameToggle = page.getByTestId("practice-show-note-names");
+  const fingerNumberToggle = page.getByTestId("practice-show-finger-numbers");
+
+  await noteNameToggle.uncheck();
+  await expect(canvas).toHaveAttribute("data-note-label-text", /^\d$/);
+  await expect(canvas).toHaveAttribute("data-note-label-align", "left");
+
+  await fingerNumberToggle.uncheck();
+  await expect(canvas).toHaveAttribute("data-note-label-text", "");
+  await expect(canvas).toHaveAttribute("data-note-label-texts", "");
+  await expect(canvas).toHaveAttribute("data-note-label-align", "none");
+
+  await noteNameToggle.check();
+  await expect(canvas).toHaveAttribute("data-note-label-align", "left");
+  await expect(canvas).toHaveAttribute("data-note-label-text", /^\D+$/);
+
+  await fingerNumberToggle.check();
+  await expect(canvas).toHaveAttribute("data-note-label-text", /\D+\s\d/);
+  await expect(canvas).toHaveAttribute("data-note-label-align", "left");
+  await expectNoHorizontalOverflow(page);
+});

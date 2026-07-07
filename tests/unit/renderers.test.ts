@@ -2,11 +2,24 @@ import { describe, expect, it } from "vitest";
 
 import type { HorizontalScene } from "../../src/core/horizontal-layout";
 import type { VerticalScene } from "../../src/core/vertical-layout";
-import { drawHorizontalScene } from "../../src/renderers/horizontal-renderer";
+import {
+  createHorizontalNoteLabelLayout,
+  drawHorizontalScene,
+} from "../../src/renderers/horizontal-renderer";
 import { drawVerticalScene } from "../../src/renderers/vertical-renderer";
+
+interface FillTextCallRecord {
+  readonly text: string;
+  readonly x: number;
+  readonly y: number;
+  readonly maxWidth: number | undefined;
+  readonly textAlign: CanvasTextAlign;
+  readonly font: string;
+}
 
 class RecordingCanvasContext {
   readonly fillTextCalls: string[] = [];
+  readonly fillTextCallRecords: FillTextCallRecord[] = [];
   fillStyle: string | CanvasGradient | CanvasPattern = "#000000";
   strokeStyle: string | CanvasGradient | CanvasPattern = "#000000";
   lineWidth = 1;
@@ -28,8 +41,16 @@ class RecordingCanvasContext {
   stroke(): void {}
   strokeRect(): void {}
 
-  fillText(text: string): void {
+  fillText(text: string, x = 0, y = 0, maxWidth?: number): void {
     this.fillTextCalls.push(text);
+    this.fillTextCallRecords.push({
+      text,
+      x,
+      y,
+      maxWidth,
+      textAlign: this.textAlign,
+      font: this.font,
+    });
   }
 }
 
@@ -115,7 +136,7 @@ function createHorizontalTestScene(): HorizontalScene {
 }
 
 describe("Canvas note text rendering", () => {
-  it("縦表示で音名と指番号を個別に非表示にできる", () => {
+  it("vertical labels keep independent note-name and finger visibility", () => {
     const visibleContext = createRecordingContext();
     drawVerticalScene(asCanvasContext(visibleContext), createVerticalTestScene());
 
@@ -132,27 +153,63 @@ describe("Canvas note text rendering", () => {
     expect(hiddenContext.fillTextCalls).not.toContain("4");
   });
 
-  it("横表示で音名と指番号を個別に非表示にできる", () => {
+  it("horizontal score labels are drawn as one left-aligned label", () => {
+    const scene = createHorizontalTestScene();
     const visibleContext = createRecordingContext();
-    drawHorizontalScene(
-      asCanvasContext(visibleContext),
-      createHorizontalTestScene(),
-    );
+    drawHorizontalScene(asCanvasContext(visibleContext), scene);
 
-    expect(visibleContext.fillTextCalls).toContain("note-name");
-    expect(visibleContext.fillTextCalls).toContain("4");
+    expect(visibleContext.fillTextCalls).toContain("note-name 4");
+    const labelCall = visibleContext.fillTextCallRecords.find(
+      (call) => call.text === "note-name 4",
+    );
+    const expectedLayout = createHorizontalNoteLabelLayout(scene.notes[0]);
+
+    expect(labelCall?.textAlign).toBe("left");
+    expect(labelCall?.x).toBeCloseTo(expectedLayout.x);
+    expect(labelCall?.x).toBeGreaterThan(scene.notes[0].x);
+    expect(labelCall?.x).toBeLessThan(scene.notes[0].x + 12);
+    expect(labelCall?.maxWidth).toBeCloseTo(expectedLayout.maxWidth);
 
     const hiddenContext = createRecordingContext();
-    drawHorizontalScene(
-      asCanvasContext(hiddenContext),
-      createHorizontalTestScene(),
-      {
-        showNoteNames: false,
-        showFingerNumbers: false,
-      },
-    );
+    drawHorizontalScene(asCanvasContext(hiddenContext), scene, {
+      showNoteNames: false,
+      showFingerNumbers: false,
+    });
 
     expect(hiddenContext.fillTextCalls).not.toContain("note-name");
     expect(hiddenContext.fillTextCalls).not.toContain("4");
+    expect(hiddenContext.fillTextCalls).not.toContain("note-name 4");
+  });
+
+  it("horizontal score labels reflect note-name and finger-number toggles", () => {
+    const scene = createHorizontalTestScene();
+
+    const fingerOnlyContext = createRecordingContext();
+    drawHorizontalScene(asCanvasContext(fingerOnlyContext), scene, {
+      showNoteNames: false,
+      showFingerNumbers: true,
+    });
+
+    expect(fingerOnlyContext.fillTextCalls).toContain("4");
+    expect(fingerOnlyContext.fillTextCalls).not.toContain("note-name");
+
+    const noteNameOnlyContext = createRecordingContext();
+    drawHorizontalScene(asCanvasContext(noteNameOnlyContext), scene, {
+      showNoteNames: true,
+      showFingerNumbers: false,
+    });
+
+    expect(noteNameOnlyContext.fillTextCalls).toContain("note-name");
+    expect(noteNameOnlyContext.fillTextCalls).not.toContain("4");
+
+    const hiddenContext = createRecordingContext();
+    drawHorizontalScene(asCanvasContext(hiddenContext), scene, {
+      showNoteNames: false,
+      showFingerNumbers: false,
+    });
+
+    expect(hiddenContext.fillTextCalls).not.toContain("note-name");
+    expect(hiddenContext.fillTextCalls).not.toContain("4");
+    expect(hiddenContext.fillTextCalls.length).toBe(0);
   });
 });

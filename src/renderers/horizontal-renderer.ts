@@ -5,10 +5,57 @@ import type {
 import { HAND_RENDERING_STYLES } from "./hand-styles";
 
 const PLAYBACK_GUIDE_BAND_WIDTH = 12;
+export const HORIZONTAL_NOTE_LABEL_PADDING_X = 6;
 
 export interface HorizontalRenderOptions {
   readonly showNoteNames?: boolean;
   readonly showFingerNumbers?: boolean;
+}
+
+export interface HorizontalNoteLabelLayout {
+  readonly text: string;
+  readonly x: number;
+  readonly y: number;
+  readonly maxWidth: number;
+  readonly textAlign: "left";
+  readonly visible: boolean;
+}
+
+export function createHorizontalNoteLabelText(
+  note: Pick<HorizontalNoteScene, "label" | "finger">,
+  options: HorizontalRenderOptions = {},
+): string {
+  const parts: string[] = [];
+
+  if (options.showNoteNames !== false) {
+    parts.push(note.label);
+  }
+
+  if (options.showFingerNumbers !== false && note.finger !== undefined) {
+    parts.push(String(note.finger));
+  }
+
+  return parts.join(" ");
+}
+
+export function createHorizontalNoteLabelLayout(
+  note: HorizontalNoteScene,
+  options: HorizontalRenderOptions = {},
+): HorizontalNoteLabelLayout {
+  const paddingX = Math.min(
+    HORIZONTAL_NOTE_LABEL_PADDING_X,
+    Math.max(3, note.width / 4),
+  );
+  const text = createHorizontalNoteLabelText(note, options);
+
+  return {
+    text,
+    x: note.x + paddingX,
+    y: note.y + note.height / 2,
+    maxWidth: Math.max(1, note.width - paddingX * 2),
+    textAlign: "left",
+    visible: text.length > 0 && note.width > 8 && note.height > 6,
+  };
 }
 
 function drawRoundedBlock(
@@ -34,33 +81,20 @@ function drawRoundedBlock(
 
   context.fillStyle = "#ffffff";
   context.textBaseline = "middle";
-  context.textAlign = "center";
-  context.font = `800 ${Math.max(11, Math.min(15, note.width * 0.22))}px sans-serif`;
-
-  if (options.showNoteNames !== false && note.width >= 28) {
-    context.fillText(
-      note.label,
-      note.x + note.width / 2,
-      note.y + note.height / 2,
-      Math.max(1, note.width - 8),
-    );
-  }
-
   context.textAlign = "left";
-  context.font = "800 9px sans-serif";
-  context.fillText(colors.marker, note.x + 4, note.y + note.height / 2);
+  context.font = `800 ${Math.max(
+    10,
+    Math.min(13, note.height * 0.68, note.width * 0.22),
+  )}px sans-serif`;
 
-  if (
-    options.showFingerNumbers !== false &&
-    note.finger !== undefined &&
-    note.width >= 44
-  ) {
-    context.textAlign = "right";
-    context.font = "800 10px sans-serif";
+  const labelLayout = createHorizontalNoteLabelLayout(note, options);
+
+  if (labelLayout.visible) {
     context.fillText(
-      String(note.finger),
-      note.x + note.width - 4,
-      note.y + note.height / 2,
+      labelLayout.text,
+      labelLayout.x,
+      labelLayout.y,
+      labelLayout.maxWidth,
     );
   }
 
