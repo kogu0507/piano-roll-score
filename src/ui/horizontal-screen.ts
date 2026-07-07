@@ -197,7 +197,7 @@ export function mountHorizontalScreen(
 
   legend.className = "horizontal-legend";
   legend.setAttribute("role", "group");
-  legend.setAttribute("aria-label", "手の色分け");
+  legend.setAttribute("aria-label", "手の補助表示");
   [
     ["右", "右手", "right"],
     ["左", "左手", "left"],

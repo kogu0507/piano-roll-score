@@ -144,6 +144,7 @@ describe("Canvas note text rendering", () => {
 
     expect(visibleContext.fillTextCalls).toContain("note-name");
     expect(visibleContext.fillTextCalls).toContain("4");
+    expect(visibleContext.fillTextCalls).toContain("右");
 
     const hiddenContext = createRecordingContext();
     drawVerticalScene(asCanvasContext(hiddenContext), createVerticalTestScene(), {
@@ -153,6 +154,7 @@ describe("Canvas note text rendering", () => {
 
     expect(hiddenContext.fillTextCalls).not.toContain("note-name");
     expect(hiddenContext.fillTextCalls).not.toContain("4");
+    expect(hiddenContext.fillTextCalls).toContain("右");
   });
 
   it("horizontal score labels are drawn as one left-aligned label", () => {
@@ -161,6 +163,7 @@ describe("Canvas note text rendering", () => {
     drawHorizontalScene(asCanvasContext(visibleContext), scene);
 
     expect(visibleContext.fillTextCalls).toContain("note-name 4");
+    expect(visibleContext.fillTextCalls).toContain("右");
     const labelCall = visibleContext.fillTextCallRecords.find(
       (call) => call.text === "note-name 4",
     );
@@ -181,6 +184,7 @@ describe("Canvas note text rendering", () => {
     expect(hiddenContext.fillTextCalls).not.toContain("note-name");
     expect(hiddenContext.fillTextCalls).not.toContain("4");
     expect(hiddenContext.fillTextCalls).not.toContain("note-name 4");
+    expect(hiddenContext.fillTextCalls).toContain("右");
   });
 
   it("horizontal score labels reflect note-name and finger-number toggles", () => {
@@ -212,6 +216,6 @@ describe("Canvas note text rendering", () => {
 
     expect(hiddenContext.fillTextCalls).not.toContain("note-name");
     expect(hiddenContext.fillTextCalls).not.toContain("4");
-    expect(hiddenContext.fillTextCalls.length).toBe(0);
+    expect(hiddenContext.fillTextCalls).toContain("右");
   });
 });

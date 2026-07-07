@@ -1,6 +1,11 @@
 import type { VerticalNoteScene, VerticalScene } from "../core/vertical-layout";
 import { getAccidentalAccentStyle } from "./accidental-accent";
-import { HAND_RENDERING_STYLES } from "./hand-styles";
+import {
+  drawAccidentalAccentSymbol,
+  fillAccidentalAccentBand,
+} from "./accidental-accent-renderer";
+import { drawHandBadge } from "./hand-badge-renderer";
+import { createHandBadgeLayout, getHandRenderingStyle } from "./hand-styles";
 export { resizeCanvasForDisplay } from "./canvas";
 
 const PLAYBACK_GUIDE_BAND_HEIGHT = 10;
@@ -15,41 +20,37 @@ function drawNote(
   note: VerticalNoteScene,
   options: VerticalRenderOptions,
 ): void {
-  const colors = HAND_RENDERING_STYLES[note.hand];
+  const handStyle = getHandRenderingStyle(note.hand);
   const accentStyle = getAccidentalAccentStyle(note.accidental);
+  const handBadgeLayout = createHandBadgeLayout(note, note.hand);
   const radius = Math.min(8, note.width / 4, note.height / 4);
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
-  context.fillStyle = colors.fill;
+  context.fillStyle = handStyle.fill;
   context.fill();
 
   if (accentStyle !== undefined) {
-    context.save();
-    context.beginPath();
-    context.roundRect(note.x, note.y, note.width, note.height, radius);
-    context.clip();
-    context.fillStyle = accentStyle.markerFill;
-    context.fillRect(
-      note.x,
-      note.y,
-      Math.min(accentStyle.bandWidth, note.width),
-      note.height,
-    );
-    context.restore();
+    fillAccidentalAccentBand(context, note, radius, accentStyle);
   }
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.lineWidth = accentStyle?.strokeWidth ?? 2;
-  context.strokeStyle = accentStyle?.stroke ?? colors.stroke;
+  context.strokeStyle = accentStyle?.stroke ?? handStyle.stroke;
   context.stroke();
 
   context.save();
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.clip();
-  context.fillStyle = "#ffffff";
+  if (accentStyle !== undefined) {
+    drawAccidentalAccentSymbol(context, note, accentStyle);
+  }
+
+  drawHandBadge(context, handBadgeLayout, handStyle);
+
+  context.fillStyle = handStyle.labelText;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.font = `700 ${Math.max(10, Math.min(15, note.width * 0.28))}px sans-serif`;
@@ -63,15 +64,6 @@ function drawNote(
     );
   }
 
-  context.textAlign = "left";
-  context.textBaseline = "top";
-  context.font = "700 9px sans-serif";
-  context.fillText(
-    colors.marker,
-    note.x + (accentStyle?.bandWidth ?? 0) + 3,
-    note.y + 3,
-  );
-
   if (
     options.showFingerNumbers !== false &&
     note.finger !== undefined &&
@@ -81,6 +73,7 @@ function drawNote(
     context.textAlign = "right";
     context.textBaseline = "bottom";
     context.font = "700 10px sans-serif";
+    context.fillStyle = handStyle.labelText;
     context.fillText(
       String(note.finger),
       note.x + note.width - 3,

@@ -17,9 +17,11 @@ describe("accidental note accent styles", () => {
     expect(sharp?.stroke).toBe("#b36b13");
     expect(flat?.markerFill).toBe("rgba(72, 96, 184, 0.82)");
     expect(flat?.stroke).toBe("#4559aa");
+    expect(sharp?.symbol).toBe("♯");
+    expect(flat?.symbol).toBe("♭");
     expect(sharp?.markerFill).not.toBe(flat?.markerFill);
     expect(sharp?.stroke).not.toBe(flat?.stroke);
-    expect(sharp?.bandWidth).toBeGreaterThan(0);
+    expect(sharp?.bandWidth).toBe(7);
     expect(flat?.bandWidth).toBe(sharp?.bandWidth);
   });
 });

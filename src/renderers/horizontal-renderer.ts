@@ -3,10 +3,16 @@ import type {
   HorizontalScene,
 } from "../core/horizontal-layout";
 import { getAccidentalAccentStyle } from "./accidental-accent";
-import { HAND_RENDERING_STYLES } from "./hand-styles";
+import {
+  drawAccidentalAccentSymbol,
+  fillAccidentalAccentBand,
+} from "./accidental-accent-renderer";
+import { drawHandBadge } from "./hand-badge-renderer";
+import { createHandBadgeLayout, getHandRenderingStyle } from "./hand-styles";
 
 const PLAYBACK_GUIDE_BAND_WIDTH = 12;
 export const HORIZONTAL_NOTE_LABEL_PADDING_X = 6;
+const HORIZONTAL_HAND_BADGE_MIN_WIDTH = 42;
 
 export interface HorizontalRenderOptions {
   readonly showNoteNames?: boolean;
@@ -48,17 +54,23 @@ export function createHorizontalNoteLabelLayout(
     Math.max(3, note.width / 4),
   );
   const accentStyle = getAccidentalAccentStyle(note.accidental);
+  const handBadgeLayout = createHandBadgeLayout(note, note.hand, {
+    minWidth: HORIZONTAL_HAND_BADGE_MIN_WIDTH,
+  });
   const labelPaddingX =
     accentStyle === undefined
       ? paddingX
       : Math.max(paddingX, accentStyle.bandWidth + 3);
+  const rightReservedWidth = handBadgeLayout.visible
+    ? handBadgeLayout.width + paddingX + 2
+    : paddingX;
   const text = createHorizontalNoteLabelText(note, options);
 
   return {
     text,
     x: note.x + labelPaddingX,
     y: note.y + note.height / 2,
-    maxWidth: Math.max(1, note.width - labelPaddingX - paddingX),
+    maxWidth: Math.max(1, note.width - labelPaddingX - rightReservedWidth),
     textAlign: "left",
     visible: text.length > 0 && note.width > 8 && note.height > 6,
   };
@@ -69,34 +81,26 @@ function drawRoundedBlock(
   note: HorizontalNoteScene,
   options: HorizontalRenderOptions,
 ): void {
-  const colors = HAND_RENDERING_STYLES[note.hand];
+  const handStyle = getHandRenderingStyle(note.hand);
   const accentStyle = getAccidentalAccentStyle(note.accidental);
+  const handBadgeLayout = createHandBadgeLayout(note, note.hand, {
+    minWidth: HORIZONTAL_HAND_BADGE_MIN_WIDTH,
+  });
   const radius = Math.min(7, note.height / 3, note.width / 4);
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
-  context.fillStyle = colors.fill;
+  context.fillStyle = handStyle.fill;
   context.fill();
 
   if (accentStyle !== undefined) {
-    context.save();
-    context.beginPath();
-    context.roundRect(note.x, note.y, note.width, note.height, radius);
-    context.clip();
-    context.fillStyle = accentStyle.markerFill;
-    context.fillRect(
-      note.x,
-      note.y,
-      Math.min(accentStyle.bandWidth, note.width),
-      note.height,
-    );
-    context.restore();
+    fillAccidentalAccentBand(context, note, radius, accentStyle);
   }
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.lineWidth = accentStyle?.strokeWidth ?? 2;
-  context.strokeStyle = accentStyle?.stroke ?? colors.stroke;
+  context.strokeStyle = accentStyle?.stroke ?? handStyle.stroke;
   context.stroke();
 
   context.save();
@@ -104,7 +108,13 @@ function drawRoundedBlock(
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.clip();
 
-  context.fillStyle = "#ffffff";
+  if (accentStyle !== undefined) {
+    drawAccidentalAccentSymbol(context, note, accentStyle);
+  }
+
+  drawHandBadge(context, handBadgeLayout, handStyle);
+
+  context.fillStyle = handStyle.labelText;
   context.textBaseline = "middle";
   context.textAlign = "left";
   context.font = `800 ${Math.max(

@@ -117,7 +117,7 @@ test("横表示画面に通常練習モード、曲情報メニュー、Canvas�
   await expect(
     page.getByText("音符ブロックが右から左へ流れるスコア表示です。"),
   ).toBeVisible();
-  await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "手の補助表示" })).toBeVisible();
   await expect(getHorizontalCanvas(page)).toHaveAttribute(
     "data-playback-guide-x",
     /\d+/,

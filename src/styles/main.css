@@ -974,7 +974,7 @@ textarea:focus-visible {
   display: inline-grid;
   width: 1.6rem;
   height: 1.6rem;
-  color: #ffffff;
+  color: #26332d;
   border: 2px solid;
   border-radius: 0.35rem;
   place-items: center;
@@ -984,20 +984,23 @@ textarea:focus-visible {
 
 .vertical-legend__swatch--right,
 .horizontal-legend__swatch--right {
-  background: #e77a55;
-  border-color: #91391e;
+  color: #5c421f;
+  background: #fff4df;
+  border-color: #c99a55;
 }
 
 .vertical-legend__swatch--left,
 .horizontal-legend__swatch--left {
-  background: #5b8fd8;
-  border-color: #285a9f;
+  color: #334968;
+  background: #eef4ff;
+  border-color: #8aa2c0;
 }
 
 .vertical-legend__swatch--unspecified,
 .horizontal-legend__swatch--unspecified {
-  background: #7a8d82;
-  border-color: #405148;
+  color: #4a554f;
+  background: #eef1ee;
+  border-color: #a6afa9;
 }
 
 .validation-result__pending {

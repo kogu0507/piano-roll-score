@@ -112,7 +112,7 @@ test("縦表示画面に通常練習モード、曲情報メニュー、Canvas�
   );
   await expect(page.getByText("再生ガイド")).toBeVisible();
   await expect(page.getByText("判定ライン")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "手の色分け" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "手の補助表示" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
