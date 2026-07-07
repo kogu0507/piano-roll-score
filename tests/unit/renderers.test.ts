@@ -102,6 +102,21 @@ function createVerticalTestScene(): VerticalScene {
   };
 }
 
+function createVerticalAccidentalTestScene(): VerticalScene {
+  const scene = createVerticalTestScene();
+
+  return {
+    ...scene,
+    notes: [
+      {
+        ...scene.notes[0],
+        label: "ド♯",
+        accidental: "sharp",
+      },
+    ],
+  };
+}
+
 function createHorizontalTestScene(): HorizontalScene {
   return {
     width: 260,
@@ -137,6 +152,22 @@ function createHorizontalTestScene(): HorizontalScene {
   };
 }
 
+function createHorizontalAccidentalTestScene(): HorizontalScene {
+  const scene = createHorizontalTestScene();
+
+  return {
+    ...scene,
+    notes: [
+      {
+        ...scene.notes[0],
+        label: "ド♯",
+        accidental: "sharp",
+        accidentalSymbol: "♯",
+      },
+    ],
+  };
+}
+
 describe("Canvas note text rendering", () => {
   it("vertical labels keep independent note-name and finger visibility", () => {
     const visibleContext = createRecordingContext();
@@ -155,6 +186,31 @@ describe("Canvas note text rendering", () => {
     expect(hiddenContext.fillTextCalls).not.toContain("note-name");
     expect(hiddenContext.fillTextCalls).not.toContain("4");
     expect(hiddenContext.fillTextCalls).toContain("右");
+  });
+
+  it("vertical accidental symbol markers are omitted when note names are visible", () => {
+    const visibleContext = createRecordingContext();
+    drawVerticalScene(
+      asCanvasContext(visibleContext),
+      createVerticalAccidentalTestScene(),
+    );
+
+    expect(visibleContext.fillTextCalls).toContain("ド♯");
+    expect(visibleContext.fillTextCalls).not.toContain("♯");
+
+    const hiddenNoteNameContext = createRecordingContext();
+    drawVerticalScene(
+      asCanvasContext(hiddenNoteNameContext),
+      createVerticalAccidentalTestScene(),
+      {
+        showNoteNames: false,
+        showFingerNumbers: false,
+      },
+    );
+
+    expect(hiddenNoteNameContext.fillTextCalls).not.toContain("ド♯");
+    expect(hiddenNoteNameContext.fillTextCalls).not.toContain("4");
+    expect(hiddenNoteNameContext.fillTextCalls).toContain("♯");
   });
 
   it("horizontal score labels are drawn as one left-aligned label", () => {
@@ -185,6 +241,26 @@ describe("Canvas note text rendering", () => {
     expect(hiddenContext.fillTextCalls).not.toContain("4");
     expect(hiddenContext.fillTextCalls).not.toContain("note-name 4");
     expect(hiddenContext.fillTextCalls).toContain("右");
+  });
+
+  it("horizontal accidental symbol markers are omitted when note names are visible", () => {
+    const scene = createHorizontalAccidentalTestScene();
+    const visibleContext = createRecordingContext();
+    drawHorizontalScene(asCanvasContext(visibleContext), scene);
+
+    expect(visibleContext.fillTextCalls).toContain("ド♯ 4");
+    expect(visibleContext.fillTextCalls).not.toContain("♯");
+
+    const hiddenNoteNameContext = createRecordingContext();
+    drawHorizontalScene(asCanvasContext(hiddenNoteNameContext), scene, {
+      showNoteNames: false,
+      showFingerNumbers: false,
+    });
+
+    expect(hiddenNoteNameContext.fillTextCalls).not.toContain("ド♯ 4");
+    expect(hiddenNoteNameContext.fillTextCalls).not.toContain("ド♯");
+    expect(hiddenNoteNameContext.fillTextCalls).not.toContain("4");
+    expect(hiddenNoteNameContext.fillTextCalls).toContain("♯");
   });
 
   it("horizontal score labels reflect note-name and finger-number toggles", () => {

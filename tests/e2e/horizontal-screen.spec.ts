@@ -483,6 +483,11 @@ test("score display highlights sharp and flat notes even when labels are hidden"
     "data-accidental-accent-note-ids",
     "c-sharp-4|d-flat-4",
   );
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-symbols-visible",
+    "false",
+  );
+  await expect(canvas).toHaveAttribute("data-accidental-accent-symbols", "");
 
   await openPracticeMenu(page);
   await page.getByTestId("practice-show-note-names").uncheck();
@@ -495,6 +500,14 @@ test("score display highlights sharp and flat notes even when labels are hidden"
   await expect(canvas).toHaveAttribute(
     "data-accidental-accent-kinds",
     "sharp|flat",
+  );
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-symbols-visible",
+    "true",
+  );
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-symbols",
+    "♯|♭",
   );
   await expectNoHorizontalOverflow(page);
 });

@@ -1,4 +1,5 @@
 import { STAFF_LINE_SPACING } from "../core/staff-position";
+import { formatAccidentalSymbol } from "../core/pitch";
 import {
   calculateDisplayBeat,
   formatBeat,
@@ -28,6 +29,7 @@ import {
   createHorizontalNoteLabelLayout,
   drawHorizontalScene,
 } from "../renderers/horizontal-renderer";
+import { shouldShowAccidentalAccentSymbol } from "../renderers/accidental-accent-renderer";
 import { mountPlaybackControls } from "./playback-controls";
 import { createPracticeMenu } from "./practice-menu";
 import type { Song } from "../types/song";
@@ -438,6 +440,16 @@ export function mountHorizontalScreen(
     canvas.dataset.accidentalAccentNoteIds = accentedNotes
       .map((note) => note.id)
       .join("|");
+    const showAccidentalAccentSymbols =
+      shouldShowAccidentalAccentSymbol(displayTextSettings);
+    canvas.dataset.accidentalAccentSymbolsVisible = String(
+      showAccidentalAccentSymbols,
+    );
+    canvas.dataset.accidentalAccentSymbols = showAccidentalAccentSymbols
+      ? accentedNotes
+          .map((note) => formatAccidentalSymbol(note.accidental))
+          .join("|")
+      : "";
     drawHorizontalScene(context, scene, displayTextSettings);
 
     if (

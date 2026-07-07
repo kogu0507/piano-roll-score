@@ -13,6 +13,7 @@ import {
   formatBeat,
   formatPlaybackRate,
 } from "../core/timeline";
+import { formatAccidentalSymbol } from "../core/pitch";
 import {
   COMPACT_KEYBOARD_GUIDE_HEIGHT_SCALE,
   PIXELS_PER_BEAT,
@@ -34,6 +35,7 @@ import {
   drawVerticalScene,
   resizeCanvasForDisplay,
 } from "../renderers/vertical-renderer";
+import { shouldShowAccidentalAccentSymbol } from "../renderers/accidental-accent-renderer";
 import { mountPlaybackControls } from "./playback-controls";
 import { createPracticeMenu } from "./practice-menu";
 import type { Song } from "../types/song";
@@ -451,6 +453,16 @@ export function mountVerticalScreen(
     canvas.dataset.accidentalAccentNoteIds = accentedNotes
       .map((note) => note.id)
       .join("|");
+    const showAccidentalAccentSymbols =
+      shouldShowAccidentalAccentSymbol(displayTextSettings);
+    canvas.dataset.accidentalAccentSymbolsVisible = String(
+      showAccidentalAccentSymbols,
+    );
+    canvas.dataset.accidentalAccentSymbols = showAccidentalAccentSymbols
+      ? accentedNotes
+          .map((note) => formatAccidentalSymbol(note.accidental))
+          .join("|")
+      : "";
     drawVerticalScene(context, scene, displayTextSettings);
 
     if (

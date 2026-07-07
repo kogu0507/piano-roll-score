@@ -3,6 +3,7 @@ import { getAccidentalAccentStyle } from "./accidental-accent";
 import {
   drawAccidentalAccentSymbol,
   fillAccidentalAccentBand,
+  shouldShowAccidentalAccentSymbol,
 } from "./accidental-accent-renderer";
 import { drawHandBadge } from "./hand-badge-renderer";
 import { createHandBadgeLayout, getHandRenderingStyle } from "./hand-styles";
@@ -23,6 +24,7 @@ function drawNote(
   const handStyle = getHandRenderingStyle(note.hand);
   const accentStyle = getAccidentalAccentStyle(note.accidental);
   const handBadgeLayout = createHandBadgeLayout(note, note.hand);
+  const showAccidentalSymbol = shouldShowAccidentalAccentSymbol(options);
   const radius = Math.min(8, note.width / 4, note.height / 4);
 
   context.beginPath();
@@ -45,7 +47,12 @@ function drawNote(
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.clip();
   if (accentStyle !== undefined) {
-    drawAccidentalAccentSymbol(context, note, accentStyle);
+    drawAccidentalAccentSymbol(
+      context,
+      note,
+      accentStyle,
+      showAccidentalSymbol,
+    );
   }
 
   drawHandBadge(context, handBadgeLayout, handStyle);

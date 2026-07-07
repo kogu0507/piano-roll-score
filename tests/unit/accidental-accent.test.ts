@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getAccidentalAccentStyle } from "../../src/renderers/accidental-accent";
+import { shouldShowAccidentalAccentSymbol } from "../../src/renderers/accidental-accent-renderer";
 
 describe("accidental note accent styles", () => {
   it("does not accent natural notes", () => {
@@ -23,5 +24,17 @@ describe("accidental note accent styles", () => {
     expect(sharp?.stroke).not.toBe(flat?.stroke);
     expect(sharp?.bandWidth).toBe(7);
     expect(flat?.bandWidth).toBe(sharp?.bandWidth);
+  });
+
+  it("shows accidental symbol markers only when note names are hidden", () => {
+    expect(shouldShowAccidentalAccentSymbol({ showNoteNames: true })).toBe(
+      false,
+    );
+    expect(shouldShowAccidentalAccentSymbol({ showNoteNames: undefined })).toBe(
+      false,
+    );
+    expect(shouldShowAccidentalAccentSymbol({ showNoteNames: false })).toBe(
+      true,
+    );
   });
 });

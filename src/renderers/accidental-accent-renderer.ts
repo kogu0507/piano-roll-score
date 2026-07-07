@@ -1,6 +1,16 @@
 import type { AccidentalAccentStyle } from "./accidental-accent";
 import type { NoteBlockRect } from "./hand-styles";
 
+export interface AccidentalAccentSymbolVisibilityOptions {
+  readonly showNoteNames?: boolean;
+}
+
+export function shouldShowAccidentalAccentSymbol(
+  options: AccidentalAccentSymbolVisibilityOptions,
+): boolean {
+  return options.showNoteNames === false;
+}
+
 export function fillAccidentalAccentBand(
   context: CanvasRenderingContext2D,
   rect: NoteBlockRect,
@@ -25,7 +35,12 @@ export function drawAccidentalAccentSymbol(
   context: CanvasRenderingContext2D,
   rect: NoteBlockRect,
   accentStyle: AccidentalAccentStyle,
+  showSymbol: boolean,
 ): void {
+  if (!showSymbol) {
+    return;
+  }
+
   const markerWidth = Math.min(accentStyle.bandWidth, rect.width);
 
   if (markerWidth < 6 || rect.height < 14 || rect.width < 12) {
