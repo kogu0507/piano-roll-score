@@ -68,6 +68,8 @@ describe("縦表示シーン", () => {
     expect(cSharp?.width).toBe(dFlat?.width);
     expect(cSharp?.label).toBe("ド♯");
     expect(dFlat?.label).toBe("レ♭");
+    expect(cSharp?.accidental).toBe("sharp");
+    expect(dFlat?.accidental).toBe("flat");
   });
 
   it("timeとdurationから上向きの縦位置と高さを計算する", () => {

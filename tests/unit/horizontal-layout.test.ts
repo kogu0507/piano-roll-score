@@ -283,6 +283,8 @@ describe("横表示シーン", () => {
     expect(cSharp?.staffY).toBeGreaterThan(dFlat?.staffY ?? 0);
     expect(cSharp?.label).toBe("ド♯");
     expect(dFlat?.label).toBe("レ♭");
+    expect(cSharp?.accidental).toBe("sharp");
+    expect(dFlat?.accidental).toBe("flat");
     expect(cSharp?.accidentalSymbol).toBe("♯");
     expect(dFlat?.accidentalSymbol).toBe("♭");
   });

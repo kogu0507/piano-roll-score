@@ -89,6 +89,7 @@ function createVerticalTestScene(): VerticalScene {
         id: "note",
         pitch: 60,
         label: "note-name",
+        accidental: "natural",
         finger: 4,
         hand: "right",
         visible: true,
@@ -119,6 +120,7 @@ function createHorizontalTestScene(): HorizontalScene {
       {
         id: "note",
         label: "note-name",
+        accidental: "natural",
         accidentalSymbol: "",
         finger: 4,
         hand: "right",

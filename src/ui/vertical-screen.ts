@@ -441,6 +441,16 @@ export function mountVerticalScreen(
       beatGridLines[0]?.y.toFixed(2) ?? "";
     canvas.dataset.firstMeasureGridLinePosition =
       measureGridLines[0]?.y.toFixed(2) ?? "";
+    const accentedNotes = scene.notes.filter(
+      (note) => note.visible && note.accidental !== "natural",
+    );
+    canvas.dataset.accidentalAccentCount = String(accentedNotes.length);
+    canvas.dataset.accidentalAccentKinds = accentedNotes
+      .map((note) => note.accidental)
+      .join("|");
+    canvas.dataset.accidentalAccentNoteIds = accentedNotes
+      .map((note) => note.id)
+      .join("|");
     drawVerticalScene(context, scene, displayTextSettings);
 
     if (

@@ -2,6 +2,7 @@ import type {
   HorizontalNoteScene,
   HorizontalScene,
 } from "../core/horizontal-layout";
+import { getAccidentalAccentStyle } from "./accidental-accent";
 import { HAND_RENDERING_STYLES } from "./hand-styles";
 
 const PLAYBACK_GUIDE_BAND_WIDTH = 12;
@@ -46,13 +47,18 @@ export function createHorizontalNoteLabelLayout(
     HORIZONTAL_NOTE_LABEL_PADDING_X,
     Math.max(3, note.width / 4),
   );
+  const accentStyle = getAccidentalAccentStyle(note.accidental);
+  const labelPaddingX =
+    accentStyle === undefined
+      ? paddingX
+      : Math.max(paddingX, accentStyle.bandWidth + 3);
   const text = createHorizontalNoteLabelText(note, options);
 
   return {
     text,
-    x: note.x + paddingX,
+    x: note.x + labelPaddingX,
     y: note.y + note.height / 2,
-    maxWidth: Math.max(1, note.width - paddingX * 2),
+    maxWidth: Math.max(1, note.width - labelPaddingX - paddingX),
     textAlign: "left",
     visible: text.length > 0 && note.width > 8 && note.height > 6,
   };
@@ -64,19 +70,38 @@ function drawRoundedBlock(
   options: HorizontalRenderOptions,
 ): void {
   const colors = HAND_RENDERING_STYLES[note.hand];
+  const accentStyle = getAccidentalAccentStyle(note.accidental);
   const radius = Math.min(7, note.height / 3, note.width / 4);
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.fillStyle = colors.fill;
   context.fill();
-  context.lineWidth = 2;
-  context.strokeStyle = colors.stroke;
+
+  if (accentStyle !== undefined) {
+    context.save();
+    context.beginPath();
+    context.roundRect(note.x, note.y, note.width, note.height, radius);
+    context.clip();
+    context.fillStyle = accentStyle.markerFill;
+    context.fillRect(
+      note.x,
+      note.y,
+      Math.min(accentStyle.bandWidth, note.width),
+      note.height,
+    );
+    context.restore();
+  }
+
+  context.beginPath();
+  context.roundRect(note.x, note.y, note.width, note.height, radius);
+  context.lineWidth = accentStyle?.strokeWidth ?? 2;
+  context.strokeStyle = accentStyle?.stroke ?? colors.stroke;
   context.stroke();
 
   context.save();
   context.beginPath();
-  context.rect(note.x, note.y, note.width, note.height);
+  context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.clip();
 
   context.fillStyle = "#ffffff";

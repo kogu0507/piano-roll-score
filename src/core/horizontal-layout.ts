@@ -1,6 +1,7 @@
 import {
   formatAccidentalSymbol,
   formatJapanesePitchClassName,
+  type Accidental,
 } from "./pitch";
 import {
   STAFF_LINE_SPACING,
@@ -61,6 +62,7 @@ export interface HorizontalLedgerLine {
 export interface HorizontalNoteScene extends SceneRectangle {
   readonly id: string;
   readonly label: string;
+  readonly accidental: Accidental;
   readonly accidentalSymbol: string;
   readonly finger?: number;
   readonly hand: SongNote["hand"];
@@ -339,6 +341,7 @@ export function createHorizontalScene(
       ...rectangle,
       id: note.id,
       label: formatJapanesePitchClassName(note.spelling),
+      accidental: note.spelling.accidental,
       accidentalSymbol: formatAccidentalSymbol(note.spelling.accidental),
       ...(note.finger === undefined ? {} : { finger: note.finger }),
       hand: note.hand,

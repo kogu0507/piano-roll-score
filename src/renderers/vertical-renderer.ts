@@ -1,4 +1,5 @@
 import type { VerticalNoteScene, VerticalScene } from "../core/vertical-layout";
+import { getAccidentalAccentStyle } from "./accidental-accent";
 import { HAND_RENDERING_STYLES } from "./hand-styles";
 export { resizeCanvasForDisplay } from "./canvas";
 
@@ -15,19 +16,38 @@ function drawNote(
   options: VerticalRenderOptions,
 ): void {
   const colors = HAND_RENDERING_STYLES[note.hand];
+  const accentStyle = getAccidentalAccentStyle(note.accidental);
   const radius = Math.min(8, note.width / 4, note.height / 4);
 
   context.beginPath();
   context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.fillStyle = colors.fill;
   context.fill();
-  context.lineWidth = 2;
-  context.strokeStyle = colors.stroke;
+
+  if (accentStyle !== undefined) {
+    context.save();
+    context.beginPath();
+    context.roundRect(note.x, note.y, note.width, note.height, radius);
+    context.clip();
+    context.fillStyle = accentStyle.markerFill;
+    context.fillRect(
+      note.x,
+      note.y,
+      Math.min(accentStyle.bandWidth, note.width),
+      note.height,
+    );
+    context.restore();
+  }
+
+  context.beginPath();
+  context.roundRect(note.x, note.y, note.width, note.height, radius);
+  context.lineWidth = accentStyle?.strokeWidth ?? 2;
+  context.strokeStyle = accentStyle?.stroke ?? colors.stroke;
   context.stroke();
 
   context.save();
   context.beginPath();
-  context.rect(note.x, note.y, note.width, note.height);
+  context.roundRect(note.x, note.y, note.width, note.height, radius);
   context.clip();
   context.fillStyle = "#ffffff";
   context.textAlign = "center";
@@ -46,7 +66,11 @@ function drawNote(
   context.textAlign = "left";
   context.textBaseline = "top";
   context.font = "700 9px sans-serif";
-  context.fillText(colors.marker, note.x + 3, note.y + 3);
+  context.fillText(
+    colors.marker,
+    note.x + (accentStyle?.bandWidth ?? 0) + 3,
+    note.y + 3,
+  );
 
   if (
     options.showFingerNumbers !== false &&

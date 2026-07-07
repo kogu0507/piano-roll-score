@@ -428,6 +428,16 @@ export function mountHorizontalScreen(
       representativeLabel?.note.x.toFixed(2) ?? "";
     canvas.dataset.noteLabelMaxWidth =
       representativeLabel?.layout.maxWidth.toFixed(2) ?? "";
+    const accentedNotes = scene.notes.filter(
+      (note) => note.visible && note.accidental !== "natural",
+    );
+    canvas.dataset.accidentalAccentCount = String(accentedNotes.length);
+    canvas.dataset.accidentalAccentKinds = accentedNotes
+      .map((note) => note.accidental)
+      .join("|");
+    canvas.dataset.accidentalAccentNoteIds = accentedNotes
+      .map((note) => note.id)
+      .join("|");
     drawHorizontalScene(context, scene, displayTextSettings);
 
     if (

@@ -9,7 +9,7 @@ import {
   createBeatGridLines,
   type BeatGridLineKind,
 } from "./beat-grid";
-import { formatJapanesePitchClassName } from "./pitch";
+import { formatJapanesePitchClassName, type Accidental } from "./pitch";
 import type { Song, SongNote } from "../schema/song-schema";
 
 export const PIXELS_PER_BEAT = 64;
@@ -31,6 +31,7 @@ export interface VerticalNoteScene extends SceneRectangle {
   readonly id: string;
   readonly pitch: number;
   readonly label: string;
+  readonly accidental: Accidental;
   readonly finger?: number;
   readonly hand: SongNote["hand"];
   readonly visible: boolean;
@@ -222,6 +223,7 @@ export function createVerticalScene(
         id: note.id,
         pitch: note.pitch,
         label: formatJapanesePitchClassName(note.spelling),
+        accidental: note.spelling.accidental,
         ...(note.finger === undefined ? {} : { finger: note.finger }),
         hand: note.hand,
         visible: isRectangleVisible(

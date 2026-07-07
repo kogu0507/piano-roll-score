@@ -461,3 +461,35 @@ test("844×390でCanvasだけを左右端まで広げて調整と回転へ追従
     });
   await expectNoHorizontalOverflow(page);
 });
+
+test("piano display highlights sharp and flat notes even when labels are hidden", async ({
+  page,
+}) => {
+  await page.goto("./?id=902");
+  await expect(getPreviewButton(page)).toBeEnabled();
+  await getPreviewButton(page).click();
+  const canvas = getCanvas(page);
+
+  await expect(canvas).toHaveAttribute("data-accidental-accent-count", "2");
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-kinds",
+    "sharp|flat",
+  );
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-note-ids",
+    "c-sharp-4|d-flat-4",
+  );
+
+  await openPracticeMenu(page);
+  await page.getByTestId("practice-show-note-names").uncheck();
+  await page.getByTestId("practice-show-finger-numbers").uncheck();
+
+  await expect(canvas).toHaveAttribute("data-show-note-names", "false");
+  await expect(canvas).toHaveAttribute("data-show-finger-numbers", "false");
+  await expect(canvas).toHaveAttribute("data-accidental-accent-count", "2");
+  await expect(canvas).toHaveAttribute(
+    "data-accidental-accent-kinds",
+    "sharp|flat",
+  );
+  await expectNoHorizontalOverflow(page);
+});
