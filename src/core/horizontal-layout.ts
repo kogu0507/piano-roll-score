@@ -15,6 +15,7 @@ import {
   createBeatGridLines,
   type BeatGridLineKind,
 } from "./beat-grid";
+import { calculateNotePlaybackTime } from "./song-timing";
 import type { Song, SongNote } from "../schema/song-schema";
 
 export const HORIZONTAL_PIXELS_PER_BEAT = 96;
@@ -266,6 +267,7 @@ function createBeatLines(
     viewportStart: 0,
     viewportEnd: width,
     direction: 1,
+    pickupBeats: song.pickupBeats,
   }).map((line) => ({
     beat: line.beat,
     x: line.position,
@@ -316,7 +318,7 @@ export function createHorizontalScene(
   );
   const notes = song.notes.map<HorizontalNoteScene>((note) => {
     const horizontal = calculateNoteHorizontalRectangle(
-      note.time,
+      calculateNotePlaybackTime(note, song.pickupBeats),
       note.duration,
       playbackGuideX,
       pixelsPerBeat,

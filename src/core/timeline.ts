@@ -5,6 +5,7 @@ import {
   normalizePrecountMeasures,
   type PrecountMeasures,
 } from "./metronome-timing";
+import { calculateSongPlaybackEndBeat } from "./song-timing";
 import type { Song } from "../schema/song-schema";
 
 export const MIN_PLAYBACK_RATE = 0.5;
@@ -32,10 +33,7 @@ export interface PlaybackState {
 }
 
 export function calculateSongEndBeat(song: Song): number {
-  return Math.max(
-    0,
-    ...song.notes.map((note) => note.time + note.duration),
-  );
+  return calculateSongPlaybackEndBeat(song);
 }
 
 export function normalizePlaybackRate(playbackRate: number): number {

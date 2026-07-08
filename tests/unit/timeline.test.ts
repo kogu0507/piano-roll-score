@@ -64,6 +64,31 @@ const timelineSong: Song = {
   ],
 };
 
+const pickupTimelineSong: Song = {
+  ...timelineSong,
+  pickupBeats: 1.5,
+  notes: [
+    {
+      ...timelineSong.notes[0]!,
+      id: "pickup",
+      time: -1.5,
+      duration: 0.5,
+    },
+    {
+      ...timelineSong.notes[1]!,
+      id: "bar-start",
+      time: 0,
+      duration: 1,
+    },
+    {
+      ...timelineSong.notes[1]!,
+      id: "ending",
+      time: 3.5,
+      duration: 0.75,
+    },
+  ],
+};
+
 class FakeMetronome implements MetronomeScheduler {
   readonly starts: MetronomePlaybackConfig[] = [];
   stopCount = 0;
@@ -80,6 +105,11 @@ class FakeMetronome implements MetronomeScheduler {
 describe("共通タイムライン", () => {
   it("音符のtime+duration最大値から曲の終端拍を計算する", () => {
     expect(calculateSongEndBeat(timelineSong)).toBe(4.25);
+  });
+
+  it("アウフタクト曲の終端拍を正規化後の再生時刻で計算する", () => {
+    expect(calculateSongEndBeat(pickupTimelineSong)).toBe(5.75);
+    expect(createInitialPlaybackState(pickupTimelineSong).endBeat).toBe(5.75);
   });
 
   it("BPMと再生速度から1秒あたりの拍数を計算する", () => {
@@ -253,6 +283,34 @@ describe("共通タイムライン", () => {
 
     controller.tick(375);
     expect(controller.getSnapshot().currentBeat).toBeCloseTo(1);
+  });
+
+  it("アウフタクト曲ではメトロノームをscoreTimeの整数拍へ合わせる", () => {
+    let now = 0;
+    const metronome = new FakeMetronome();
+    const controller = new PlaybackController(
+      pickupTimelineSong,
+      () => now,
+      metronome,
+    );
+
+    controller.setMetronomeEnabled(true);
+    controller.start();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+    });
+    expect(metronome.starts.at(-1)).toMatchObject({
+      startBeatIndex: -1,
+    });
+    expect(metronome.starts.at(-1)?.startDelaySeconds).toBeCloseTo(0.25);
+
+    now = 750;
+    controller.tick();
+
+    expect(controller.getSnapshot().currentBeat).toBeCloseTo(1.5);
+    expect(metronome.starts.at(-1)?.startBeatIndex).toBe(-1);
   });
 
   it("コントローラはプリカウント中にcurrentBeatを進めず、予約音を停止できる", () => {

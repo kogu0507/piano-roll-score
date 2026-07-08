@@ -152,6 +152,45 @@ describe("楽曲スキーマ", () => {
     expectInvalid(song);
   });
 
+  it("pickupBeats省略時と0では従来どおり負のnote.timeを拒否する", () => {
+    const omittedPickup = createValidSong();
+    const omittedNotes = omittedPickup.notes as Array<Record<string, unknown>>;
+    omittedNotes[0] = { ...omittedNotes[0], time: -0.5 };
+
+    expectInvalid(omittedPickup);
+
+    const zeroPickup = createValidSong();
+    const zeroNotes = zeroPickup.notes as Array<Record<string, unknown>>;
+    zeroNotes[0] = { ...zeroNotes[0], time: -0.5 };
+
+    expectInvalid({ ...zeroPickup, pickupBeats: 0 });
+  });
+
+  it("pickupBeats付きの曲では-pickupBeats以上の負のnote.timeを許可する", () => {
+    const song = createValidSong();
+    const notes = song.notes as Array<Record<string, unknown>>;
+    notes[0] = { ...notes[0], time: -1.5, duration: 0.5 };
+    notes[1] = { ...notes[1], time: -0.5, duration: 0.5 };
+
+    expect(validateSong({ ...song, pickupBeats: 1.5 }).success).toBe(true);
+  });
+
+  it("note.timeが-pickupBeats未満なら拒否する", () => {
+    const song = createValidSong();
+    const notes = song.notes as Array<Record<string, unknown>>;
+    notes[0] = { ...notes[0], time: -1.51 };
+
+    expectInvalid({ ...song, pickupBeats: 1.5 });
+  });
+
+  it("pickupBeatsは拍子分子未満にする", () => {
+    expect(validateSong({ ...createValidSong(), pickupBeats: 3.99 }).success).toBe(
+      true,
+    );
+    expectInvalid({ ...createValidSong(), pickupBeats: 4 });
+    expectInvalid({ ...createValidSong(), pickupBeats: -0.5 });
+  });
+
   it("pitchとspellingの不一致を音符ID付きで検出する", () => {
     const song = createValidSong();
     const notes = song.notes as Array<Record<string, unknown>>;

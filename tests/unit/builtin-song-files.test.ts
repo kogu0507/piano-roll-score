@@ -7,7 +7,7 @@ import { validateBuiltinSongIndex } from "../../src/schema/builtin-song-index-sc
 import { validateSong } from "../../src/schema/song-schema";
 
 const songDir = path.join(process.cwd(), "public", "data", "songs");
-const expectedIds = ["001", "002", "003", "004", "005", "901", "902"];
+const expectedIds = ["001", "002", "003", "004", "005", "006", "901", "902"];
 
 function readJson(fileName: string): unknown {
   return JSON.parse(readFileSync(path.join(songDir, fileName), "utf8"));
@@ -52,6 +52,7 @@ describe("内蔵曲ファイル", () => {
       "003.json",
       "004.json",
       "005.json",
+      "006.json",
       "901.json",
       "902.json",
       "index.json",

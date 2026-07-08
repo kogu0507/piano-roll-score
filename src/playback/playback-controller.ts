@@ -32,6 +32,7 @@ export class PlaybackController {
   private readonly now: NowProvider;
   private readonly songBpm: number;
   private readonly beatsPerMeasure: number;
+  private readonly pickupBeats: number;
   private readonly metronome?: MetronomeScheduler;
   private anchorBeat = 0;
   private anchorTimeMs = 0;
@@ -46,6 +47,7 @@ export class PlaybackController {
     this.state = createInitialPlaybackState(song);
     this.now = now;
     this.songBpm = song.bpm;
+    this.pickupBeats = song.pickupBeats ?? 0;
     this.beatsPerMeasure = calculateMeasureBeats(
       song.timeSignature.numerator,
     );
@@ -268,11 +270,15 @@ export class PlaybackController {
         playbackRate: this.state.playbackRate,
         beatsPerMeasure: this.beatsPerMeasure,
         volume: this.state.metronomeVolume,
-        startBeatIndex: calculateNextBeatIndex(this.state.currentBeat),
+        startBeatIndex: calculateNextBeatIndex(
+          this.state.currentBeat,
+          this.pickupBeats,
+        ),
         startDelaySeconds: calculateNextBeatDelaySeconds(
           this.state.currentBeat,
           this.songBpm,
           this.state.playbackRate,
+          this.pickupBeats,
         ),
       });
       return;

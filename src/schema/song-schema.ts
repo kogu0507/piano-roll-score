@@ -45,7 +45,7 @@ export const noteSchema = z.object({
     .min(1, "指番号は1以上で指定してください。")
     .max(5, "指番号は5以下で指定してください。")
     .optional(),
-  time: finiteNumber.min(0, "開始位置は0以上で指定してください。"),
+  time: finiteNumber,
   duration: finiteNumber.positive("音の長さは0より大きくしてください。"),
 });
 
@@ -104,6 +104,9 @@ export const songSchema = z
         error: "拍子の分母は1、2、4、8、16、32のいずれかを指定してください。",
       }),
     }),
+    pickupBeats: finiteNumber
+      .min(0, "アウフタクトの長さは0以上で指定してください。")
+      .optional(),
     clef: z.enum(["treble", "bass"], {
       error: "音部記号はtrebleまたはbassで指定してください。",
     }),
@@ -115,6 +118,16 @@ export const songSchema = z
   })
   .superRefine((song, context) => {
     const noteIndexesById = new Map<string, number>();
+    const pickupBeats = song.pickupBeats ?? 0;
+
+    if (pickupBeats >= song.timeSignature.numerator) {
+      context.addIssue({
+        code: "custom",
+        path: ["pickupBeats"],
+        message:
+          "アウフタクトの長さは拍子の分子より小さい値にしてください。",
+      });
+    }
 
     song.notes.forEach((note, index) => {
       const previousIndex = noteIndexesById.get(note.id);
@@ -134,6 +147,19 @@ export const songSchema = z
           code: "custom",
           path: ["notes", index, "spelling"],
           message: `pitchとspellingが同じ実音高を示していません。`,
+        });
+      }
+
+      const minTime = pickupBeats > 0 ? -pickupBeats : 0;
+
+      if (note.time < minTime) {
+        context.addIssue({
+          code: "custom",
+          path: ["notes", index, "time"],
+          message:
+            pickupBeats > 0
+              ? `アウフタクト付きの曲では開始位置は${minTime}以上で指定してください。`
+              : "開始位置は0以上で指定してください。",
         });
       }
     });

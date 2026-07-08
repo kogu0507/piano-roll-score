@@ -60,10 +60,14 @@ export function isMeasureAccentBeat(
   beatIndex: number,
   beatsPerMeasure: number,
 ): boolean {
-  const normalizedBeatIndex = Math.max(0, Math.floor(beatIndex));
+  const normalizedBeatIndex = Math.floor(beatIndex);
   const normalizedBeatsPerMeasure = calculateMeasureBeats(beatsPerMeasure);
+  const remainder =
+    ((normalizedBeatIndex % normalizedBeatsPerMeasure) +
+      normalizedBeatsPerMeasure) %
+    normalizedBeatsPerMeasure;
 
-  return normalizedBeatIndex % normalizedBeatsPerMeasure === 0;
+  return remainder === 0;
 }
 
 export function classifyMetronomeBeat(
@@ -94,6 +98,7 @@ export function calculateNextBeatDelaySeconds(
   currentBeat: number,
   bpm: number,
   playbackRate: number,
+  pickupBeats = 0,
 ): number {
   if (!Number.isFinite(currentBeat)) {
     return 0;
@@ -105,13 +110,14 @@ export function calculateNextBeatDelaySeconds(
     return 0;
   }
 
-  const nextBeat = Math.ceil(currentBeat);
+  const scoreTime = currentBeat - Math.max(0, pickupBeats);
+  const nextScoreBeat = Math.ceil(scoreTime);
 
-  if (Math.abs(currentBeat - nextBeat) < 0.0001) {
+  if (Math.abs(scoreTime - nextScoreBeat) < 0.0001) {
     return 0;
   }
 
-  return (nextBeat - currentBeat) / beatsPerSecond;
+  return (nextScoreBeat - scoreTime) / beatsPerSecond;
 }
 
 function calculateMetronomeBeatsPerSecond(
@@ -123,12 +129,15 @@ function calculateMetronomeBeatsPerSecond(
     : (bpm / 60) * Math.max(0, playbackRate);
 }
 
-export function calculateNextBeatIndex(currentBeat: number): number {
+export function calculateNextBeatIndex(
+  currentBeat: number,
+  pickupBeats = 0,
+): number {
   if (!Number.isFinite(currentBeat)) {
     return 0;
   }
 
-  return Math.max(0, Math.ceil(currentBeat));
+  return Math.ceil(currentBeat - Math.max(0, pickupBeats));
 }
 
 export function createScheduledMetronomeBeats(

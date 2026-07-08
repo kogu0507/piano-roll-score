@@ -1,3 +1,8 @@
+import {
+  playbackTimeToScoreTime,
+  scoreTimeToPlaybackTime,
+} from "./song-timing";
+
 export type BeatGridLineKind = "beat" | "measure";
 
 export interface BeatGridLine {
@@ -14,6 +19,7 @@ export interface BeatGridOptions {
   readonly viewportStart: number;
   readonly viewportEnd: number;
   readonly direction: 1 | -1;
+  readonly pickupBeats?: number;
 }
 
 const EPSILON = 1e-9;
@@ -63,21 +69,30 @@ export function createBeatGridLines(
 
   const viewportStart = Math.min(options.viewportStart, options.viewportEnd);
   const viewportEnd = Math.max(options.viewportStart, options.viewportEnd);
-  const startBeat =
+  const startPlaybackBeat =
     options.displayBeat +
     ((viewportStart - options.originPosition) /
       (options.pixelsPerBeat * options.direction));
-  const endBeat =
+  const endPlaybackBeat =
     options.displayBeat +
     ((viewportEnd - options.originPosition) /
       (options.pixelsPerBeat * options.direction));
-  const firstBeat = Math.ceil(Math.min(startBeat, endBeat) - EPSILON);
-  const lastBeat = Math.floor(Math.max(startBeat, endBeat) + EPSILON);
+  const startScoreBeat = playbackTimeToScoreTime(
+    startPlaybackBeat,
+    options.pickupBeats,
+  );
+  const endScoreBeat = playbackTimeToScoreTime(
+    endPlaybackBeat,
+    options.pickupBeats,
+  );
+  const firstBeat = Math.ceil(Math.min(startScoreBeat, endScoreBeat) - EPSILON);
+  const lastBeat = Math.floor(Math.max(startScoreBeat, endScoreBeat) + EPSILON);
   const lines: BeatGridLine[] = [];
 
   for (let beat = firstBeat; beat <= lastBeat; beat += 1) {
+    const playbackBeat = scoreTimeToPlaybackTime(beat, options.pickupBeats);
     const position = calculateBeatGridLinePosition(
-      beat,
+      playbackBeat,
       options.displayBeat,
       options.originPosition,
       options.pixelsPerBeat,

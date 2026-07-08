@@ -10,6 +10,7 @@ import {
   type BeatGridLineKind,
 } from "./beat-grid";
 import { formatJapanesePitchClassName, type Accidental } from "./pitch";
+import { calculateNotePlaybackTime } from "./song-timing";
 import type { Song, SongNote } from "../schema/song-schema";
 
 export const PIXELS_PER_BEAT = 64;
@@ -125,6 +126,7 @@ function createVerticalBeatLines(
     viewportStart: 0,
     viewportEnd: playbackGuideY,
     direction: -1,
+    pickupBeats: song.pickupBeats,
   }).map((line) => ({
     beat: line.beat,
     y: line.position,
@@ -204,7 +206,7 @@ export function createVerticalScene(
     }
 
     const vertical = calculateNoteVerticalRectangle(
-      note.time,
+      calculateNotePlaybackTime(note, song.pickupBeats),
       note.duration,
       playbackGuideY,
       pixelsPerBeat,

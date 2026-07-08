@@ -109,4 +109,29 @@ describe("拍線・小節線の共通計算", () => {
     expect(expanded.find((line) => line.beat === 1)?.position).toBe(128);
     expect(expanded.find((line) => line.beat === 2)?.position).toBe(256);
   });
+
+  it("pickupBeats付きではscoreTimeの整数拍をplaybackTime位置へ配置する", () => {
+    const lines = createBeatGridLines({
+      beatsPerMeasure: 4,
+      displayBeat: 0,
+      pixelsPerBeat: 20,
+      originPosition: 0,
+      viewportStart: 0,
+      viewportEnd: 80,
+      direction: 1,
+      pickupBeats: 1.5,
+    });
+
+    const pickupBeat = lines.find((line) => line.beat === -1);
+    const firstMeasure = lines.find((line) => line.beat === 0);
+
+    expect(pickupBeat).toMatchObject({
+      kind: "beat",
+      position: 10,
+    });
+    expect(firstMeasure).toMatchObject({
+      kind: "measure",
+      position: 30,
+    });
+  });
 });

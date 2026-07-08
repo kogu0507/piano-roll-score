@@ -9,6 +9,7 @@ import {
   classifyMetronomeBeat,
   createScheduledMetronomeBeats,
   getMetronomeFrequency,
+  isMeasureAccentBeat,
   normalizeMetronomeVolume,
 } from "../../src/core/metronome-timing";
 
@@ -31,6 +32,8 @@ describe("メトロノームとプリカウントの計算", () => {
     expect(classifyMetronomeBeat(0, 4)).toBe("accent");
     expect(classifyMetronomeBeat(1, 4)).toBe("regular");
     expect(classifyMetronomeBeat(4, 4)).toBe("accent");
+    expect(isMeasureAccentBeat(-4, 4)).toBe(true);
+    expect(classifyMetronomeBeat(-1, 4)).toBe("regular");
     expect(getMetronomeFrequency("accent")).toBeGreaterThan(
       getMetronomeFrequency("regular"),
     );
@@ -46,6 +49,14 @@ describe("メトロノームとプリカウントの計算", () => {
     expect(calculateNextBeatIndex(1.25)).toBe(2);
     expect(calculateNextBeatDelaySeconds(1.25, 120, 1)).toBeCloseTo(0.375);
     expect(calculateNextBeatDelaySeconds(2, 120, 1)).toBe(0);
+  });
+
+  it("pickupBeats付きではscoreTimeの整数位置へクリックを合わせる", () => {
+    expect(calculateNextBeatIndex(0, 1.5)).toBe(-1);
+    expect(calculateNextBeatDelaySeconds(0, 120, 1, 1.5)).toBeCloseTo(0.25);
+    expect(calculateNextBeatIndex(1.5, 1.5)).toBe(0);
+    expect(calculateNextBeatDelaySeconds(1.5, 120, 1, 1.5)).toBe(0);
+    expect(classifyMetronomeBeat(0, 4)).toBe("accent");
   });
 
   it("先読み対象の時刻、音種別、音量を計算する", () => {

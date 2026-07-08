@@ -59,6 +59,26 @@ const enharmonicSong: Song = {
   ],
 };
 
+const pickupSong: Song = {
+  ...enharmonicSong,
+  title: "アウフタクト横表示",
+  pickupBeats: 1.5,
+  notes: [
+    {
+      ...enharmonicSong.notes[0]!,
+      id: "pickup-start",
+      time: -1.5,
+      duration: 0.5,
+    },
+    {
+      ...enharmonicSong.notes[1]!,
+      id: "bar-start",
+      time: 0,
+      duration: 1,
+    },
+  ],
+};
+
 describe("横表示シーン", () => {
   it("timeから横位置、durationから音符幅を計算する", () => {
     expect(calculateNoteHorizontalRectangle(2, 1.5)).toEqual({
@@ -406,5 +426,30 @@ describe("横表示シーン", () => {
     expect((compactBeat1?.x ?? 0) - (compactMeasure0?.x ?? 0)).toBe(
       HORIZONTAL_PIXELS_PER_BEAT * 0.5,
     );
+  });
+
+  it("アウフタクト曲では正規化後の再生時刻で音符と小節線を配置する", () => {
+    const scene = createHorizontalScene(pickupSong, {
+      width: 640,
+      height: 360,
+      currentBeat: 0,
+    });
+    const pickupStart = scene.notes.find((note) => note.id === "pickup-start");
+    const barStart = scene.notes.find((note) => note.id === "bar-start");
+    const firstMeasure = scene.beatLines.find((line) => line.beat === 0);
+    const pickupBeat = scene.beatLines.find((line) => line.beat === -1);
+
+    expect(pickupStart?.x).toBe(scene.playbackGuideX);
+    expect(barStart?.x).toBe(
+      scene.playbackGuideX + 1.5 * HORIZONTAL_PIXELS_PER_BEAT,
+    );
+    expect(firstMeasure).toMatchObject({
+      kind: "measure",
+      x: scene.playbackGuideX + 1.5 * HORIZONTAL_PIXELS_PER_BEAT,
+    });
+    expect(pickupBeat).toMatchObject({
+      kind: "beat",
+      x: scene.playbackGuideX + 0.5 * HORIZONTAL_PIXELS_PER_BEAT,
+    });
   });
 });

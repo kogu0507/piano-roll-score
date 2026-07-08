@@ -53,6 +53,26 @@ const enharmonicSong: Song = {
   ],
 };
 
+const pickupSong: Song = {
+  ...enharmonicSong,
+  title: "アウフタクト縦表示",
+  pickupBeats: 1.5,
+  notes: [
+    {
+      ...enharmonicSong.notes[0]!,
+      id: "pickup-start",
+      time: -1.5,
+      duration: 0.5,
+    },
+    {
+      ...enharmonicSong.notes[1]!,
+      id: "bar-start",
+      time: 0,
+      duration: 1,
+    },
+  ],
+};
+
 describe("縦表示シーン", () => {
   it("C♯4とD♭4を同じ横位置、異なるラベルにする", () => {
     const scene = createVerticalScene(enharmonicSong, {
@@ -259,6 +279,35 @@ describe("縦表示シーン", () => {
     expect((compactMeasure0?.y ?? 0) - (compactBeat1?.y ?? 0)).toBe(
       PIXELS_PER_BEAT * 0.5,
     );
+  });
+
+  it("アウフタクト曲では正規化後の再生時刻で音符と小節線を配置する", () => {
+    const scene = createVerticalScene(pickupSong, {
+      width: 320,
+      height: 480,
+      whiteKeyWidth: 80,
+      horizontalOffset: 24,
+      currentBeat: 0,
+    });
+    const pickupStart = scene.notes.find((note) => note.id === "pickup-start");
+    const barStart = scene.notes.find((note) => note.id === "bar-start");
+    const firstMeasure = scene.beatLines.find((line) => line.beat === 0);
+    const pickupBeat = scene.beatLines.find((line) => line.beat === -1);
+
+    expect((pickupStart?.y ?? 0) + (pickupStart?.height ?? 0)).toBe(
+      scene.playbackGuideY,
+    );
+    expect((barStart?.y ?? 0) + (barStart?.height ?? 0)).toBe(
+      scene.playbackGuideY - 1.5 * PIXELS_PER_BEAT,
+    );
+    expect(firstMeasure).toMatchObject({
+      kind: "measure",
+      y: scene.playbackGuideY - 1.5 * PIXELS_PER_BEAT,
+    });
+    expect(pickupBeat).toMatchObject({
+      kind: "beat",
+      y: scene.playbackGuideY - 0.5 * PIXELS_PER_BEAT,
+    });
   });
 
   it("スマートフォン横向き用の鍵盤ガイド圧縮でも横方向の鍵盤位置と音符位置は維持する", () => {
