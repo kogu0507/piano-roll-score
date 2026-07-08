@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "006",
-  "title": "聖者の行進（アウフタクト）",
-  "description": "八分音符3つ分のアウフタクトから1小節目へ入る確認用サンプル",
+  "title": "聖者の行進",
+  "description": "八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル",
   "bpm": 96,
   "timeSignature": {
     "numerator": 4,
@@ -18,14 +18,14 @@
   "notes": [
     {
       "id": "pickup-1",
-      "pitch": 67,
+      "pitch": 60,
       "spelling": {
-        "step": "G",
+        "step": "C",
         "accidental": "natural",
         "octave": 4
       },
       "hand": "right",
-      "finger": 5,
+      "finger": 1,
       "time": -1.5,
       "duration": 0.5
     },
@@ -44,19 +44,33 @@
     },
     {
       "id": "pickup-3",
-      "pitch": 60,
+      "pitch": 65,
       "spelling": {
-        "step": "C",
+        "step": "F",
         "accidental": "natural",
         "octave": 4
       },
       "hand": "right",
-      "finger": 1,
+      "finger": 4,
       "time": -0.5,
       "duration": 0.5
     },
+
     {
       "id": "n1",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 0,
+      "duration": 2
+    },
+    {
+      "id": "n2",
       "pitch": 60,
       "spelling": {
         "step": "C",
@@ -65,50 +79,11 @@
       },
       "hand": "right",
       "finger": 1,
-      "time": 0,
-      "duration": 1
-    },
-    {
-      "id": "n2",
-      "pitch": 64,
-      "spelling": {
-        "step": "E",
-        "accidental": "natural",
-        "octave": 4
-      },
-      "hand": "right",
-      "finger": 3,
-      "time": 1,
-      "duration": 1
+      "time": 2.5,
+      "duration": 0.5
     },
     {
       "id": "n3",
-      "pitch": 67,
-      "spelling": {
-        "step": "G",
-        "accidental": "natural",
-        "octave": 4
-      },
-      "hand": "right",
-      "finger": 5,
-      "time": 2,
-      "duration": 1
-    },
-    {
-      "id": "n4",
-      "pitch": 67,
-      "spelling": {
-        "step": "G",
-        "accidental": "natural",
-        "octave": 4
-      },
-      "hand": "right",
-      "finger": 5,
-      "time": 3,
-      "duration": 1
-    },
-    {
-      "id": "n5",
       "pitch": 64,
       "spelling": {
         "step": "E",
@@ -117,8 +92,35 @@
       },
       "hand": "right",
       "finger": 3,
+      "time": 3,
+      "duration": 0.5
+    },
+    {
+      "id": "n4",
+      "pitch": 65,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 4,
+      "time": 3.5,
+      "duration": 0.5
+    },
+
+    {
+      "id": "n5",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
       "time": 4,
-      "duration": 1
+      "duration": 2
     },
     {
       "id": "n6",
@@ -130,8 +132,313 @@
       },
       "hand": "right",
       "finger": 1,
-      "time": 5,
+      "time": 6.5,
+      "duration": 0.5
+    },
+    {
+      "id": "n7",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 7,
+      "duration": 0.5
+    },
+    {
+      "id": "n8",
+      "pitch": 65,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 4,
+      "time": 7.5,
+      "duration": 0.5
+    },
+
+    {
+      "id": "n9",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 8,
+      "duration": 1
+    },
+    {
+      "id": "n10",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 9,
+      "duration": 1
+    },
+    {
+      "id": "n11",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 10,
+      "duration": 1
+    },
+    {
+      "id": "n12",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 11,
+      "duration": 1
+    },
+
+    {
+      "id": "n13",
+      "pitch": 62,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 2,
+      "time": 12,
       "duration": 2
+    },
+    {
+      "id": "n14",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 14.5,
+      "duration": 0.5
+    },
+    {
+      "id": "n15",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 15,
+      "duration": 0.5
+    },
+    {
+      "id": "n16",
+      "pitch": 62,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 2,
+      "time": 15.5,
+      "duration": 0.5
+    },
+
+    {
+      "id": "n17",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 16,
+      "duration": 1.5
+    },
+    {
+      "id": "n18",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 17.5,
+      "duration": 0.5
+    },
+    {
+      "id": "n19",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 18,
+      "duration": 1
+    },
+    {
+      "id": "n20",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 19,
+      "duration": 1
+    },
+
+    {
+      "id": "n21",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 20,
+      "duration": 0.5
+    },
+    {
+      "id": "n22",
+      "pitch": 65,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 4,
+      "time": 20.5,
+      "duration": 2.5
+    },
+    {
+      "id": "n23",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 23.0,
+      "duration": 0.5
+    },
+    {
+      "id": "n24",
+      "pitch": 65,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 4,
+      "time": 23.5,
+      "duration": 0.5
+    },
+
+    {
+      "id": "n25",
+      "pitch": 67,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 5,
+      "time": 24,
+      "duration": 1
+    },
+    {
+      "id": "n26",
+      "pitch": 64,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 3,
+      "time": 25,
+      "duration": 1
+    },
+    {
+      "id": "n27",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 26,
+      "duration": 1
+    },
+    {
+      "id": "n28",
+      "pitch": 62,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 2,
+      "time": 27,
+      "duration": 1
+    },
+
+    {
+      "id": "n29",
+      "pitch": 60,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 4
+      },
+      "hand": "right",
+      "finger": 1,
+      "time": 28,
+      "duration": 4
     }
   ]
 }

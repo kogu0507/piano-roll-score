@@ -34,7 +34,7 @@ const builtinSongs = [
   ["003", "喜びの歌（D major）"],
   ["004", "きらきら星"],
   ["005", "ぶんぶんぶん"],
-  ["006", "聖者の行進（アウフタクト）"],
+  ["006", "聖者の行進"],
   ["901", "ドからソまで"],
   ["902", "ド♯とレ♭"],
 ] as const;
@@ -187,13 +187,13 @@ test("アウフタクト曲 ?id=006 からピアノ表示とスコア表示へ�
 }) => {
   await page.goto("./?id=006");
   await expect(page.getByTestId("song-detail")).toContainText(
-    "聖者の行進（アウフタクト）",
+    "聖者の行進",
   );
   await getPianoButton(page).click();
   const verticalCanvas = page.locator("canvas.vertical-canvas");
   await expect(verticalCanvas).toBeVisible();
   await expect(verticalCanvas).toHaveAttribute("data-current-beat", "0.00");
-  await expect(verticalCanvas).toHaveAttribute("data-end-beat", "8.50");
+  await expect(verticalCanvas).toHaveAttribute("data-end-beat", "33.50");
   await expect(verticalCanvas).toHaveAttribute(
     "data-measure-grid-line-count",
     /^[1-9]\d*$/,
@@ -202,13 +202,13 @@ test("アウフタクト曲 ?id=006 からピアノ表示とスコア表示へ�
 
   await page.goto("./?id=006");
   await expect(page.getByTestId("song-detail")).toContainText(
-    "聖者の行進（アウフタクト）",
+    "聖者の行進",
   );
   await getScoreButton(page).click();
   const horizontalCanvas = page.locator("canvas.horizontal-canvas");
   await expect(horizontalCanvas).toBeVisible();
   await expect(horizontalCanvas).toHaveAttribute("data-current-beat", "0.00");
-  await expect(horizontalCanvas).toHaveAttribute("data-end-beat", "8.50");
+  await expect(horizontalCanvas).toHaveAttribute("data-end-beat", "33.50");
   await expect(horizontalCanvas).toHaveAttribute(
     "data-measure-grid-line-count",
     /^[1-9]\d*$/,
