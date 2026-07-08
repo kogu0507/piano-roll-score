@@ -1,3 +1,5 @@
+import { normalizePickupBeats } from "./song-timing";
+
 export const PRECOUNT_MEASURE_OPTIONS = [0, 1, 2] as const;
 export type PrecountMeasures = (typeof PRECOUNT_MEASURE_OPTIONS)[number];
 
@@ -11,6 +13,8 @@ export const METRONOME_REGULAR_FREQUENCY = 880;
 export const METRONOME_CLICK_DURATION_SECONDS = 0.045;
 export const METRONOME_SCHEDULE_LOOKAHEAD_SECONDS = 0.12;
 export const METRONOME_SCHEDULER_INTERVAL_MS = 25;
+
+const BEAT_EPSILON = 0.0001;
 
 export interface ScheduledMetronomeBeat {
   readonly beatIndex: number;
@@ -54,6 +58,40 @@ export function calculatePrecountBeats(
   measures: number,
 ): number {
   return calculateMeasureBeats(numerator) * normalizePrecountMeasures(measures);
+}
+
+export function calculatePrecountStartScoreTime(
+  numerator: number,
+  measures: number,
+): number {
+  return -calculatePrecountBeats(numerator, measures);
+}
+
+export function calculatePlaybackStartScoreTime(pickupBeats: number): number {
+  return -normalizePickupBeats(pickupBeats);
+}
+
+export function calculatePrecountPlaybackBeats(
+  numerator: number,
+  measures: number,
+  pickupBeats: number,
+): number {
+  return Math.max(
+    0,
+    calculatePrecountBeats(numerator, measures) -
+      normalizePickupBeats(pickupBeats),
+  );
+}
+
+export function calculatePrecountScoreTime(
+  numerator: number,
+  measures: number,
+  elapsedBeats: number,
+): number {
+  return (
+    calculatePrecountStartScoreTime(numerator, measures) +
+    Math.max(0, Number.isFinite(elapsedBeats) ? elapsedBeats : 0)
+  );
 }
 
 export function isMeasureAccentBeat(
@@ -100,24 +138,11 @@ export function calculateNextBeatDelaySeconds(
   playbackRate: number,
   pickupBeats = 0,
 ): number {
-  if (!Number.isFinite(currentBeat)) {
-    return 0;
-  }
-
-  const beatsPerSecond = calculateMetronomeBeatsPerSecond(bpm, playbackRate);
-
-  if (beatsPerSecond <= 0) {
-    return 0;
-  }
-
-  const scoreTime = currentBeat - Math.max(0, pickupBeats);
-  const nextScoreBeat = Math.ceil(scoreTime);
-
-  if (Math.abs(scoreTime - nextScoreBeat) < 0.0001) {
-    return 0;
-  }
-
-  return (nextScoreBeat - scoreTime) / beatsPerSecond;
+  return calculateNextScoreBeatDelaySeconds(
+    currentBeat - normalizePickupBeats(pickupBeats),
+    bpm,
+    playbackRate,
+  );
 }
 
 function calculateMetronomeBeatsPerSecond(
@@ -133,11 +158,60 @@ export function calculateNextBeatIndex(
   currentBeat: number,
   pickupBeats = 0,
 ): number {
-  if (!Number.isFinite(currentBeat)) {
+  return calculateNextScoreBeatIndex(
+    currentBeat - normalizePickupBeats(pickupBeats),
+  );
+}
+
+export function calculateNextScoreBeatIndex(scoreTime: number): number {
+  if (!Number.isFinite(scoreTime)) {
     return 0;
   }
 
-  return Math.ceil(currentBeat - Math.max(0, pickupBeats));
+  return Math.ceil(scoreTime);
+}
+
+export function calculateNextScoreBeatDelaySeconds(
+  scoreTime: number,
+  bpm: number,
+  playbackRate: number,
+): number {
+  if (!Number.isFinite(scoreTime)) {
+    return 0;
+  }
+
+  const beatsPerSecond = calculateMetronomeBeatsPerSecond(bpm, playbackRate);
+
+  if (beatsPerSecond <= 0) {
+    return 0;
+  }
+
+  const nextScoreBeat = calculateNextScoreBeatIndex(scoreTime);
+
+  if (Math.abs(scoreTime - nextScoreBeat) < BEAT_EPSILON) {
+    return 0;
+  }
+
+  return (nextScoreBeat - scoreTime) / beatsPerSecond;
+}
+
+export function calculatePrecountMetronomeBeatCount(
+  currentScoreTime: number,
+  playbackStartScoreTime: number,
+): number {
+  if (
+    !Number.isFinite(currentScoreTime) ||
+    !Number.isFinite(playbackStartScoreTime)
+  ) {
+    return 0;
+  }
+
+  const nextBeatIndex = calculateNextScoreBeatIndex(currentScoreTime);
+  const firstPlayingBeatIndex = Math.ceil(
+    playbackStartScoreTime - BEAT_EPSILON,
+  );
+
+  return Math.max(0, firstPlayingBeatIndex - nextBeatIndex);
 }
 
 export function createScheduledMetronomeBeats(

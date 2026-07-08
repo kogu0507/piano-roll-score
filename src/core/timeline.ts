@@ -1,6 +1,6 @@
 import {
   DEFAULT_METRONOME_VOLUME,
-  calculatePrecountBeats,
+  calculatePrecountPlaybackBeats,
   normalizeMetronomeVolume,
   normalizePrecountMeasures,
   type PrecountMeasures,
@@ -231,14 +231,16 @@ export function setPrecountMeasuresState(
 export function startPrecountPlaybackState(
   state: PlaybackState,
   numerator: number,
+  pickupBeats = 0,
 ): PlaybackState {
   const startState =
     state.status === "ended" || state.currentBeat >= state.endBeat
       ? { ...state, currentBeat: 0 }
       : state;
-  const precountTotalBeats = calculatePrecountBeats(
+  const precountTotalBeats = calculatePrecountPlaybackBeats(
     numerator,
     startState.precountMeasures,
+    pickupBeats,
   );
 
   if (precountTotalBeats <= 0) {

@@ -200,6 +200,22 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
   await expectNoHorizontalOverflow(page);
 });
 
+test("アウフタクト曲をスコア表示で再生できる", async ({ page }) => {
+  await page.goto("./?id=006");
+  await expect(getHorizontalPreviewButton(page)).toBeEnabled();
+  await getHorizontalPreviewButton(page).click();
+  const canvas = getHorizontalCanvas(page);
+
+  await page.getByRole("button", { name: "再生" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(0);
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "paused");
+  await expectNoHorizontalOverflow(page);
+});
+
 test("横表示でプリカウント中に助走表示が進む", async ({ page }) => {
   await openBuiltinHorizontalPreview(page);
   const canvas = getHorizontalCanvas(page);

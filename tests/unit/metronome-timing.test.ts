@@ -5,7 +5,14 @@ import {
   calculateMetronomeIntervalSeconds,
   calculateNextBeatDelaySeconds,
   calculateNextBeatIndex,
+  calculateNextScoreBeatDelaySeconds,
+  calculateNextScoreBeatIndex,
+  calculatePlaybackStartScoreTime,
   calculatePrecountBeats,
+  calculatePrecountMetronomeBeatCount,
+  calculatePrecountPlaybackBeats,
+  calculatePrecountScoreTime,
+  calculatePrecountStartScoreTime,
   classifyMetronomeBeat,
   createScheduledMetronomeBeats,
   getMetronomeFrequency,
@@ -26,6 +33,17 @@ describe("メトロノームとプリカウントの計算", () => {
     expect(calculatePrecountBeats(4, 2)).toBe(8);
     expect(calculatePrecountBeats(3, 1)).toBe(3);
     expect(calculatePrecountBeats(3, 2)).toBe(6);
+  });
+
+  it("アウフタクト曲のプリカウントは1小節目頭から逆算したscoreTimeを基準にする", () => {
+    expect(calculatePrecountStartScoreTime(4, 1)).toBe(-4);
+    expect(calculatePrecountStartScoreTime(4, 2)).toBe(-8);
+    expect(calculatePlaybackStartScoreTime(1.5)).toBe(-1.5);
+    expect(calculatePrecountPlaybackBeats(4, 1, 1.5)).toBe(2.5);
+    expect(calculatePrecountPlaybackBeats(4, 2, 1.5)).toBe(6.5);
+    expect(calculatePrecountPlaybackBeats(4, 1, 0)).toBe(4);
+    expect(calculatePrecountScoreTime(4, 1, 0)).toBe(-4);
+    expect(calculatePrecountScoreTime(4, 1, 2.5)).toBe(-1.5);
   });
 
   it("小節の1拍目をアクセント、それ以外を通常拍として分類する", () => {
@@ -57,6 +75,18 @@ describe("メトロノームとプリカウントの計算", () => {
     expect(calculateNextBeatIndex(1.5, 1.5)).toBe(0);
     expect(calculateNextBeatDelaySeconds(1.5, 120, 1, 1.5)).toBe(0);
     expect(classifyMetronomeBeat(0, 4)).toBe("accent");
+  });
+
+  it("プリカウント中の次拍と予約数をscoreTime基準で計算する", () => {
+    expect(calculateNextScoreBeatIndex(-4)).toBe(-4);
+    expect(calculateNextScoreBeatDelaySeconds(-4, 120, 1)).toBe(0);
+    expect(calculateNextScoreBeatIndex(-2.75)).toBe(-2);
+    expect(calculateNextScoreBeatDelaySeconds(-2.75, 120, 1)).toBeCloseTo(
+      0.375,
+    );
+    expect(calculatePrecountMetronomeBeatCount(-4, -1.5)).toBe(3);
+    expect(calculatePrecountMetronomeBeatCount(-8, -1.5)).toBe(7);
+    expect(calculatePrecountMetronomeBeatCount(-4, 0)).toBe(4);
   });
 
   it("先読み対象の時刻、音種別、音量を計算する", () => {

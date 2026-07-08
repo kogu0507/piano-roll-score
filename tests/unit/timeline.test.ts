@@ -217,6 +217,31 @@ describe("共通タイムライン", () => {
     expect(calculateDisplayBeat(playing)).toBe(0);
   });
 
+  it("アウフタクト曲のプリカウントは前小節頭からアウフタクト開始へ向かう", () => {
+    const initial = setPrecountMeasuresState(
+      createInitialPlaybackState(pickupTimelineSong),
+      1,
+    );
+    const precount = startPrecountPlaybackState(initial, 4, 1.5);
+    const counting = updatePrecountPlaybackState(precount, 1.25);
+    const playing = updatePrecountPlaybackState(counting, 2.5);
+
+    expect(precount).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+      precountTotalBeats: 2.5,
+      precountRemainingBeats: 2.5,
+    });
+    expect(calculateDisplayBeat(precount)).toBe(-2.5);
+    expect(calculateDisplayBeat(counting)).toBeCloseTo(-1.25);
+    expect(playing).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+      precountTotalBeats: 0,
+    });
+    expect(calculateDisplayBeat(playing)).toBe(0);
+  });
+
   it("コントローラは経過時間から再生し、速度変更と非表示時一時停止を反映する", () => {
     let now = 0;
     const controller = new PlaybackController(timelineSong, () => now);
@@ -335,7 +360,7 @@ describe("共通タイムライン", () => {
     });
     expect(metronome.starts.at(-1)).toMatchObject({
       enabled: true,
-      startBeatIndex: 0,
+      startBeatIndex: -4,
       maxBeatCount: 4,
     });
 
@@ -363,5 +388,66 @@ describe("共通タイムライン", () => {
       currentBeat: 0,
     });
     expect(metronome.stopCount).toBeGreaterThan(1);
+  });
+
+  it("アウフタクト曲のプリカウントメトロノームは1小節目頭の前小節から始める", () => {
+    let now = 0;
+    const metronome = new FakeMetronome();
+    const controller = new PlaybackController(
+      pickupTimelineSong,
+      () => now,
+      metronome,
+    );
+
+    controller.setMetronomeEnabled(true);
+    controller.setPrecountMeasures(1);
+    controller.start();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "precount",
+      currentBeat: 0,
+      precountTotalBeats: 2.5,
+    });
+    expect(calculateDisplayBeat(controller.getSnapshot())).toBe(-2.5);
+    expect(metronome.starts.at(-1)).toMatchObject({
+      startBeatIndex: -4,
+      startDelaySeconds: 0,
+      maxBeatCount: 3,
+    });
+
+    now = 1250;
+    controller.tick();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "playing",
+      currentBeat: 0,
+    });
+    expect(metronome.starts.at(-1)).toMatchObject({
+      startBeatIndex: -1,
+    });
+    expect(metronome.starts.at(-1)?.startDelaySeconds).toBeCloseTo(0.25);
+  });
+
+  it("アウフタクト曲の2小節プリカウントは2小節前のscoreTimeから始める", () => {
+    const metronome = new FakeMetronome();
+    const controller = new PlaybackController(
+      pickupTimelineSong,
+      () => 0,
+      metronome,
+    );
+
+    controller.setMetronomeEnabled(true);
+    controller.setPrecountMeasures(2);
+    controller.start();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: "precount",
+      precountTotalBeats: 6.5,
+    });
+    expect(calculateDisplayBeat(controller.getSnapshot())).toBe(-6.5);
+    expect(metronome.starts.at(-1)).toMatchObject({
+      startBeatIndex: -8,
+      maxBeatCount: 7,
+    });
   });
 });

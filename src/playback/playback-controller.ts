@@ -2,6 +2,11 @@ import {
   calculateMeasureBeats,
   calculateNextBeatDelaySeconds,
   calculateNextBeatIndex,
+  calculateNextScoreBeatDelaySeconds,
+  calculateNextScoreBeatIndex,
+  calculatePlaybackStartScoreTime,
+  calculatePrecountMetronomeBeatCount,
+  calculatePrecountScoreTime,
 } from "../core/metronome-timing";
 import {
   calculateAdvancedBeat,
@@ -74,7 +79,11 @@ export class PlaybackController {
       this.state.precountMeasures > 0;
 
     this.state = shouldUsePrecount
-      ? startPrecountPlaybackState(this.state, this.beatsPerMeasure)
+      ? startPrecountPlaybackState(
+          this.state,
+          this.beatsPerMeasure,
+          this.pickupBeats,
+        )
       : startPlaybackState(this.state);
 
     if (this.state.status === "precount") {
@@ -238,11 +247,15 @@ export class PlaybackController {
     }
 
     if (this.state.status === "precount") {
-      const nextBeatIndex = calculateNextBeatIndex(
+      const currentScoreTime = calculatePrecountScoreTime(
+        this.beatsPerMeasure,
+        this.state.precountMeasures,
         this.state.precountElapsedBeats,
       );
-      const remainingPrecountBeats =
-        this.state.precountTotalBeats - nextBeatIndex;
+      const playbackStartScoreTime = calculatePlaybackStartScoreTime(
+        this.pickupBeats,
+      );
+      const nextBeatIndex = calculateNextScoreBeatIndex(currentScoreTime);
 
       this.metronome.stop();
       this.metronome.start({
@@ -252,12 +265,15 @@ export class PlaybackController {
         beatsPerMeasure: this.beatsPerMeasure,
         volume: this.state.metronomeVolume,
         startBeatIndex: nextBeatIndex,
-        startDelaySeconds: calculateNextBeatDelaySeconds(
-          this.state.precountElapsedBeats,
+        startDelaySeconds: calculateNextScoreBeatDelaySeconds(
+          currentScoreTime,
           this.songBpm,
           this.state.playbackRate,
         ),
-        maxBeatCount: Math.max(0, remainingPrecountBeats),
+        maxBeatCount: calculatePrecountMetronomeBeatCount(
+          currentScoreTime,
+          playbackStartScoreTime,
+        ),
       });
       return;
     }

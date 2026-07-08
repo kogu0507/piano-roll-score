@@ -271,6 +271,47 @@ test("メトロノーム、音量、プリカウントを操作できる", async
   await expectNoHorizontalOverflow(page);
 });
 
+test("アウフタクト曲のピアノ表示はプリカウントなし、1小節、2小節で再生できる", async ({
+  page,
+}) => {
+  await page.goto("./?id=006");
+  await expect(getPreviewButton(page)).toBeEnabled();
+  await getPreviewButton(page).click();
+  const canvas = getCanvas(page);
+
+  await page.getByRole("button", { name: "再生" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "playing");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-current-beat")))
+    .toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "最初から" }).click();
+  await openPlaybackSettings(page);
+  await page.getByLabel("プリカウント").selectOption("1");
+  await closePracticeMenu(page);
+  await page.getByRole("button", { name: "再生" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "precount");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeLessThan(-1.7);
+  await expect
+    .poll(() => canvas.getAttribute("data-playback-status"), {
+      timeout: 3000,
+    })
+    .toBe("playing");
+
+  await page.getByRole("button", { name: "最初から" }).click();
+  await openPlaybackSettings(page);
+  await page.getByLabel("プリカウント").selectOption("2");
+  await closePracticeMenu(page);
+  await page.getByRole("button", { name: "再生" }).click();
+  await expect(canvas).toHaveAttribute("data-playback-status", "precount");
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-display-beat")))
+    .toBeLessThan(-5.7);
+  await expectNoHorizontalOverflow(page);
+});
+
 test("白鍵幅、横位置、画面幅合わせ、中央配置を操作できる", async ({
   page,
 }) => {
