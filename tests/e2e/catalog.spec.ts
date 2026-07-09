@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const catalogSongs = [
   ["001", "メリーさんの羊"],
@@ -11,33 +11,56 @@ const catalogSongs = [
   ["902", "ド♯とレ♭"],
 ] as const;
 
+async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(() => {
+    const documentElement = document.documentElement;
+    const body = document.body;
+
+    return Math.max(
+      documentElement.scrollWidth - documentElement.clientWidth,
+      body.scrollWidth - documentElement.clientWidth,
+    );
+  });
+
+  expect(overflow).toBeLessThanOrEqual(1);
+}
+
 test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける", async ({
   page,
 }) => {
   await page.goto("./catalog.html");
   await expect(page).toHaveTitle("piano-roll-score 曲一覧");
-  await expect(page.getByRole("heading", { name: "piano-roll-score 曲一覧" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "piano-roll-score 曲一覧" }),
+  ).toBeVisible();
   await expect(page.getByRole("link", { name: "ホームへ戻る" })).toHaveAttribute(
     "href",
     "./",
   );
+  await expect(page.locator("table")).toHaveCount(0);
+  await expect(page.locator(".song-card")).toHaveCount(catalogSongs.length);
 
   for (const [id, title] of catalogSongs) {
-    const row = page.locator(`[data-song-id="${id}"]`);
+    const card = page.locator(`[data-song-id="${id}"]`);
     const isHomeVisible = !["901", "902"].includes(id);
 
-    await expect(row).toContainText(id);
-    await expect(row).toContainText(title);
-    await expect(row).toHaveAttribute(
+    await expect(card).toContainText(id);
+    await expect(card).toContainText(title);
+    await expect(card).toHaveAttribute(
       "data-visible-in-home",
       String(isHomeVisible),
     );
-    await expect(row).toContainText(isHomeVisible ? "サンプル曲" : "開発確認");
-    await expect(row).toContainText(isHomeVisible ? "表示" : "カタログのみ");
-    await expect(row).toContainText(
+    await expect(card).toContainText(isHomeVisible ? "サンプル曲" : "開発確認");
+    await expect(card).toContainText(
+      isHomeVisible ? "ホーム表示" : "カタログのみ",
+    );
+    await card.locator(".direct-url").evaluate((element) => {
+      (element as HTMLDetailsElement).open = true;
+    });
+    await expect(card.locator(".direct-url code")).toContainText(
       `https://seegmund-music-labo.com/app/piano-roll-score/?id=${id}`,
     );
-    await expect(row.getByRole("link", { name: "開く" })).toHaveAttribute(
+    await expect(card.getByRole("link", { name: "開く" })).toHaveAttribute(
       "href",
       `./?id=${id}`,
     );
@@ -61,4 +84,27 @@ test("catalog.htmlからホームへ戻れる", async ({ page }) => {
 
   await expect(page.getByTestId("song-select")).toBeVisible();
   await expect(page.getByRole("link", { name: "曲カタログ" })).toBeVisible();
+});
+
+test("catalog.htmlはカード配置で画面幅に追従し横スクロールしない", async ({
+  page,
+}) => {
+  await page.goto("./catalog.html");
+
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator(".catalog-section")).toHaveCount(2);
+
+  const firstCardList = page.locator(".catalog-card-list").first();
+  const columnCount = await firstCardList.evaluate((element) => {
+    return getComputedStyle(element)
+      .gridTemplateColumns.split(" ")
+      .filter((column) => column.trim().length > 0).length;
+  });
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+
+  if (viewportWidth <= 520) {
+    expect(columnCount).toBe(1);
+  } else {
+    expect(columnCount).toBeGreaterThan(1);
+  }
 });
