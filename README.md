@@ -30,6 +30,8 @@
   - MVPを自作ホームページへ配置する手順
 - [docs/future-todos.md](docs/future-todos.md)
   - 第11.5段階以降で出た将来改善案と、第12〜第16.5段階で対応済みになった項目
+- [docs/classroom-catalog-plan.md](docs/classroom-catalog-plan.md)
+  - 教室コードで開く教室専用カタログ、著作権責任分界、将来の有料運用案
 - [docs/manual-checklist-stage3.md](docs/manual-checklist-stage3.md)
   - 第3段階のユーザー向け画面確認手順
 - [docs/manual-checklist-stage4.md](docs/manual-checklist-stage4.md)
