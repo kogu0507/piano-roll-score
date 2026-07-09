@@ -32,16 +32,30 @@ export function generateSongCatalogHtml(
 ) {
   assertSongIndex(index);
   const baseUrl = ensureTrailingSlash(publicBaseUrl);
+  let currentGroup = "";
   const rows = index.songs
     .map((song) => {
+      const group = song.catalogGroup || "未分類";
+      const isVisibleInHome = song.visibleInHome !== false;
       const relativeHref = `./?id=${encodeURIComponent(song.id)}`;
       const absoluteUrl = `${baseUrl}?id=${encodeURIComponent(song.id)}`;
+      const groupRow =
+        group === currentGroup
+          ? ""
+          : `        <tr class="catalog-group" data-catalog-group="${escapeHtml(group)}">
+          <th colspan="8">${escapeHtml(group)}</th>
+        </tr>
+`;
 
-      return `        <tr data-song-id="${escapeHtml(song.id)}">
+      currentGroup = group;
+
+      return `${groupRow}        <tr data-song-id="${escapeHtml(song.id)}" data-visible-in-home="${String(isVisibleInHome)}">
           <td><code>${escapeHtml(song.id)}</code></td>
           <td>${escapeHtml(song.title)}</td>
           <td>${escapeHtml(song.description)}</td>
           <td>${escapeHtml(song.level)}</td>
+          <td>${escapeHtml(group)}</td>
+          <td>${isVisibleInHome ? "表示" : "カタログのみ"}</td>
           <td><a href="${relativeHref}">開く</a></td>
           <td><code>${escapeHtml(absoluteUrl)}</code></td>
         </tr>`;
@@ -87,6 +101,29 @@ export function generateSongCatalogHtml(
         line-height: 1.7;
       }
 
+      .catalog-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 16px;
+      }
+
+      .home-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 14px;
+        color: #173123;
+        background: #edf5f0;
+        border: 1px solid #a9c4b4;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
       .table-wrap {
         overflow-x: auto;
         border: 1px solid #d8d1c4;
@@ -96,7 +133,7 @@ export function generateSongCatalogHtml(
 
       table {
         width: 100%;
-        min-width: 760px;
+        min-width: 920px;
         border-collapse: collapse;
       }
 
@@ -111,6 +148,12 @@ export function generateSongCatalogHtml(
       th {
         background: #f0e8d8;
         font-weight: 700;
+      }
+
+      .catalog-group th {
+        background: #e3efe8;
+        color: #173123;
+        font-size: 1.05rem;
       }
 
       tr:last-child td {
@@ -129,9 +172,12 @@ export function generateSongCatalogHtml(
   </head>
   <body>
     <main>
-      <h1>piano-roll-score 曲一覧</h1>
+      <div class="catalog-nav">
+        <h1>piano-roll-score 曲一覧</h1>
+        <a class="home-link" href="./">ホームへ戻る</a>
+      </div>
       <p>
-        内蔵サンプル曲のIDと曲名を確認するための一覧です。リンク本体はローカル環境でも公開後でも動く相対リンクです。
+        内蔵サンプル曲と教材のID、曲名、ホーム表示状態を確認するための一覧です。リンク本体はローカル環境でも公開後でも動く相対リンクです。
       </p>
       <div class="table-wrap">
         <table>
@@ -141,6 +187,8 @@ export function generateSongCatalogHtml(
               <th>曲名</th>
               <th>説明</th>
               <th>level</th>
+              <th>グループ</th>
+              <th>ホーム表示</th>
               <th>直接開くリンク</th>
               <th>直接URL例</th>
             </tr>

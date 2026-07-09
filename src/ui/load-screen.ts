@@ -21,6 +21,7 @@ import {
   formatSavedSongTimestamp,
   type SavedSongSummary,
 } from "../core/saved-song";
+import { isBuiltinSongVisibleInHome } from "../schema/builtin-song-index-schema";
 import type {
   BuiltinSongIndex,
   BuiltinSongSummary,
@@ -136,6 +137,7 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   );
   const songSelect = document.createElement("select");
   const startActions = document.createElement("div");
+  const catalogLink = document.createElement("a");
   const verticalPreviewButton = createButton(
     "ピアノ表示",
     "button button--preview",
@@ -156,8 +158,12 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   songSelectLabel.htmlFor = songSelect.id;
   songSelectGroup.className = "song-select-control";
   startActions.className = "load-start-actions";
+  catalogLink.className = "button button--secondary button--catalog-link";
+  catalogLink.href = "./catalog.html";
+  catalogLink.textContent = "曲カタログ";
+  catalogLink.setAttribute("data-testid", "catalog-link");
   songSelectGroup.append(songSelectLabel, songSelect);
-  startActions.append(verticalPreviewButton, horizontalPreviewButton);
+  startActions.append(verticalPreviewButton, horizontalPreviewButton, catalogLink);
   startSection.append(
     startHeading,
     createTextElement(
@@ -529,20 +535,44 @@ export async function mountLoadScreen(
   function renderSongSelect(): void {
     const placeholder = document.createElement("option");
     const sampleGroup = document.createElement("optgroup");
+    const directGroup = document.createElement("optgroup");
     const savedGroup = document.createElement("optgroup");
+    const selectedBuiltinId = state.selectedSongValue?.startsWith("builtin:")
+      ? state.selectedSongValue.slice("builtin:".length)
+      : undefined;
 
     placeholder.value = "";
     placeholder.textContent = "曲を選択してください";
     sampleGroup.label = "サンプル曲";
+    directGroup.label = "直接指定された曲";
     savedGroup.label = "保存曲";
 
-    (builtinIndex?.songs ?? []).forEach((sample) => {
+    (builtinIndex?.songs ?? [])
+      .filter(isBuiltinSongVisibleInHome)
+      .forEach((sample) => {
+        const option = document.createElement("option");
+
+        option.value = `builtin:${sample.id}`;
+        option.textContent = `${sample.title}（${sample.level}）`;
+        sampleGroup.append(option);
+      });
+
+    const selectedHiddenSample =
+      selectedBuiltinId === undefined
+        ? undefined
+        : builtinIndex?.songs.find(
+            (sample) =>
+              sample.id === selectedBuiltinId &&
+              !isBuiltinSongVisibleInHome(sample),
+          );
+
+    if (selectedHiddenSample !== undefined) {
       const option = document.createElement("option");
 
-      option.value = `builtin:${sample.id}`;
-      option.textContent = `${sample.title}（${sample.level}）`;
-      sampleGroup.append(option);
-    });
+      option.value = `builtin:${selectedHiddenSample.id}`;
+      option.textContent = `${selectedHiddenSample.title}（${selectedHiddenSample.level}）`;
+      directGroup.append(option);
+    }
 
     if (savedSongSummaries.length === 0) {
       const emptyOption = document.createElement("option");
@@ -563,7 +593,12 @@ export async function mountLoadScreen(
       });
     }
 
-    elements.songSelect.replaceChildren(placeholder, sampleGroup, savedGroup);
+    elements.songSelect.replaceChildren(
+      placeholder,
+      sampleGroup,
+      ...(selectedHiddenSample === undefined ? [] : [directGroup]),
+      savedGroup,
+    );
     syncSongSelectValue();
   }
 
@@ -581,6 +616,7 @@ export async function mountLoadScreen(
     setStatus("invalid", "入力内容を確認してください。");
     elements.songDetail.replaceChildren(createErrorDetails(error));
     elements.result.replaceChildren(createErrorDetails(error));
+    renderSongSelect();
   }
 
   function showValidSong(song: Song): void {
@@ -636,7 +672,7 @@ export async function mountLoadScreen(
       setSongIdInUrl(updateUrlId);
     }
 
-    syncSongSelectValue();
+    renderSongSelect();
     return result.success;
   }
 
@@ -862,7 +898,7 @@ export async function mountLoadScreen(
       ),
     );
     removeSongIdFromUrl();
-    syncSongSelectValue();
+    renderSongSelect();
   });
 
   elements.songSelect.addEventListener("change", () => {
@@ -889,7 +925,7 @@ export async function mountLoadScreen(
     }
 
     state.selectedSongValue = undefined;
-    syncSongSelectValue();
+    renderSongSelect();
   });
 
   elements.validateButton.addEventListener("click", () => {

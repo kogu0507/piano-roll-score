@@ -2,7 +2,7 @@
 
 ピアノ教室での試用を目的とした、ピアノ表示とスコア表示を切り替えられるピアノロール譜アプリである。
 
-このプロジェクトは現在、第15段階「アウフタクト対応」まで完了し、公開URLでの基本確認も済んでいる。MVP公開準備として自作ホームページのアプリディレクトリへ配置できる状態を整えたうえで、v0.2の改善としてピアノ表示とスコア表示の拍線・小節線、スコア表示の音名・指番号ラベル左寄せ、臨時記号付き音符の軽い自動強調、音符ブロック本体と手情報の低彩度化、`pickupBeats` と負の `note.time` によるアウフタクト表現を追加した。音源再生、演奏判定、クラウド同期は後続段階またはMVP対象外で扱う。
+このプロジェクトは現在、第16段階「カタログ導線とホーム表示制御」まで完了し、公開URLでの基本確認も済んでいる。MVP公開準備として自作ホームページのアプリディレクトリへ配置できる状態を整えたうえで、v0.2の改善としてピアノ表示とスコア表示の拍線・小節線、スコア表示の音名・指番号ラベル左寄せ、臨時記号付き音符の軽い自動強調、音符ブロック本体と手情報の低彩度化、`pickupBeats` と負の `note.time` によるアウフタクト表現、ホームに出す曲とカタログ専用曲の表示制御を追加した。音源再生、演奏判定、クラウド同期は後続段階またはMVP対象外で扱う。
 
 ## 目的
 
@@ -52,6 +52,8 @@
   - 第9.5段階のユーザー向け画面確認手順
 - [docs/manual-checklist-stage10.md](docs/manual-checklist-stage10.md)
   - 第10段階のMVP仕上げ・教室試用確認手順
+- [docs/manual-checklist-stage16.md](docs/manual-checklist-stage16.md)
+  - 第16段階のカタログ導線とホーム表示制御の確認手順
 - [docs/mvp-readiness-checklist.md](docs/mvp-readiness-checklist.md)
   - MVP完成条件の達成状況と残る要注意事項
 - [docs/classroom-trial-notes-template.md](docs/classroom-trial-notes-template.md)
@@ -129,7 +131,7 @@ npm run build
 http://localhost:5173/app/piano-roll-score/
 ```
 
-`npm run generate:catalog` は `public/data/songs/index.json` から `public/catalog.html` を生成する。`npm run build` ではcatalog生成、型検査、Viteビルドを順に実行する。
+`npm run generate:catalog` は `public/data/songs/index.json` から `public/catalog.html` を生成する。`index.json` の `visibleInHome` はホーム画面の曲選択への表示、`catalogGroup` は曲カタログ上の分類に使う。`npm run build` ではcatalog生成、型検査、Viteビルドを順に実行する。
 
 `npm run test` はVitestの単体テスト、`npm run test:e2e` はPlaywrightのデスクトップ幅・スマートフォン幅のスモークテストを実行する。
 

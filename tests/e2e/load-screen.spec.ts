@@ -38,6 +38,7 @@ const builtinSongs = [
   ["901", "ドからソまで"],
   ["902", "ド♯とレ♭"],
 ] as const;
+const homeVisibleBuiltinSongs = builtinSongs.slice(0, 6);
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const hasHorizontalOverflow = await page.evaluate(
@@ -79,6 +80,8 @@ async function openDataManagement(page: Page): Promise<void> {
 test("load画面でサンプル曲をプルダウンから選べる", async ({ page }) => {
   await page.goto("./");
   await expect(getSongSelect(page)).toContainText("メリーさんの羊");
+  await expect(getSongSelect(page).locator('option[value="builtin:901"]')).toHaveCount(0);
+  await expect(getSongSelect(page).locator('option[value="builtin:902"]')).toHaveCount(0);
 
   await getSongSelect(page).selectOption("builtin:001");
 
@@ -89,6 +92,15 @@ test("load画面でサンプル曲をプルダウンから選べる", async ({ p
   await expect(page.getByText("JSONは有効です。")).toBeHidden();
   await expect(getPianoButton(page)).toBeEnabled();
   await expect(getScoreButton(page)).toBeEnabled();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("ホームから曲カタログへ移動できる", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("link", { name: "曲カタログ" }).click();
+
+  await expect(page).toHaveURL(/\/catalog\.html$/);
+  await expect(page.getByRole("heading", { name: "piano-roll-score 曲一覧" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
@@ -132,10 +144,28 @@ test("URLのIDから全正式内蔵曲を選択済みで表示する", async ({ 
   await expectNoHorizontalOverflow(page);
 });
 
+test("ホーム非表示曲は通常セレクターに出ず、直接URLでは一時選択肢として読み込める", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await expect(getSongSelect(page).locator('option[value="builtin:902"]')).toHaveCount(0);
+  await expect(getSongSelect(page)).not.toContainText("ド♯とレ♭");
+
+  await page.goto("./?id=902");
+  await expect(getSongSelect(page)).toHaveValue("builtin:902");
+  await expect(
+    getSongSelect(page).locator('optgroup[label="直接指定された曲"] option[value="builtin:902"]'),
+  ).toHaveText(/ド♯とレ♭/);
+  await expect(page.getByTestId("song-detail")).toContainText("ド♯とレ♭");
+  await expect(getPianoButton(page)).toBeEnabled();
+  await expect(getScoreButton(page)).toBeEnabled();
+  await expectNoHorizontalOverflow(page);
+});
+
 test("選択した曲からピアノ表示とスコア表示へ進める", async ({ page }) => {
   await page.goto("./");
-  await expect(getSongSelect(page)).toContainText("ド♯とレ♭");
-  await getSongSelect(page).selectOption("builtin:902");
+  await expect(getSongSelect(page)).toContainText("メリーさんの羊");
+  await getSongSelect(page).selectOption("builtin:001");
   await getPianoButton(page).click();
   await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
   await expect(page.locator("canvas.vertical-canvas")).toHaveAttribute(
@@ -145,8 +175,8 @@ test("選択した曲からピアノ表示とスコア表示へ進める", async
   await expectNoHorizontalOverflow(page);
 
   await page.goto("./");
-  await expect(getSongSelect(page)).toContainText("ド♯とレ♭");
-  await getSongSelect(page).selectOption("builtin:902");
+  await expect(getSongSelect(page)).toContainText("メリーさんの羊");
+  await getSongSelect(page).selectOption("builtin:001");
   await getScoreButton(page).click();
   await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
   await expect(page.locator("canvas.horizontal-canvas")).toHaveAttribute(
@@ -159,7 +189,7 @@ test("選択した曲からピアノ表示とスコア表示へ進める", async
 test("?id=001,002,003の代表曲からピアノ表示とスコア表示へ進める", async ({
   page,
 }) => {
-  for (const [id, title] of builtinSongs.slice(0, 3)) {
+  for (const [id, title] of homeVisibleBuiltinSongs.slice(0, 3)) {
     await page.goto(`./?id=${id}`);
     await expect(page.getByTestId("song-detail")).toContainText(title);
     await getPianoButton(page).click();

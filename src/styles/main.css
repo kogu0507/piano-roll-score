@@ -366,6 +366,13 @@ textarea:focus-visible {
   background: #f3f8f5;
 }
 
+.button--catalog-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .button--preview {
   color: #ffffff;
   background: #7a3f86;

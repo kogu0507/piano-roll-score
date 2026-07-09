@@ -17,12 +17,23 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
   await page.goto("./catalog.html");
   await expect(page).toHaveTitle("piano-roll-score 曲一覧");
   await expect(page.getByRole("heading", { name: "piano-roll-score 曲一覧" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ホームへ戻る" })).toHaveAttribute(
+    "href",
+    "./",
+  );
 
   for (const [id, title] of catalogSongs) {
     const row = page.locator(`[data-song-id="${id}"]`);
+    const isHomeVisible = !["901", "902"].includes(id);
 
     await expect(row).toContainText(id);
     await expect(row).toContainText(title);
+    await expect(row).toHaveAttribute(
+      "data-visible-in-home",
+      String(isHomeVisible),
+    );
+    await expect(row).toContainText(isHomeVisible ? "サンプル曲" : "開発確認");
+    await expect(row).toContainText(isHomeVisible ? "表示" : "カタログのみ");
     await expect(row).toContainText(
       `https://seegmund-music-labo.com/app/piano-roll-score/?id=${id}`,
     );
@@ -42,4 +53,12 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
     await expect(page.getByTestId("song-select")).toHaveValue(`builtin:${id}`);
     await expect(page.getByTestId("song-detail")).toContainText(title);
   }
+});
+
+test("catalog.htmlからホームへ戻れる", async ({ page }) => {
+  await page.goto("./catalog.html");
+  await page.getByRole("link", { name: "ホームへ戻る" }).click();
+
+  await expect(page.getByTestId("song-select")).toBeVisible();
+  await expect(page.getByRole("link", { name: "曲カタログ" })).toBeVisible();
 });

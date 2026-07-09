@@ -37,6 +37,29 @@
         line-height: 1.7;
       }
 
+      .catalog-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 16px;
+      }
+
+      .home-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 14px;
+        color: #173123;
+        background: #edf5f0;
+        border: 1px solid #a9c4b4;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
       .table-wrap {
         overflow-x: auto;
         border: 1px solid #d8d1c4;
@@ -46,7 +69,7 @@
 
       table {
         width: 100%;
-        min-width: 760px;
+        min-width: 920px;
         border-collapse: collapse;
       }
 
@@ -61,6 +84,12 @@
       th {
         background: #f0e8d8;
         font-weight: 700;
+      }
+
+      .catalog-group th {
+        background: #e3efe8;
+        color: #173123;
+        font-size: 1.05rem;
       }
 
       tr:last-child td {
@@ -79,9 +108,12 @@
   </head>
   <body>
     <main>
-      <h1>piano-roll-score 曲一覧</h1>
+      <div class="catalog-nav">
+        <h1>piano-roll-score 曲一覧</h1>
+        <a class="home-link" href="./">ホームへ戻る</a>
+      </div>
       <p>
-        内蔵サンプル曲のIDと曲名を確認するための一覧です。リンク本体はローカル環境でも公開後でも動く相対リンクです。
+        内蔵サンプル曲と教材のID、曲名、ホーム表示状態を確認するための一覧です。リンク本体はローカル環境でも公開後でも動く相対リンクです。
       </p>
       <div class="table-wrap">
         <table>
@@ -91,72 +123,96 @@
               <th>曲名</th>
               <th>説明</th>
               <th>level</th>
+              <th>グループ</th>
+              <th>ホーム表示</th>
               <th>直接開くリンク</th>
               <th>直接URL例</th>
             </tr>
           </thead>
           <tbody>
-        <tr data-song-id="001">
+        <tr class="catalog-group" data-catalog-group="サンプル曲">
+          <th colspan="8">サンプル曲</th>
+        </tr>
+        <tr data-song-id="001" data-visible-in-home="true">
           <td><code>001</code></td>
           <td>メリーさんの羊</td>
           <td>付点八分音符を含む、体験レッスン向けの標準サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=001">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=001</code></td>
         </tr>
-        <tr data-song-id="002">
+        <tr data-song-id="002" data-visible-in-home="true">
           <td><code>002</code></td>
           <td>カエルの合唱</td>
           <td>8分音符の連続を含む、初期練習向けの標準サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=002">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=002</code></td>
         </tr>
-        <tr data-song-id="003">
+        <tr data-song-id="003" data-visible-in-home="true">
           <td><code>003</code></td>
           <td>喜びの歌（D major）</td>
           <td>ニ長調の音域と指使いを確認する標準サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=003">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=003</code></td>
         </tr>
-        <tr data-song-id="004">
+        <tr data-song-id="004" data-visible-in-home="true">
           <td><code>004</code></td>
           <td>きらきら星</td>
           <td>1〜4指による導入練習向けの標準サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=004">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=004</code></td>
         </tr>
-        <tr data-song-id="005">
+        <tr data-song-id="005" data-visible-in-home="true">
           <td><code>005</code></td>
           <td>ぶんぶんぶん</td>
           <td>8分音符の連続を扱う標準サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=005">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=005</code></td>
         </tr>
-        <tr data-song-id="006">
+        <tr data-song-id="006" data-visible-in-home="true">
           <td><code>006</code></td>
           <td>聖者の行進</td>
           <td>八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル</td>
           <td>標準</td>
+          <td>サンプル曲</td>
+          <td>表示</td>
           <td><a href="./?id=006">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=006</code></td>
         </tr>
-        <tr data-song-id="901">
+        <tr class="catalog-group" data-catalog-group="開発確認">
+          <th colspan="8">開発確認</th>
+        </tr>
+        <tr data-song-id="901" data-visible-in-home="false">
           <td><code>901</code></td>
           <td>ドからソまで</td>
           <td>自然音を使った短い右手の開発確認課題</td>
           <td>開発確認</td>
+          <td>開発確認</td>
+          <td>カタログのみ</td>
           <td><a href="./?id=901">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=901</code></td>
         </tr>
-        <tr data-song-id="902">
+        <tr data-song-id="902" data-visible-in-home="false">
           <td><code>902</code></td>
           <td>ド♯とレ♭</td>
           <td>同じ鍵盤位置を異なる音名で表す検証課題</td>
           <td>検証</td>
+          <td>開発確認</td>
+          <td>カタログのみ</td>
           <td><a href="./?id=902">開く</a></td>
           <td><code>https://seegmund-music-labo.com/app/piano-roll-score/?id=902</code></td>
         </tr>

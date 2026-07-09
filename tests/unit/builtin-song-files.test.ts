@@ -3,11 +3,16 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { validateBuiltinSongIndex } from "../../src/schema/builtin-song-index-schema";
+import {
+  isBuiltinSongVisibleInHome,
+  validateBuiltinSongIndex,
+} from "../../src/schema/builtin-song-index-schema";
 import { validateSong } from "../../src/schema/song-schema";
 
 const songDir = path.join(process.cwd(), "public", "data", "songs");
 const expectedIds = ["001", "002", "003", "004", "005", "006", "901", "902"];
+const expectedHomeVisibleIds = ["001", "002", "003", "004", "005", "006"];
+const expectedHomeVisibleIdSet = new Set<string>(expectedHomeVisibleIds);
 
 function readJson(fileName: string): unknown {
   return JSON.parse(readFileSync(path.join(songDir, fileName), "utf8"));
@@ -24,6 +29,11 @@ describe("内蔵曲ファイル", () => {
     }
 
     expect(indexResult.data.songs.map((song) => song.id)).toEqual(expectedIds);
+    expect(
+      indexResult.data.songs
+        .filter(isBuiltinSongVisibleInHome)
+        .map((song) => song.id),
+    ).toEqual(expectedHomeVisibleIds);
 
     indexResult.data.songs.forEach((summary) => {
       const fileName = `${summary.id}.json`;
@@ -38,6 +48,14 @@ describe("内蔵曲ファイル", () => {
 
       expect(songResult.data.id).toBe(summary.id);
       expect(songResult.data.title).toBe(summary.title);
+
+      if (expectedHomeVisibleIdSet.has(summary.id)) {
+        expect(summary.visibleInHome).toBe(true);
+        expect(summary.catalogGroup).toBe("サンプル曲");
+      } else {
+        expect(summary.visibleInHome).toBe(false);
+        expect(summary.catalogGroup).toBe("開発確認");
+      }
     });
   });
 

@@ -14,6 +14,8 @@ export const builtinSongSummarySchema = z.object({
   title: z.string(),
   description: z.string(),
   level: z.string(),
+  visibleInHome: z.boolean().optional(),
+  catalogGroup: z.string().optional(),
 });
 
 export const builtinSongIndexSchema = z
@@ -41,6 +43,12 @@ export const builtinSongIndexSchema = z
 
 export type BuiltinSongSummary = z.infer<typeof builtinSongSummarySchema>;
 export type BuiltinSongIndex = z.infer<typeof builtinSongIndexSchema>;
+
+export function isBuiltinSongVisibleInHome(
+  song: Pick<BuiltinSongSummary, "visibleInHome">,
+): boolean {
+  return song.visibleInHome !== false;
+}
 
 export function validateBuiltinSongIndex(
   input: unknown,

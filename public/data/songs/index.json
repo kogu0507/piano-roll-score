@@ -5,49 +5,65 @@
       "id": "001",
       "title": "メリーさんの羊",
       "description": "付点八分音符を含む、体験レッスン向けの標準サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "002",
       "title": "カエルの合唱",
       "description": "8分音符の連続を含む、初期練習向けの標準サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "003",
       "title": "喜びの歌（D major）",
       "description": "ニ長調の音域と指使いを確認する標準サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "004",
       "title": "きらきら星",
       "description": "1〜4指による導入練習向けの標準サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "005",
       "title": "ぶんぶんぶん",
       "description": "8分音符の連続を扱う標準サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "006",
       "title": "聖者の行進",
       "description": "八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル",
-      "level": "標準"
+      "level": "標準",
+      "visibleInHome": true,
+      "catalogGroup": "サンプル曲"
     },
     {
       "id": "901",
       "title": "ドからソまで",
       "description": "自然音を使った短い右手の開発確認課題",
-      "level": "開発確認"
+      "level": "開発確認",
+      "visibleInHome": false,
+      "catalogGroup": "開発確認"
     },
     {
       "id": "902",
       "title": "ド♯とレ♭",
       "description": "同じ鍵盤位置を異なる音名で表す検証課題",
-      "level": "検証"
+      "level": "検証",
+      "visibleInHome": false,
+      "catalogGroup": "開発確認"
     }
   ]
 }
