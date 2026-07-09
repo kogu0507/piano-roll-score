@@ -17,13 +17,19 @@
         background: #f7f4ed;
       }
 
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
+        overflow-x: hidden;
       }
 
       main {
-        box-sizing: border-box;
-        max-width: 1120px;
+        max-width: 960px;
         margin: 0 auto;
         padding: 24px 16px 40px;
       }
@@ -78,21 +84,32 @@
         font-size: clamp(1.2rem, 3vw, 1.5rem);
       }
 
-      .catalog-card-list {
+      .catalog-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-        gap: 16px;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        width: 100%;
       }
 
       .song-card {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-areas:
+          "main actions"
+          "url url";
+        grid-template-columns: minmax(0, 1fr) minmax(7rem, auto);
+        gap: 14px 18px;
+        align-items: start;
+        width: 100%;
         min-width: 0;
-        min-height: 100%;
         padding: 18px;
         border: 1px solid #d8d1c4;
         border-radius: 14px;
         background: #fffdf8;
+      }
+
+      .song-card__main {
+        grid-area: main;
+        min-width: 0;
       }
 
       .song-card__header {
@@ -151,7 +168,8 @@
       }
 
       .song-card__actions {
-        margin-top: auto;
+        grid-area: actions;
+        justify-self: end;
       }
 
       .open-link {
@@ -174,6 +192,8 @@
       }
 
       .direct-url {
+        grid-area: url;
+        min-width: 0;
         margin-top: 14px;
         color: #405148;
       }
@@ -185,9 +205,11 @@
 
       .direct-url code {
         display: block;
+        max-width: 100%;
         margin-top: 8px;
         padding: 10px;
         overflow-wrap: anywhere;
+        white-space: normal;
         background: #f4efe5;
         border-radius: 10px;
       }
@@ -201,7 +223,7 @@
         overflow-wrap: anywhere;
       }
 
-      @media (max-width: 520px) {
+      @media (max-width: 640px) {
         main {
           padding: 20px 12px 32px;
         }
@@ -214,11 +236,21 @@
         .home-link,
         .open-link {
           width: 100%;
-          box-sizing: border-box;
         }
 
         .song-card {
+          grid-template-areas:
+            "main"
+            "actions"
+            "url";
+          grid-template-columns: 1fr;
+          gap: 12px;
           padding: 16px;
+        }
+
+        .song-card__actions {
+          width: 100%;
+          justify-self: stretch;
         }
       }
     </style>
@@ -235,18 +267,19 @@
       <div class="catalog-sections">
       <section class="catalog-section" data-catalog-group="サンプル曲" aria-labelledby="catalog-group-1">
         <h2 id="catalog-group-1" class="catalog-section__title">サンプル曲</h2>
-        <div class="catalog-card-list">
+        <div class="catalog-list">
           <article class="song-card" data-song-id="001" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>001</code></p>
-              <h3 class="song-card__title">メリーさんの羊</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>001</code></p>
+                <h3 class="song-card__title">メリーさんの羊</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">付点八分音符を含む、体験レッスン向けの標準サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">付点八分音符を含む、体験レッスン向けの標準サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=001">開く</a>
             </div>
@@ -256,16 +289,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="002" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>002</code></p>
-              <h3 class="song-card__title">カエルの合唱</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>002</code></p>
+                <h3 class="song-card__title">カエルの合唱</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">8分音符の連続を含む、初期練習向けの標準サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">8分音符の連続を含む、初期練習向けの標準サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=002">開く</a>
             </div>
@@ -275,16 +309,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="003" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>003</code></p>
-              <h3 class="song-card__title">喜びの歌（D major）</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>003</code></p>
+                <h3 class="song-card__title">喜びの歌（D major）</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">ニ長調の音域と指使いを確認する標準サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">ニ長調の音域と指使いを確認する標準サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=003">開く</a>
             </div>
@@ -294,16 +329,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="004" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>004</code></p>
-              <h3 class="song-card__title">きらきら星</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>004</code></p>
+                <h3 class="song-card__title">きらきら星</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">1〜4指による導入練習向けの標準サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">1〜4指による導入練習向けの標準サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=004">開く</a>
             </div>
@@ -313,16 +349,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="005" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>005</code></p>
-              <h3 class="song-card__title">ぶんぶんぶん</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>005</code></p>
+                <h3 class="song-card__title">ぶんぶんぶん</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">8分音符の連続を扱う標準サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">8分音符の連続を扱う標準サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=005">開く</a>
             </div>
@@ -332,16 +369,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="006" data-visible-in-home="true">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>006</code></p>
-              <h3 class="song-card__title">聖者の行進</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>006</code></p>
+                <h3 class="song-card__title">聖者の行進</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">サンプル曲</span>
-              <span class="song-card__badge">標準</span>
-              <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-            </div>
-            <p class="song-card__description">八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=006">開く</a>
             </div>
@@ -354,18 +392,19 @@
       </section>
       <section class="catalog-section" data-catalog-group="開発確認" aria-labelledby="catalog-group-2">
         <h2 id="catalog-group-2" class="catalog-section__title">開発確認</h2>
-        <div class="catalog-card-list">
+        <div class="catalog-list">
           <article class="song-card" data-song-id="901" data-visible-in-home="false">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>901</code></p>
-              <h3 class="song-card__title">ドからソまで</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>901</code></p>
+                <h3 class="song-card__title">ドからソまで</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">開発確認</span>
+                <span class="song-card__badge song-card__badge--catalog-only">カタログのみ</span>
+              </div>
+              <p class="song-card__description">自然音を使った短い右手の開発確認課題</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">開発確認</span>
-              <span class="song-card__badge">開発確認</span>
-              <span class="song-card__badge song-card__badge--catalog-only">カタログのみ</span>
-            </div>
-            <p class="song-card__description">自然音を使った短い右手の開発確認課題</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=901">開く</a>
             </div>
@@ -375,16 +414,17 @@
             </details>
           </article>
           <article class="song-card" data-song-id="902" data-visible-in-home="false">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>902</code></p>
-              <h3 class="song-card__title">ド♯とレ♭</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>902</code></p>
+                <h3 class="song-card__title">ド♯とレ♭</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge">検証</span>
+                <span class="song-card__badge song-card__badge--catalog-only">カタログのみ</span>
+              </div>
+              <p class="song-card__description">同じ鍵盤位置を異なる音名で表す検証課題</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">開発確認</span>
-              <span class="song-card__badge">検証</span>
-              <span class="song-card__badge song-card__badge--catalog-only">カタログのみ</span>
-            </div>
-            <p class="song-card__description">同じ鍵盤位置を異なる音名で表す検証課題</p>
             <div class="song-card__actions">
               <a class="open-link" href="./?id=902">開く</a>
             </div>

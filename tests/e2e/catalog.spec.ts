@@ -25,6 +25,32 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function expectCardsDoNotOverlap(page: Page) {
+  const cardRects = await page.locator(".song-card").evaluateAll((cards) => {
+    return cards.map((card) => {
+      const rect = card.getBoundingClientRect();
+
+      return {
+        top: rect.top,
+        bottom: rect.bottom,
+        height: rect.height,
+      };
+    });
+  });
+
+  for (const [index, rect] of cardRects.entries()) {
+    expect(rect.height).toBeGreaterThan(0);
+
+    if (index > 0) {
+      const previous = cardRects[index - 1];
+      if (previous === undefined) {
+        throw new Error("前のカード位置を取得できませんでした。");
+      }
+      expect(rect.top).toBeGreaterThanOrEqual(previous.bottom - 1);
+    }
+  }
+}
+
 test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける", async ({
   page,
 }) => {
@@ -39,10 +65,12 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
   );
   await expect(page.locator("table")).toHaveCount(0);
   await expect(page.locator(".song-card")).toHaveCount(catalogSongs.length);
+  await expect(page.locator(".catalog-list")).toHaveCount(2);
 
   for (const [id, title] of catalogSongs) {
     const card = page.locator(`[data-song-id="${id}"]`);
     const isHomeVisible = !["901", "902"].includes(id);
+    const groupName = isHomeVisible ? "サンプル曲" : "開発確認";
 
     await expect(card).toContainText(id);
     await expect(card).toContainText(title);
@@ -50,7 +78,11 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
       "data-visible-in-home",
       String(isHomeVisible),
     );
-    await expect(card).toContainText(isHomeVisible ? "サンプル曲" : "開発確認");
+    await expect(
+      page.locator(
+        `.catalog-section[data-catalog-group="${groupName}"] [data-song-id="${id}"]`,
+      ),
+    ).toHaveCount(1);
     await expect(card).toContainText(
       isHomeVisible ? "ホーム表示" : "カタログのみ",
     );
@@ -78,6 +110,20 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
   }
 });
 
+test("catalog.htmlはカード内バッジを重複させない", async ({ page }) => {
+  await page.goto("./catalog.html");
+
+  const badgeTexts = await page
+    .locator('[data-song-id="901"] .song-card__badge')
+    .allTextContents();
+  const normalizedBadgeTexts = badgeTexts.map((text) => text.trim());
+
+  expect(
+    normalizedBadgeTexts.filter((text) => text === "開発確認"),
+  ).toHaveLength(1);
+  expect(normalizedBadgeTexts).toContain("カタログのみ");
+});
+
 test("catalog.htmlからホームへ戻れる", async ({ page }) => {
   await page.goto("./catalog.html");
   await page.getByRole("link", { name: "ホームへ戻る" }).click();
@@ -86,25 +132,29 @@ test("catalog.htmlからホームへ戻れる", async ({ page }) => {
   await expect(page.getByRole("link", { name: "曲カタログ" })).toBeVisible();
 });
 
-test("catalog.htmlはカード配置で画面幅に追従し横スクロールしない", async ({
+test("catalog.htmlは全画面幅で1列カード配置になり横スクロールしない", async ({
   page,
 }) => {
   await page.goto("./catalog.html");
 
   await expectNoHorizontalOverflow(page);
+  await expectCardsDoNotOverlap(page);
   await expect(page.locator(".catalog-section")).toHaveCount(2);
 
-  const firstCardList = page.locator(".catalog-card-list").first();
-  const columnCount = await firstCardList.evaluate((element) => {
+  const firstCatalogList = page.locator(".catalog-list").first();
+  const columnCount = await firstCatalogList.evaluate((element) => {
     return getComputedStyle(element)
       .gridTemplateColumns.split(" ")
       .filter((column) => column.trim().length > 0).length;
   });
-  const viewportWidth = page.viewportSize()?.width ?? 0;
 
-  if (viewportWidth <= 520) {
-    expect(columnCount).toBe(1);
-  } else {
-    expect(columnCount).toBeGreaterThan(1);
-  }
+  expect(columnCount).toBe(1);
+
+  await page.locator(".direct-url").evaluateAll((detailsElements) => {
+    detailsElements.forEach((element) => {
+      (element as HTMLDetailsElement).open = true;
+    });
+  });
+  await expectNoHorizontalOverflow(page);
+  await expectCardsDoNotOverlap(page);
 });

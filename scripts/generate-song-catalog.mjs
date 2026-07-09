@@ -51,23 +51,46 @@ export function generateSongCatalogHtml(
       const sectionId = `catalog-group-${groupIndex + 1}`;
       const cards = group.songs
         .map((song) => {
-          const groupName = song.catalogGroup || "未分類";
           const isVisibleInHome = song.visibleInHome !== false;
           const homeStatus = isVisibleInHome ? "ホーム表示" : "カタログのみ";
           const relativeHref = `./?id=${encodeURIComponent(song.id)}`;
           const absoluteUrl = `${baseUrl}?id=${encodeURIComponent(song.id)}`;
+          const badges = [
+            { text: song.level, className: "" },
+            {
+              text: homeStatus,
+              className: isVisibleInHome
+                ? "song-card__badge--home"
+                : "song-card__badge--catalog-only",
+            },
+          ]
+            .filter((badge) => badge.text)
+            .filter((badge, index, allBadges) => {
+              return (
+                allBadges.findIndex(
+                  (otherBadge) => otherBadge.text === badge.text,
+                ) === index
+              );
+            })
+            .map((badge) => {
+              const className = badge.className
+                ? ` song-card__badge ${badge.className}`
+                : " song-card__badge";
+              return `<span class="${className.trim()}">${escapeHtml(badge.text)}</span>`;
+            })
+            .join("\n                ");
 
           return `          <article class="song-card" data-song-id="${escapeHtml(song.id)}" data-visible-in-home="${String(isVisibleInHome)}">
-            <div class="song-card__header">
-              <p class="song-card__id">ID <code>${escapeHtml(song.id)}</code></p>
-              <h3 class="song-card__title">${escapeHtml(song.title)}</h3>
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>${escapeHtml(song.id)}</code></p>
+                <h3 class="song-card__title">${escapeHtml(song.title)}</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                ${badges}
+              </div>
+              <p class="song-card__description">${escapeHtml(song.description)}</p>
             </div>
-            <div class="song-card__badges" aria-label="曲の分類">
-              <span class="song-card__badge">${escapeHtml(groupName)}</span>
-              <span class="song-card__badge">${escapeHtml(song.level)}</span>
-              <span class="song-card__badge ${isVisibleInHome ? "song-card__badge--home" : "song-card__badge--catalog-only"}">${homeStatus}</span>
-            </div>
-            <p class="song-card__description">${escapeHtml(song.description)}</p>
             <div class="song-card__actions">
               <a class="open-link" href="${relativeHref}">開く</a>
             </div>
@@ -81,7 +104,7 @@ export function generateSongCatalogHtml(
 
       return `      <section class="catalog-section" data-catalog-group="${escapeHtml(group.name)}" aria-labelledby="${sectionId}">
         <h2 id="${sectionId}" class="catalog-section__title">${escapeHtml(group.name)}</h2>
-        <div class="catalog-card-list">
+        <div class="catalog-list">
 ${cards}
         </div>
       </section>`;
@@ -107,13 +130,19 @@ ${cards}
         background: #f7f4ed;
       }
 
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
+        overflow-x: hidden;
       }
 
       main {
-        box-sizing: border-box;
-        max-width: 1120px;
+        max-width: 960px;
         margin: 0 auto;
         padding: 24px 16px 40px;
       }
@@ -168,21 +197,32 @@ ${cards}
         font-size: clamp(1.2rem, 3vw, 1.5rem);
       }
 
-      .catalog-card-list {
+      .catalog-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-        gap: 16px;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        width: 100%;
       }
 
       .song-card {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-areas:
+          "main actions"
+          "url url";
+        grid-template-columns: minmax(0, 1fr) minmax(7rem, auto);
+        gap: 14px 18px;
+        align-items: start;
+        width: 100%;
         min-width: 0;
-        min-height: 100%;
         padding: 18px;
         border: 1px solid #d8d1c4;
         border-radius: 14px;
         background: #fffdf8;
+      }
+
+      .song-card__main {
+        grid-area: main;
+        min-width: 0;
       }
 
       .song-card__header {
@@ -241,7 +281,8 @@ ${cards}
       }
 
       .song-card__actions {
-        margin-top: auto;
+        grid-area: actions;
+        justify-self: end;
       }
 
       .open-link {
@@ -264,6 +305,8 @@ ${cards}
       }
 
       .direct-url {
+        grid-area: url;
+        min-width: 0;
         margin-top: 14px;
         color: #405148;
       }
@@ -275,9 +318,11 @@ ${cards}
 
       .direct-url code {
         display: block;
+        max-width: 100%;
         margin-top: 8px;
         padding: 10px;
         overflow-wrap: anywhere;
+        white-space: normal;
         background: #f4efe5;
         border-radius: 10px;
       }
@@ -291,7 +336,7 @@ ${cards}
         overflow-wrap: anywhere;
       }
 
-      @media (max-width: 520px) {
+      @media (max-width: 640px) {
         main {
           padding: 20px 12px 32px;
         }
@@ -304,11 +349,21 @@ ${cards}
         .home-link,
         .open-link {
           width: 100%;
-          box-sizing: border-box;
         }
 
         .song-card {
+          grid-template-areas:
+            "main"
+            "actions"
+            "url";
+          grid-template-columns: 1fr;
+          gap: 12px;
           padding: 16px;
+        }
+
+        .song-card__actions {
+          width: 100%;
+          justify-self: stretch;
         }
       }
     </style>
