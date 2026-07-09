@@ -194,6 +194,26 @@ select {
   grid-column: 1 / -1;
 }
 
+.classroom-catalog__subsection {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  background: #fbfdfb;
+  border: 1px solid #d6e2da;
+  border-radius: 0.85rem;
+}
+
+.classroom-catalog__subsection--url {
+  background: #f8faf8;
+}
+
+.classroom-catalog__subheading {
+  margin: 0;
+  color: #2f6049;
+  font-size: 1rem;
+}
+
 .classroom-catalog__form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -232,6 +252,36 @@ select {
   display: grid;
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.classroom-catalog-screen {
+  padding: 1rem;
+  background: #fffdf8;
+  border: 1px solid #d6e2da;
+  border-radius: 1rem;
+}
+
+.classroom-catalog-screen__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.classroom-catalog-screen__title-block {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.classroom-catalog-screen__title {
+  margin: 0;
+  color: #214b39;
+  font-size: 1.35rem;
+}
+
+.classroom-catalog-screen__home {
+  white-space: nowrap;
 }
 
 .classroom-catalog__loaded-title,
@@ -1244,11 +1294,13 @@ textarea:focus-visible {
   }
 
   .classroom-catalog__form,
+  .classroom-catalog-screen__header,
   .classroom-catalog-card {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .classroom-catalog-card__actions,
+  .classroom-catalog-screen__home,
   .classroom-catalog-card__actions .button {
     width: 100%;
   }

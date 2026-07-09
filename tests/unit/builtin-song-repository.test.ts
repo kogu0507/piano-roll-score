@@ -6,7 +6,10 @@ import {
   loadBuiltinSong,
   type FetchLike,
 } from "../../src/data/builtin-song-repository";
-import { getSongIdFromSearch } from "../../src/data/song-query";
+import {
+  getClassroomCodeFromSearch,
+  getSongIdFromSearch,
+} from "../../src/data/song-query";
 
 const validSong = {
   schemaVersion: 1,
@@ -52,6 +55,15 @@ describe("内蔵曲URL", () => {
     });
     expect(getSongIdFromSearch("").success).toBe(true);
     expect(getSongIdFromSearch("?id=../001").success).toBe(false);
+  });
+
+  it("URLから教室コードを取得する", () => {
+    expect(getClassroomCodeFromSearch("?classroom=demo")).toBe("demo");
+    expect(getClassroomCodeFromSearch("?classroom=%20demo%20")).toBe(
+      " demo ",
+    );
+    expect(getClassroomCodeFromSearch("?classroom=%20%20")).toBeUndefined();
+    expect(getClassroomCodeFromSearch("")).toBeUndefined();
   });
 });
 

@@ -485,3 +485,123 @@ test("スマートフォン幅でも教室カタログカードで横スクロ�
   ).toHaveCount(2);
   await expectNoHorizontalOverflow(page);
 });
+
+test("教室コードdemoから教室カタログ画面を開き、曲カードからピアノ表示へ進める", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await openDataManagement(page);
+  await page.getByTestId("classroom-code-input").fill(" demo ");
+  await page.getByTestId("classroom-code-open").click();
+
+  await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
+  await expect(page.locator(".classroom-catalog-screen")).toContainText(
+    "デモ教室",
+  );
+  await expect(page.locator(".classroom-catalog-screen")).toContainText(
+    "教室カタログ確認用",
+  );
+  await expect(page.getByTestId("classroom-catalog-home")).toBeVisible();
+  await expect(
+    page.getByTestId("classroom-catalog-song-card"),
+  ).toHaveCount(2);
+
+  const card = page.locator('[data-classroom-song-id="demo-001"]');
+  await card.getByTestId("classroom-catalog-song-open").click();
+
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await expect(page.locator(".button--preview")).toBeEnabled();
+  await page.locator(".button--preview").click();
+  await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("?classroom=demoから初期読み込みし、曲カードからスコア表示へ進める", async ({
+  page,
+}) => {
+  await page.goto("./?classroom=demo");
+
+  await expect
+    .poll(() =>
+      page
+        .getByTestId("data-management")
+        .evaluate((element) => (element as HTMLDetailsElement).open),
+    )
+    .toBe(true);
+  await expect(page.locator(".classroom-catalog-screen")).toContainText(
+    "デモ教室",
+  );
+
+  const card = page.locator('[data-classroom-song-id="demo-902"]');
+  await expect(card).toBeVisible();
+  await card.getByTestId("classroom-catalog-song-open").click();
+
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "902"/);
+  await expect(page.locator(".button--horizontal-preview")).toBeEnabled();
+  await page.locator(".button--horizontal-preview").click();
+  await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("教室カタログ画面からホームへ戻れる", async ({ page }) => {
+  await page.goto("./?classroom=demo");
+
+  await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
+  await page.getByTestId("classroom-catalog-home").click();
+
+  await expect
+    .poll(() =>
+      page
+        .getByTestId("data-management")
+        .evaluate((element) => (element as HTMLDetailsElement).open),
+    )
+    .toBe(false);
+  await expect(getSongSelect(page)).toBeVisible();
+  await expect(page.locator(".classroom-catalog-screen")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+});
+
+test("存在しない教室コードは回復可能なエラーとして表示する", async ({
+  page,
+}) => {
+  await page.route(
+    "**/data/piano-roll-score/classroom-catalogs/**/catalog.json",
+    async (route) => {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: "{}",
+      });
+    },
+  );
+  await page.goto("./");
+  await openDataManagement(page);
+  await page.getByTestId("classroom-code-input").fill("missing-stage18");
+  await page.getByTestId("classroom-code-open").click();
+
+  await expect(page.getByTestId("classroom-catalog-status")).toContainText(
+    "教室カタログが見つかりません",
+  );
+  await expect(page.getByRole("alert").first()).toContainText(
+    "教室コードを確認してください",
+  );
+  await expect(getSongSelect(page)).toBeVisible();
+  await expect(getJsonEditor(page)).toBeEditable();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン幅でも教室コードから開いた教室カタログで横スクロールが出ない", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./");
+  await openDataManagement(page);
+  await page.getByTestId("classroom-code-input").fill("demo");
+  await page.getByTestId("classroom-code-open").click();
+
+  await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
+  await expect(
+    page.getByTestId("classroom-catalog-song-card"),
+  ).toHaveCount(2);
+  await expectNoHorizontalOverflow(page);
+});

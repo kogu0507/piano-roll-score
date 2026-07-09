@@ -44,3 +44,13 @@ export function getCatalogUrlFromSearch(search: string): string | undefined {
 
   return catalog;
 }
+
+export function getClassroomCodeFromSearch(search: string): string | undefined {
+  const classroom = new URLSearchParams(search).get("classroom");
+
+  if (classroom === null || classroom.trim().length === 0) {
+    return undefined;
+  }
+
+  return classroom;
+}
