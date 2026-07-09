@@ -34,3 +34,13 @@ export function getSongIdFromSearch(
     data: id,
   };
 }
+
+export function getCatalogUrlFromSearch(search: string): string | undefined {
+  const catalog = new URLSearchParams(search).get("catalog");
+
+  if (catalog === null || catalog.trim().length === 0) {
+    return undefined;
+  }
+
+  return catalog;
+}

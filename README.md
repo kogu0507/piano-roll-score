@@ -202,3 +202,14 @@ https://example.com/app/piano-roll-score/catalog.html
 - 次の作業: カタログ1列リストカードUIのスマートフォン実機確認、次段階の改善内容の設計確認
 - 音源再生、演奏判定、クラウド同期: 未実装またはMVP対象外
 - 自動テスト環境: 構築済み
+## 第17段階メモ: 外部/教室カタログ読み込み
+
+第17段階では、ホーム画面の「データ管理」内から任意の `catalog.json` URLを読み込む基盤を追加した。
+
+- 開発確認用カタログ: `public/data/classroom-catalogs/demo/catalog.json`
+- URLパラメータ例: `?catalog=./data/classroom-catalogs/demo/catalog.json`
+- カタログ内の `songUrl` は、カタログJSONのURLを基準に相対解決する。
+- 外部カタログ内の曲JSONも既存の楽曲スキーマ検証を通し、検証後は既存のピアノ表示・スコア表示へ進める。
+- `javascript:`、`data:`、`file:` など危険なURLは拒否する。
+
+教室コード入力、ハッシュ化URL、ログイン、サーバー認証、クラウド同期、先生用管理画面は未実装であり、後段の検討対象である。

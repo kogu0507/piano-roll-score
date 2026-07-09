@@ -4,6 +4,12 @@ import {
   type DataLoadError,
 } from "../data/builtin-song-repository";
 import {
+  loadClassroomCatalog,
+  loadClassroomCatalogSong,
+  type LoadedClassroomCatalog,
+  type LoadedClassroomCatalogSong,
+} from "../data/classroom-catalog-repository";
+import {
   createSongFileName,
   createSongJsonBlob,
   readJsonFile,
@@ -15,7 +21,10 @@ import {
   parseAndValidateSongJson,
   type SongJsonError,
 } from "../data/song-json";
-import { getSongIdFromSearch } from "../data/song-query";
+import {
+  getCatalogUrlFromSearch,
+  getSongIdFromSearch,
+} from "../data/song-query";
 import { createSavedSongRepository } from "../data/saved-song-repository";
 import {
   formatSavedSongTimestamp,
@@ -51,6 +60,10 @@ interface LoadScreenElements {
   readonly songSelect: HTMLSelectElement;
   readonly songDetail: HTMLDivElement;
   readonly dataManagement: HTMLDetailsElement;
+  readonly classroomCatalogUrlInput: HTMLInputElement;
+  readonly classroomCatalogLoadButton: HTMLButtonElement;
+  readonly classroomCatalogStatus: HTMLParagraphElement;
+  readonly classroomCatalogResult: HTMLDivElement;
   readonly fileInput: HTMLInputElement;
   readonly jsonInput: HTMLTextAreaElement;
   readonly validateButton: HTMLButtonElement;
@@ -209,6 +222,80 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   dataManagementContent.className = "data-management__content";
   dataManagement.append(dataManagementSummary, dataManagementContent);
 
+  const classroomCatalogSection = document.createElement("section");
+  const classroomCatalogHeading = createTextElement(
+    "h2",
+    "section-card__title",
+    "教室カタログを読み込む",
+  );
+  const classroomCatalogDescription = createTextElement(
+    "p",
+    "section-card__description",
+    "catalog.json のURLを入力して、教室・外部教材の一覧を確認します。教室コード入力は後段の機能です。",
+  );
+  const classroomCatalogForm = document.createElement("div");
+  const classroomCatalogLabel = createTextElement(
+    "label",
+    "classroom-catalog__label",
+    "catalog.json のURL",
+  );
+  const classroomCatalogUrlInput = document.createElement("input");
+  const classroomCatalogLoadButton = createButton(
+    "読み込む",
+    "button button--primary",
+  );
+  const classroomCatalogStatus = createTextElement(
+    "p",
+    "classroom-catalog__status",
+    "教室カタログはまだ読み込まれていません。",
+  );
+  const classroomCatalogResult = document.createElement("div");
+  classroomCatalogSection.className =
+    "section-card section-card--classroom-catalog classroom-catalog";
+  classroomCatalogSection.setAttribute(
+    "aria-labelledby",
+    "classroom-catalog-heading",
+  );
+  classroomCatalogHeading.id = "classroom-catalog-heading";
+  classroomCatalogForm.className = "classroom-catalog__form";
+  classroomCatalogLabel.htmlFor = "classroom-catalog-url";
+  classroomCatalogUrlInput.id = "classroom-catalog-url";
+  classroomCatalogUrlInput.className = "classroom-catalog__url-input";
+  classroomCatalogUrlInput.type = "text";
+  classroomCatalogUrlInput.placeholder =
+    "./data/classroom-catalogs/demo/catalog.json";
+  classroomCatalogUrlInput.setAttribute("autocomplete", "url");
+  classroomCatalogUrlInput.setAttribute(
+    "data-testid",
+    "classroom-catalog-url",
+  );
+  classroomCatalogLoadButton.setAttribute(
+    "data-testid",
+    "classroom-catalog-load",
+  );
+  classroomCatalogStatus.setAttribute(
+    "data-testid",
+    "classroom-catalog-status",
+  );
+  classroomCatalogStatus.setAttribute("aria-live", "polite");
+  classroomCatalogResult.className = "classroom-catalog__result";
+  classroomCatalogResult.setAttribute(
+    "data-testid",
+    "classroom-catalog-result",
+  );
+  classroomCatalogForm.append(
+    classroomCatalogLabel,
+    classroomCatalogUrlInput,
+    classroomCatalogLoadButton,
+  );
+  classroomCatalogSection.append(
+    classroomCatalogHeading,
+    classroomCatalogDescription,
+    classroomCatalogForm,
+    classroomCatalogStatus,
+    classroomCatalogResult,
+  );
+
   const fileSection = document.createElement("section");
   const fileHeading = createTextElement(
     "h2",
@@ -331,7 +418,13 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   result.setAttribute("aria-live", "polite");
   resultSection.append(resultHeading, result);
 
-  dataManagementContent.append(fileSection, savedSection, editor, resultSection);
+  dataManagementContent.append(
+    classroomCatalogSection,
+    fileSection,
+    savedSection,
+    editor,
+    resultSection,
+  );
   content.append(startSection, songDetailSection, dataManagement);
   main.append(header, content);
   root.replaceChildren(main);
@@ -342,6 +435,10 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     songSelect,
     songDetail,
     dataManagement,
+    classroomCatalogUrlInput,
+    classroomCatalogLoadButton,
+    classroomCatalogStatus,
+    classroomCatalogResult,
     fileInput,
     jsonInput,
     validateButton,
@@ -676,6 +773,178 @@ export async function mountLoadScreen(
     return result.success;
   }
 
+  function setClassroomCatalogStatus(
+    message: string,
+    isError = false,
+  ): void {
+    elements.classroomCatalogStatus.textContent = message;
+    elements.classroomCatalogStatus.classList.toggle("is-error", isError);
+  }
+
+  function renderClassroomCatalog(catalogData: LoadedClassroomCatalog): void {
+    const wrapper = document.createElement("div");
+    const heading = createTextElement(
+      "h3",
+      "classroom-catalog__loaded-title",
+      `${catalogData.catalog.classroom.displayName} / ${catalogData.catalog.classroom.catalogName}`,
+    );
+    const meta = createTextElement(
+      "p",
+      "classroom-catalog__loaded-meta",
+      catalogData.catalog.classroom.updatedAt === undefined
+        ? "更新日は指定されていません。"
+        : `更新日: ${catalogData.catalog.classroom.updatedAt}`,
+    );
+    const groups = new Map<string, LoadedClassroomCatalogSong[]>();
+
+    catalogData.songs.forEach((song) => {
+      const group = song.catalogGroup?.trim() || "未分類";
+      const groupSongs = groups.get(group) ?? [];
+
+      groupSongs.push(song);
+      groups.set(group, groupSongs);
+    });
+
+    wrapper.className = "classroom-catalog__loaded";
+    wrapper.append(heading, meta);
+
+    groups.forEach((songs, groupName) => {
+      const groupSection = document.createElement("section");
+      const groupHeading = createTextElement(
+        "h4",
+        "classroom-catalog__group-title",
+        groupName,
+      );
+      const list = document.createElement("div");
+
+      groupSection.className = "classroom-catalog__group";
+      list.className = "classroom-catalog__list";
+
+      songs.forEach((song) => {
+        const card = document.createElement("article");
+        const body = document.createElement("div");
+        const titleRow = document.createElement("div");
+        const songId = createTextElement(
+          "span",
+          "classroom-catalog-card__id",
+          song.id,
+        );
+        const title = createTextElement(
+          "h5",
+          "classroom-catalog-card__title",
+          song.title,
+        );
+        const badges = document.createElement("div");
+        const description = createTextElement(
+          "p",
+          "classroom-catalog-card__description",
+          song.description?.trim() || "説明はありません。",
+        );
+        const actions = document.createElement("div");
+        const openButton = createButton("開く", "button button--primary");
+
+        card.className = "classroom-catalog-card";
+        card.dataset.classroomSongId = song.id;
+        card.setAttribute("data-testid", "classroom-catalog-song-card");
+        body.className = "classroom-catalog-card__body";
+        titleRow.className = "classroom-catalog-card__title-row";
+        badges.className = "classroom-catalog-card__badges";
+        actions.className = "classroom-catalog-card__actions";
+        openButton.setAttribute("data-testid", "classroom-catalog-song-open");
+        openButton.setAttribute("aria-label", `${song.title}を開く`);
+        openButton.title = `${song.title}を開く`;
+        openButton.addEventListener("click", () => {
+          void loadExternalCatalogSong(song);
+        });
+
+        titleRow.append(songId, title);
+        badges.append(
+          createTextElement(
+            "span",
+            "classroom-catalog-card__badge",
+            `グループ: ${groupName}`,
+          ),
+        );
+
+        if (song.level !== undefined && song.level.trim().length > 0) {
+          badges.append(
+            createTextElement(
+              "span",
+              "classroom-catalog-card__badge",
+              `level: ${song.level}`,
+            ),
+          );
+        }
+
+        body.append(titleRow, badges, description);
+        actions.append(openButton);
+        card.append(body, actions);
+        list.append(card);
+      });
+
+      groupSection.append(groupHeading, list);
+      wrapper.append(groupSection);
+    });
+
+    elements.classroomCatalogResult.replaceChildren(wrapper);
+  }
+
+  async function loadExternalCatalog(rawUrl: string): Promise<boolean> {
+    setClassroomCatalogStatus("教室カタログを読み込んでいます。");
+    elements.classroomCatalogResult.replaceChildren();
+    elements.classroomCatalogLoadButton.disabled = true;
+
+    const result = await loadClassroomCatalog(rawUrl, window.location.href);
+
+    elements.classroomCatalogLoadButton.disabled = false;
+
+    if (!result.success) {
+      setClassroomCatalogStatus(result.error.message, true);
+      elements.classroomCatalogResult.replaceChildren(
+        createErrorDetails(result.error),
+      );
+      return false;
+    }
+
+    renderClassroomCatalog(result.data);
+    setClassroomCatalogStatus(
+      `「${result.data.catalog.classroom.displayName} / ${result.data.catalog.classroom.catalogName}」を読み込みました。`,
+    );
+    return true;
+  }
+
+  async function loadExternalCatalogSong(
+    song: LoadedClassroomCatalogSong,
+  ): Promise<boolean> {
+    if (!shouldReplaceEditedContent(state, elements.jsonInput.value)) {
+      return false;
+    }
+
+    state.validatedSong = undefined;
+    state.savedSongId = undefined;
+    state.selectedSongValue = undefined;
+    elements.verticalPreviewButton.disabled = true;
+    elements.horizontalPreviewButton.disabled = true;
+    setStatus("loading", `「${song.title}」を読み込んでいます。`);
+    setClassroomCatalogStatus(`「${song.title}」を読み込んでいます。`);
+
+    const result = await loadClassroomCatalogSong(song);
+
+    if (!result.success) {
+      showError(result.error);
+      setClassroomCatalogStatus(result.error.message, true);
+      return false;
+    }
+
+    const didLoad = setLoadedText(formatSongJson(result.data));
+
+    if (didLoad) {
+      setClassroomCatalogStatus(`「${song.title}」を読み込みました。`);
+    }
+
+    return didLoad;
+  }
+
   function setSavedSongStatus(message: string): void {
     elements.savedSongStatus.textContent = message;
   }
@@ -928,6 +1197,19 @@ export async function mountLoadScreen(
     renderSongSelect();
   });
 
+  elements.classroomCatalogLoadButton.addEventListener("click", () => {
+    void loadExternalCatalog(elements.classroomCatalogUrlInput.value);
+  });
+
+  elements.classroomCatalogUrlInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    void loadExternalCatalog(elements.classroomCatalogUrlInput.value);
+  });
+
   elements.validateButton.addEventListener("click", () => {
     validateCurrentInput();
   });
@@ -1043,6 +1325,14 @@ export async function mountLoadScreen(
   if (!idResult.success) {
     showError(idResult.error);
     return;
+  }
+
+  const catalogUrl = getCatalogUrlFromSearch(search);
+
+  if (catalogUrl !== undefined) {
+    elements.dataManagement.open = true;
+    elements.classroomCatalogUrlInput.value = catalogUrl;
+    await loadExternalCatalog(catalogUrl);
   }
 
   if (idResult.data === undefined) {

@@ -122,6 +122,7 @@ select {
 .section-card--editor,
 .section-card--result,
 .section-card--saved,
+.section-card--classroom-catalog,
 .data-management {
   grid-column: 1 / -1;
 }
@@ -188,8 +189,142 @@ select {
 
 .data-management__content > .section-card--editor,
 .data-management__content > .section-card--result,
-.data-management__content > .section-card--saved {
+.data-management__content > .section-card--saved,
+.data-management__content > .section-card--classroom-catalog {
   grid-column: 1 / -1;
+}
+
+.classroom-catalog__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: end;
+  max-width: 56rem;
+}
+
+.classroom-catalog__label {
+  grid-column: 1 / -1;
+  font-weight: 800;
+}
+
+.classroom-catalog__url-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  color: #17201c;
+  background: #ffffff;
+  border: 1px solid #aebdb4;
+  border-radius: 0.65rem;
+}
+
+.classroom-catalog__status {
+  margin: 0.75rem 0 0;
+  color: #55625b;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.classroom-catalog__status.is-error {
+  color: #9a3412;
+}
+
+.classroom-catalog__loaded {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.classroom-catalog__loaded-title,
+.classroom-catalog__loaded-meta,
+.classroom-catalog__group-title {
+  margin: 0;
+}
+
+.classroom-catalog__loaded-meta {
+  color: #55625b;
+  line-height: 1.5;
+}
+
+.classroom-catalog__group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.classroom-catalog__group-title {
+  color: #2f6049;
+  font-size: 1rem;
+}
+
+.classroom-catalog__list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.classroom-catalog-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem;
+  background: #f5f9f6;
+  border: 1px solid #d6e2da;
+  border-radius: 0.75rem;
+}
+
+.classroom-catalog-card__body {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.classroom-catalog-card__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.classroom-catalog-card__id {
+  color: #41755b;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.classroom-catalog-card__title {
+  min-width: 0;
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.classroom-catalog-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.classroom-catalog-card__badge {
+  padding: 0.2rem 0.45rem;
+  color: #345243;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #e5efe9;
+  border-radius: 999px;
+}
+
+.classroom-catalog-card__description {
+  margin: 0;
+  color: #55625b;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.classroom-catalog-card__actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .sample-list {
@@ -1098,6 +1233,7 @@ textarea:focus-visible {
   .section-card--editor,
   .section-card--result,
   .section-card--saved,
+  .section-card--classroom-catalog,
   .data-management {
     grid-column: auto;
   }
@@ -1105,6 +1241,20 @@ textarea:focus-visible {
   .data-management__content {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
+  }
+
+  .classroom-catalog__form,
+  .classroom-catalog-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .classroom-catalog-card__actions,
+  .classroom-catalog-card__actions .button {
+    width: 100%;
+  }
+
+  .classroom-catalog-card__actions {
+    justify-content: stretch;
   }
 
   .sample-item,

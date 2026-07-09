@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "catalogType": "classroom",
+  "classroom": {
+    "displayName": "デモ教室",
+    "catalogName": "教室カタログ確認用",
+    "updatedAt": "2026-07-09"
+  },
+  "songs": [
+    {
+      "id": "demo-001",
+      "title": "メリーさんの羊",
+      "description": "外部カタログ読み込み確認用",
+      "level": "導入",
+      "catalogGroup": "右手",
+      "songUrl": "../../songs/001.json"
+    },
+    {
+      "id": "demo-902",
+      "title": "ド♯とレ♭",
+      "description": "臨時記号表示確認用",
+      "level": "確認",
+      "catalogGroup": "開発確認",
+      "songUrl": "../../songs/902.json"
+    }
+  ]
+}

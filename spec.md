@@ -932,3 +932,18 @@ MVPの試用結果をもとに、次を優先順位付けする。
 - 生徒ごとの進捗管理
 
 将来機能の追加時も、縦表示による鍵盤導入と横表示による五線への移行という教育上の中心目的を損なわないことを優先する。
+## 21. v0.2追加仕様: 外部/教室カタログ読み込み
+
+第17段階では、内蔵曲とは別に、任意の `catalog.json` URLから教室・外部教材カタログを読み込める基盤を追加する。
+
+- 教室カタログは `schemaVersion: 1`、`catalogType: "classroom"`、`classroom.displayName`、`classroom.catalogName`、`songs` を持つJSONとする。
+- `songs[].id`、`songs[].title`、`songs[].songUrl` は必須とし、`description`、`level`、`catalogGroup` は任意とする。
+- `songUrl` はカタログJSONのURLを基準に相対解決する。
+- `catalog.json` と曲JSONの取得では `fetch` の `cache: "no-cache"` を使用し、公開後の更新確認が行われやすいようにする。
+- URL入力はホーム画面の「データ管理」内に置き、一般利用者向けの主導線にはしない。
+- 外部カタログ内の曲を開いた場合も、既存の楽曲JSONスキーマ検証を通し、成功後は既存のピアノ表示・スコア表示へ進める。
+- 読み込んだ曲JSONは既存の編集可能なJSON欄へ反映する。
+- `javascript:`、`data:`、`file:` など危険なURLは拒否し、初期実装では `http:` / `https:` / 同一origin相対URLから解決されるURLを許可する。
+- 壊れたカタログや曲JSONは回復可能なエラーとして表示し、既存の内蔵曲、保存曲、JSON貼り付け、JSONファイル読み込みの操作を止めない。
+
+第17段階では、教室コード入力、教室コードのハッシュ化、ログイン、サーバー認証、クラウド同期、先生用管理画面、権利判定、外部サーバーAPIは実装しない。

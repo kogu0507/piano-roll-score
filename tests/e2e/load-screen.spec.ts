@@ -397,3 +397,91 @@ test("存在しないIDでも他の入力方法を利用できる", async ({ pag
   await expect(getJsonEditor(page)).toBeEditable();
   await expect(getSongSelect(page)).toContainText("メリーさんの羊");
 });
+
+test("教室カタログを読み込み、曲カードからピアノ表示へ進める", async ({ page }) => {
+  await page.goto("./");
+  await openDataManagement(page);
+  await page
+    .getByTestId("classroom-catalog-url")
+    .fill("./data/classroom-catalogs/demo/catalog.json");
+  await page.getByTestId("classroom-catalog-load").click();
+
+  await expect(page.getByTestId("classroom-catalog-status")).toContainText(
+    "デモ教室",
+  );
+  await expect(
+    page.getByTestId("classroom-catalog-song-card"),
+  ).toHaveCount(2);
+
+  const card = page.locator('[data-classroom-song-id="demo-001"]');
+  await expect(card).toContainText("メリーさんの羊");
+  await card.getByTestId("classroom-catalog-song-open").click();
+
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await expect(getJsonEditor(page)).toHaveValue(/"title": "メリーさんの羊"/);
+  await expect(getPianoButton(page)).toBeEnabled();
+  await getPianoButton(page).click();
+  await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("?catalog= から教室カタログを読み込み、曲カードからスコア表示へ進める", async ({
+  page,
+}) => {
+  await page.goto("./?catalog=./data/classroom-catalogs/demo/catalog.json");
+
+  await expect
+    .poll(() =>
+      page
+        .getByTestId("data-management")
+        .evaluate((element) => (element as HTMLDetailsElement).open),
+    )
+    .toBe(true);
+  await expect(page.getByTestId("classroom-catalog-status")).toContainText(
+    "デモ教室",
+  );
+
+  const card = page.locator('[data-classroom-song-id="demo-902"]');
+  await expect(card).toContainText("ド♯とレ♭");
+  await card.getByTestId("classroom-catalog-song-open").click();
+
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "902"/);
+  await expect(getScoreButton(page)).toBeEnabled();
+  await getScoreButton(page).click();
+  await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("壊れた教室カタログでもアプリ全体は止まらない", async ({ page }) => {
+  await page.goto("./");
+  await openDataManagement(page);
+  await page
+    .getByTestId("classroom-catalog-url")
+    .fill("./data/classroom-catalogs/demo/missing.json");
+  await page.getByTestId("classroom-catalog-load").click();
+
+  await expect(page.getByTestId("classroom-catalog-status")).not.toHaveText(
+    "教室カタログはまだ読み込まれていません。",
+  );
+  await expect(page.getByRole("alert").first()).toBeVisible();
+  await expect(getSongSelect(page)).toBeVisible();
+  await expect(getJsonEditor(page)).toBeEditable();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("スマートフォン幅でも教室カタログカードで横スクロールが出ない", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./");
+  await openDataManagement(page);
+  await page
+    .getByTestId("classroom-catalog-url")
+    .fill("./data/classroom-catalogs/demo/catalog.json");
+  await page.getByTestId("classroom-catalog-load").click();
+
+  await expect(
+    page.getByTestId("classroom-catalog-song-card"),
+  ).toHaveCount(2);
+  await expectNoHorizontalOverflow(page);
+});

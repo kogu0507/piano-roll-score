@@ -294,3 +294,24 @@ URLで指定された外部カタログJSONを読み込めるようにする。
 著作権面では、運営は権利処理を代行しない。掲載データの権利確認は教室側が行い、運営は問題発生時の停止権限だけを持つ。
 
 この形なら、現在の静的アプリ構成を大きく壊さず、教室ごとの教材配信と有料運用の可能性を検証できる。
+## 11. 第17段階で実装した範囲
+
+第17段階では、教室コード入力やハッシュ化URLは実装せず、運用確認用の基盤として次だけを実装した。
+
+- ホーム画面の「データ管理」内で、任意の `catalog.json` URLを入力して読み込む。
+- 教室カタログJSONは `schemaVersion: 1`、`catalogType: "classroom"`、`classroom.displayName`、`classroom.catalogName`、`songs` を必須とする。
+- 各曲は `id`、`title`、`songUrl` を必須とし、`description`、`level`、`catalogGroup` を任意とする。
+- `songUrl` はカタログURLから見た相対URLとして解決する。
+- `javascript:`、`data:`、`file:` は拒否し、初期実装では `http:` / `https:` / 同一origin相対URLを許可する。
+- 読み込んだカタログは1列カードで表示し、曲カードから既存のピアノ表示・スコア表示へ進める。
+- 開発確認用カタログとして `public/data/classroom-catalogs/demo/catalog.json` を追加する。
+- `?catalog=...` で初期読み込みできるようにする。
+
+未実装として残すもの:
+
+- 教室コード入力
+- 教室コードの正規化とハッシュ化
+- 本番用 `/data/piano-roll-score/classroom-catalogs/{hash}/...` への固定
+- ログイン、サーバー認証、クラウド同期
+- 先生用管理画面
+- 権利判定や公開停止フローの画面実装
