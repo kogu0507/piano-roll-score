@@ -34,6 +34,8 @@
   - 教室コードで開く教室専用カタログ、著作権責任分界、将来の有料運用案
 - [docs/classroom-catalog-operations.md](docs/classroom-catalog-operations.md)
   - 教室専用カタログを作成し、サイト側 `/data/` 配下へ配置する運用手順
+- [docs/classroom-catalog-quickstart.md](docs/classroom-catalog-quickstart.md)
+  - `kog` を例にした教室カタログ作成・検証・公開確認の短い手順
 - [docs/classroom-catalog-terms-draft.html](docs/classroom-catalog-terms-draft.html)
   - 教室専用カタログを提供する場合の覚書・確認事項ドラフト
 - [docs/manual-checklist-stage3.md](docs/manual-checklist-stage3.md)
