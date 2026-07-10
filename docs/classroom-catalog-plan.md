@@ -334,3 +334,28 @@ URLで指定された外部カタログJSONを読み込めるようにする。
 - 教室カタログの検索・フィルター
 - 先生用管理画面
 - 教材の権利確認フロー、契約終了時の公開停止運用
+
+## 13. 第19段階で実装した運用ツール
+
+第19段階では、教室専用カタログを実際に作るための運用CLIと手順を追加した。
+
+- `npm.cmd run classroom:hash -- <教室コード>` で、正規化済みコード、SHA-256のcatalogKey、本番想定URLパスを確認する。
+- `npm.cmd run classroom:scaffold -- --code ... --name ... --catalog ... --out ...` で、明示した出力先へ `{catalogKey}/catalog.json` と `songs/README.md` の雛形を作る。
+- `npm.cmd run classroom:validate -- <catalog.json>` で、教室カタログスキーマ、危険な `songUrl`、同一教室フォルダ配下の曲JSON存在、既存楽曲スキーマを検証する。
+- 運用手順を `docs/classroom-catalog-operations.md` にまとめた。
+
+第19段階の重要な判断:
+
+- 教室専用データはアプリ本体の `public/` ではなく、サイト側 `/data/piano-roll-score/classroom-catalogs/{catalogKey}/` に置く。
+- 雛形作成直後の `songs: []` は有効な教室カタログとして扱う。
+- CLIは本番運用向けにcatalogKeyを確認するため、アプリ画面側の `demo` 特別マップは適用しない。
+- カタログ上の `songs[].id` と曲JSON内の `id` は一致必須にしない。ただし運用上は一致を推奨する。
+
+未実装として残すもの:
+
+- アプリ画面上の先生用管理UI
+- ブラウザ上の教室カタログ編集
+- 自動FTPアップロード
+- サーバー認証、ログイン、クラウド同期
+- 教室コード履歴保存、最近使った教室、お気に入り
+- 教材の権利確認フローの自動化

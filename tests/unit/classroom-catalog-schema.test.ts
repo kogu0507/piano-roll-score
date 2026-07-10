@@ -33,6 +33,15 @@ describe("教室カタログスキーマ", () => {
     }
   });
 
+  it("運用前の空カタログを受け入れる", () => {
+    const result = validateClassroomCatalog({
+      ...validCatalog,
+      songs: [],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it("必須項目不足を検証エラーにする", () => {
     const { classroom: _classroom, ...catalogWithoutClassroom } = validCatalog;
     const result = validateClassroomCatalog(catalogWithoutClassroom);

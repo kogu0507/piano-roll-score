@@ -965,3 +965,19 @@ MVPの試用結果をもとに、次を優先順位付けする。
 - 教室コードが空、不正、カタログ未発見、壊れたJSON、通信失敗の場合は、認証失敗ではなく回復可能な読み込みエラーとして表示する。
 
 第18段階では、ログイン、サーバー認証、教室コードのサーバー照合、教室カタログ履歴保存、教室コードの自動保存、検索・フィルター、先生用管理画面、課金、著作権判定は実装しない。
+
+## 23. v0.2追加仕様: 教室専用カタログ作成・配置ツール
+
+第19段階では、運営側が教室専用カタログを作成、検証、配置しやすくするためのCLIと運用資料を追加する。
+
+- `classroom:hash` は、教室コードを第18段階と同じ規則で正規化し、SHA-256 lowercase hexのcatalogKeyと `/data/piano-roll-score/classroom-catalogs/{catalogKey}/catalog.json` を表示する。
+- 運用CLIは本番配置用のcatalogKey確認を目的とするため、アプリ画面の開発確認用 `demo` 特別マップは適用せず、`demo` も通常コードとしてハッシュ化する。
+- `classroom:scaffold` は、明示された `--out` 配下へ `{catalogKey}/catalog.json` と `songs/README.md` を作る。
+- `classroom:scaffold` は既存フォルダや既存 `catalog.json` を上書きしない。
+- 雛形の `catalog.json` は `songs: []` を許可する。これは運用開始前に曲を追加するための空カタログを表す。
+- 教室カタログスキーマでも `songs` は必須配列だが、空配列は有効とする。
+- `classroom:validate` は、教室カタログスキーマ、危険な `songUrl`、相対URL解決、同一教室フォルダ配下の曲JSON存在、存在する曲JSONの既存楽曲スキーマを検証する。
+- 検証CLIでは、カタログ上の `songs[].id` と曲JSON内の `id` は一致必須にしない。ただし運用上は一致させることを推奨する。
+- 本番教室データはアプリ本体の `/app/piano-roll-score/data/...` ではなく、サイト側 `/data/piano-roll-score/classroom-catalogs/{catalogKey}/...` に置く。
+
+第19段階では、アプリ画面上の先生用管理UI、ブラウザ上のカタログ編集、自動FTPアップロード、サーバー認証、ログイン、クラウド同期、課金処理、著作権判定は実装しない。

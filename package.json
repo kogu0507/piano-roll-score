@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "generate:catalog": "node scripts/generate-song-catalog.mjs",
+    "classroom:hash": "node scripts/classroom-catalog-tool.mjs hash",
+    "classroom:scaffold": "node scripts/classroom-catalog-tool.mjs scaffold",
+    "classroom:validate": "node scripts/classroom-catalog-tool.mjs validate",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

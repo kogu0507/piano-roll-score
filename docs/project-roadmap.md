@@ -1529,3 +1529,21 @@ bcb3d511debe1d9b09abd302185f6705d2caa6f1
 
 - 教室コードはログイン認証ではなく、教材カタログへ到達しやすくする簡易導線として扱う。
 - 教室コードの履歴保存、検索・フィルター、先生用管理画面、サーバー認証、クラウド同期は引き続き未実装とする。
+
+### 第19段階: 教室専用カタログ作成・配置ツール
+
+状態: 実装済み
+
+主な内容:
+
+- `classroom:hash` で教室コードを正規化し、SHA-256のcatalogKeyと本番想定URLパスを確認できるようにする。
+- `classroom:scaffold` で、明示された出力先に `{catalogKey}/catalog.json` と `songs/README.md` の雛形を作れるようにする。
+- `classroom:validate` で、教室カタログJSON、危険な `songUrl`、同一教室フォルダ配下の曲JSON存在、既存楽曲スキーマ検証を行えるようにする。
+- 教室カタログの運用手順を `docs/classroom-catalog-operations.md` にまとめる。
+- 第19段階の手動確認項目を `docs/manual-checklist-stage19.md` に追加する。
+
+注意:
+
+- 教室専用データはアプリ本体の `public/` ではなく、サイト側 `/data/piano-roll-score/classroom-catalogs/{catalogKey}/` に置く。
+- 教室コードは認証ではない。秘密情報、個人情報、権利確認が取れていない教材は置かない。
+- アプリ画面上の先生用管理UI、自動FTPアップロード、サーバー認証、ログイン、クラウド同期は引き続き未実装とする。

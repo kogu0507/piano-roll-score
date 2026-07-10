@@ -128,7 +128,7 @@ describe("教室カタログ取得", () => {
 
   it("壊れたカタログを検証エラーにする", async () => {
     const fetcher = vi.fn(async () =>
-      response(JSON.stringify({ ...validCatalog, songs: [] })),
+      response(JSON.stringify({ ...validCatalog, schemaVersion: 2 })),
     ) as FetchLike;
     const result = await loadClassroomCatalog(
       "./data/classroom-catalogs/demo/catalog.json",

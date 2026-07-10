@@ -3792,3 +3792,43 @@ GitHubリモートの追加、公開、pushは行わないでください。
 - `?catalog=...`、`?id=001`、`?id=902` が壊れていない。
 - スマートフォン幅で横スクロールが出ない。
 - 型検査、単体テスト、E2E、ビルド、diff check が成功する。
+
+## 第19段階: 教室専用カタログ作成・配置ツール
+
+### 目的
+
+実際に教室専用カタログを作るための運用CLIと手順を整える。アプリ画面上の管理UIを増やすのではなく、運営側が教室コードを決め、catalogKeyを確認し、教室専用フォルダと `catalog.json` 雛形を作り、曲JSONを検証して、サイト側 `/data/` 配下へ配置できる状態にする。
+
+### 実装範囲
+
+- `npm.cmd run classroom:hash -- <教室コード>` で、正規化済み教室コード、SHA-256 lowercase hexのcatalogKey、本番想定URLパスを表示する。
+- `npm.cmd run classroom:scaffold -- --code ... --name ... --catalog ... --out ...` で、明示された出力先に `{catalogKey}/catalog.json` と `songs/README.md` を作る。
+- `classroom:scaffold` は既存フォルダと既存 `catalog.json` を上書きしない。
+- 雛形 `catalog.json` は `songs: []` を持つ空カタログとして作る。
+- 教室カタログスキーマは、運用開始前の空カタログを許可するため、`songs` の空配列を有効とする。
+- `npm.cmd run classroom:validate -- <catalog.json>` で、教室カタログスキーマ、危険な `songUrl`、相対URL解決、同一教室フォルダ配下の曲JSON存在、存在する曲JSONの既存楽曲スキーマを検証する。
+- カタログ上の `songs[].id` と曲JSON内の `id` は一致必須にしない。
+- 運用手順を `docs/classroom-catalog-operations.md` にまとめる。
+- 手動確認項目を `docs/manual-checklist-stage19.md` に追加する。
+
+### 実装しない項目
+
+- アプリ画面上の先生用管理UI
+- ブラウザ上での教室カタログ編集
+- 自動FTPアップロード
+- サーバー認証
+- ログイン
+- クラウド同期
+- 課金処理
+- 著作権判定
+- 教室コード履歴保存
+- 左手対応、音源再生、演奏判定
+
+### 完了条件
+
+- 教室コード正規化とcatalogKey出力が単体テストで確認されている。
+- scaffoldが正しいフォルダ構造を作り、既存 `catalog.json` を上書きしないことが単体テストで確認されている。
+- validateが正常な空カタログを通し、壊れたカタログ、危険な `songUrl`、壊れた曲JSONを落とせることが確認されている。
+- `docs/classroom-catalog-operations.md` に、教室コード決定、catalogKey確認、雛形作成、曲JSON配置、検証、ローカル確認、FTP配置、公開停止の手順が記載されている。
+- 教室コードは認証ではなく、秘密情報、個人情報、権利未確認教材を置かない注意が資料に反映されている。
+- 型検査、単体テスト、E2E、ビルド、diff check が成功する。

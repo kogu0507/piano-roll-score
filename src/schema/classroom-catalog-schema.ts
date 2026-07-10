@@ -26,9 +26,7 @@ export const classroomCatalogSchema = z
       catalogName: nonEmptyText,
       updatedAt: z.string().optional(),
     }),
-    songs: z
-      .array(classroomCatalogSongSchema)
-      .min(1, "songsには1件以上の曲が必要です。"),
+    songs: z.array(classroomCatalogSongSchema),
   })
   .superRefine((catalog, context) => {
     const knownIds = new Set<string>();
