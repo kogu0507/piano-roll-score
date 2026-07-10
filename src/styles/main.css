@@ -123,6 +123,7 @@ select {
 .section-card--result,
 .section-card--saved,
 .section-card--classroom-catalog,
+.section-card--classroom-catalog-url,
 .data-management {
   grid-column: 1 / -1;
 }
@@ -190,8 +191,19 @@ select {
 .data-management__content > .section-card--editor,
 .data-management__content > .section-card--result,
 .data-management__content > .section-card--saved,
-.data-management__content > .section-card--classroom-catalog {
+.data-management__content > .section-card--classroom-catalog-url {
   grid-column: 1 / -1;
+}
+
+.app-shell--classroom-focused .section-card--start,
+.app-shell--classroom-focused .section-card--song-detail,
+.app-shell--classroom-focused .data-management {
+  display: none;
+}
+
+.section-card--classroom-code {
+  border-color: #b9d7c4;
+  background: linear-gradient(180deg, #fbfffc 0%, #ffffff 100%);
 }
 
 .classroom-catalog__subsection {
@@ -312,7 +324,7 @@ select {
 
 .classroom-catalog-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, auto);
   gap: 1rem;
   align-items: center;
   min-width: 0;
@@ -373,8 +385,25 @@ select {
 }
 
 .classroom-catalog-card__actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: stretch;
+}
+
+.classroom-catalog-card__practice-actions,
+.classroom-catalog-card__advanced-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   justify-content: flex-end;
+}
+
+.classroom-catalog-card__practice-actions .button {
+  min-width: 7rem;
+}
+
+.classroom-catalog-card__advanced-actions .button {
+  min-height: 2.3rem;
 }
 
 .sample-list {
@@ -1284,6 +1313,7 @@ textarea:focus-visible {
   .section-card--result,
   .section-card--saved,
   .section-card--classroom-catalog,
+  .section-card--classroom-catalog-url,
   .data-management {
     grid-column: auto;
   }
@@ -1300,13 +1330,21 @@ textarea:focus-visible {
   }
 
   .classroom-catalog-card__actions,
+  .classroom-catalog-card__practice-actions,
+  .classroom-catalog-card__advanced-actions,
   .classroom-catalog-screen__home,
   .classroom-catalog-card__actions .button {
     width: 100%;
   }
 
-  .classroom-catalog-card__actions {
+  .classroom-catalog-card__actions,
+  .classroom-catalog-card__practice-actions,
+  .classroom-catalog-card__advanced-actions {
     justify-content: stretch;
+  }
+
+  .classroom-catalog-card__practice-actions {
+    flex-direction: column;
   }
 
   .sample-item,

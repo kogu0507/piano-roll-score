@@ -81,6 +81,8 @@ interface LoadScreenElements {
   readonly result: HTMLDivElement;
 }
 
+type ClassroomCatalogSongOpenMode = "json" | "vertical" | "horizontal";
+
 export interface LoadScreenOptions {
   readonly onVerticalPreview?: (
     song: Song,
@@ -230,35 +232,42 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   const classroomCatalogHeading = createTextElement(
     "h2",
     "section-card__title",
-    "教室カタログを読み込む",
+    "教室コード",
   );
   const classroomCatalogDescription = createTextElement(
     "p",
     "section-card__description",
-    "先生から聞いた教室コードで、教室専用カタログを開きます。",
+    "先生から聞いたコードで、教室専用カタログを開きます。",
   );
   const classroomCodePanel = document.createElement("div");
-  const classroomCodeHeading = createTextElement(
-    "h3",
-    "classroom-catalog__subheading",
-    "教室コードで開く",
-  );
   const classroomCodeForm = document.createElement("div");
   const classroomCodeLabel = createTextElement(
     "label",
     "classroom-catalog__label",
-    "教室コードを入力",
+    "教室コード",
   );
   const classroomCodeInput = document.createElement("input");
   const classroomCodeLoadButton = createButton(
     "教室カタログを開く",
     "button button--primary",
   );
+  const classroomCatalogStatus = createTextElement(
+    "p",
+    "classroom-catalog__status",
+    "教室カタログはまだ読み込まれていません。",
+  );
+  const classroomCatalogResult = document.createElement("div");
+  const classroomCatalogUrlSection = document.createElement("section");
   const classroomCatalogUrlPanel = document.createElement("div");
   const classroomCatalogUrlHeading = createTextElement(
-    "h3",
-    "classroom-catalog__subheading",
+    "h2",
+    "section-card__title",
     "catalog.json のURLで開く（確認用）",
+  );
+  const classroomCatalogUrlDescription = createTextElement(
+    "p",
+    "section-card__description",
+    "教室コードを使わずに、catalog.json のURLを直接指定する上級者向けの確認欄です。",
   );
   const classroomCatalogForm = document.createElement("div");
   const classroomCatalogLabel = createTextElement(
@@ -271,19 +280,20 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     "読み込む",
     "button button--primary",
   );
-  const classroomCatalogStatus = createTextElement(
-    "p",
-    "classroom-catalog__status",
-    "教室カタログはまだ読み込まれていません。",
-  );
-  const classroomCatalogResult = document.createElement("div");
   classroomCatalogSection.className =
-    "section-card section-card--classroom-catalog classroom-catalog";
+    "section-card section-card--classroom-catalog section-card--classroom-code classroom-catalog";
   classroomCatalogSection.setAttribute(
     "aria-labelledby",
     "classroom-catalog-heading",
   );
   classroomCatalogHeading.id = "classroom-catalog-heading";
+  classroomCatalogUrlSection.className =
+    "section-card section-card--classroom-catalog-url classroom-catalog-url";
+  classroomCatalogUrlSection.setAttribute(
+    "aria-labelledby",
+    "classroom-catalog-url-heading",
+  );
+  classroomCatalogUrlHeading.id = "classroom-catalog-url-heading";
   classroomCodePanel.className = "classroom-catalog__subsection";
   classroomCodeForm.className = "classroom-catalog__form classroom-code__form";
   classroomCodeLabel.htmlFor = "classroom-code";
@@ -335,18 +345,19 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
     classroomCodeInput,
     classroomCodeLoadButton,
   );
-  classroomCodePanel.append(classroomCodeHeading, classroomCodeForm);
-  classroomCatalogUrlPanel.append(
-    classroomCatalogUrlHeading,
-    classroomCatalogForm,
-  );
+  classroomCodePanel.append(classroomCodeForm);
+  classroomCatalogUrlPanel.append(classroomCatalogForm);
   classroomCatalogSection.append(
     classroomCatalogHeading,
     classroomCatalogDescription,
     classroomCodePanel,
-    classroomCatalogUrlPanel,
     classroomCatalogStatus,
     classroomCatalogResult,
+  );
+  classroomCatalogUrlSection.append(
+    classroomCatalogUrlHeading,
+    classroomCatalogUrlDescription,
+    classroomCatalogUrlPanel,
   );
 
   const fileSection = document.createElement("section");
@@ -472,13 +483,18 @@ function createLoadScreen(root: HTMLElement): LoadScreenElements {
   resultSection.append(resultHeading, result);
 
   dataManagementContent.append(
-    classroomCatalogSection,
+    classroomCatalogUrlSection,
     fileSection,
     savedSection,
     editor,
     resultSection,
   );
-  content.append(startSection, songDetailSection, dataManagement);
+  content.append(
+    startSection,
+    classroomCatalogSection,
+    songDetailSection,
+    dataManagement,
+  );
   main.append(header, content);
   root.replaceChildren(main);
 
@@ -838,6 +854,7 @@ export async function mountLoadScreen(
 
   function closeClassroomCatalogScreen(): void {
     elements.classroomCatalogResult.replaceChildren();
+    elements.main.classList.remove("app-shell--classroom-focused");
     elements.dataManagement.open = false;
     setClassroomCatalogStatus("教室カタログ画面を閉じました。");
     elements.main.scrollIntoView({ block: "start" });
@@ -865,7 +882,7 @@ export async function mountLoadScreen(
         : `更新日: ${catalogData.catalog.classroom.updatedAt}`,
     );
     const homeButton = createButton(
-      "ホームへ戻る",
+      "サンプル曲へ戻る",
       "button button--secondary classroom-catalog-screen__home",
     );
     const groups = new Map<string, LoadedClassroomCatalogSong[]>();
@@ -920,7 +937,20 @@ export async function mountLoadScreen(
           song.description?.trim() || "説明はありません。",
         );
         const actions = document.createElement("div");
-        const openButton = createButton("開く", "button button--primary");
+        const practiceActions = document.createElement("div");
+        const advancedActions = document.createElement("div");
+        const verticalButton = createButton(
+          "ピアノ表示",
+          "button button--primary",
+        );
+        const horizontalButton = createButton(
+          "スコア表示",
+          "button button--primary button--score-practice",
+        );
+        const openButton = createButton(
+          "JSONを確認",
+          "button button--secondary button--small",
+        );
 
         card.className = "classroom-catalog-card";
         card.dataset.classroomSongId = song.id;
@@ -929,9 +959,37 @@ export async function mountLoadScreen(
         titleRow.className = "classroom-catalog-card__title-row";
         badges.className = "classroom-catalog-card__badges";
         actions.className = "classroom-catalog-card__actions";
+        practiceActions.className =
+          "classroom-catalog-card__practice-actions";
+        advancedActions.className =
+          "classroom-catalog-card__advanced-actions";
+        verticalButton.setAttribute(
+          "data-testid",
+          "classroom-catalog-song-vertical",
+        );
+        verticalButton.setAttribute(
+          "aria-label",
+          `${song.title}をピアノ表示で練習`,
+        );
+        verticalButton.title = `${song.title}をピアノ表示で練習`;
+        horizontalButton.setAttribute(
+          "data-testid",
+          "classroom-catalog-song-horizontal",
+        );
+        horizontalButton.setAttribute(
+          "aria-label",
+          `${song.title}をスコア表示で練習`,
+        );
+        horizontalButton.title = `${song.title}をスコア表示で練習`;
         openButton.setAttribute("data-testid", "classroom-catalog-song-open");
-        openButton.setAttribute("aria-label", `${song.title}を開く`);
-        openButton.title = `${song.title}を開く`;
+        openButton.setAttribute("aria-label", `${song.title}のJSONを確認`);
+        openButton.title = `${song.title}のJSONを確認`;
+        verticalButton.addEventListener("click", () => {
+          void loadExternalCatalogSong(song, "vertical");
+        });
+        horizontalButton.addEventListener("click", () => {
+          void loadExternalCatalogSong(song, "horizontal");
+        });
         openButton.addEventListener("click", () => {
           void loadExternalCatalogSong(song);
         });
@@ -955,8 +1013,10 @@ export async function mountLoadScreen(
           );
         }
 
-        body.append(titleRow, badges, description);
-        actions.append(openButton);
+        body.append(titleRow, description, badges);
+        practiceActions.append(verticalButton, horizontalButton);
+        advancedActions.append(openButton);
+        actions.append(practiceActions, advancedActions);
         card.append(body, actions);
         list.append(card);
       });
@@ -973,6 +1033,7 @@ export async function mountLoadScreen(
     options?: {
       readonly loadingMessage?: string;
       readonly notFoundMessage?: string;
+      readonly focusClassroomCatalog?: boolean;
     },
   ): Promise<boolean> {
     setClassroomCatalogStatus(
@@ -1000,6 +1061,10 @@ export async function mountLoadScreen(
     }
 
     renderClassroomCatalog(result.data);
+    elements.main.classList.toggle(
+      "app-shell--classroom-focused",
+      options?.focusClassroomCatalog === true,
+    );
     setClassroomCatalogStatus(
       `「${result.data.catalog.classroom.displayName} / ${result.data.catalog.classroom.catalogName}」を読み込みました。`,
     );
@@ -1048,11 +1113,13 @@ export async function mountLoadScreen(
       loadingMessage: "教室カタログを読み込んでいます。",
       notFoundMessage:
         "教室カタログが見つかりません。教室コードを確認してください。",
+      focusClassroomCatalog: true,
     });
   }
 
   async function loadExternalCatalogSong(
     song: LoadedClassroomCatalogSong,
+    mode: ClassroomCatalogSongOpenMode = "json",
   ): Promise<boolean> {
     if (!shouldReplaceEditedContent(state, elements.jsonInput.value)) {
       return false;
@@ -1078,6 +1145,12 @@ export async function mountLoadScreen(
 
     if (didLoad) {
       setClassroomCatalogStatus(`「${song.title}」を読み込みました。`);
+
+      if (mode === "vertical") {
+        options.onVerticalPreview?.(result.data, showLoadScreen);
+      } else if (mode === "horizontal") {
+        options.onHorizontalPreview?.(result.data, showLoadScreen);
+      }
     }
 
     return didLoad;
@@ -1486,7 +1559,6 @@ export async function mountLoadScreen(
     elements.classroomCatalogUrlInput.value = catalogUrl;
     await loadExternalCatalog(catalogUrl);
   } else if (classroomCode !== undefined) {
-    elements.dataManagement.open = true;
     elements.classroomCodeInput.value = classroomCode;
     await loadClassroomCatalogByCode(classroomCode);
   }

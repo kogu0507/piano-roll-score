@@ -274,6 +274,23 @@ test("データ管理は初期状態で閉じ、開くとJSONと保存操作へ�
   await expectNoHorizontalOverflow(page);
 });
 
+test("ホーム上部に教室コード入力があり、データ管理内に重複しない", async ({
+  page,
+}) => {
+  await page.goto("./");
+  const dataManagement = page.getByTestId("data-management");
+
+  await expect(page.getByRole("heading", { name: "教室コード" })).toBeVisible();
+  await expect(page.getByTestId("classroom-code-input")).toBeVisible();
+  await expect(page.getByTestId("classroom-code-open")).toBeVisible();
+  await expect(dataManagement.getByTestId("classroom-code-input")).toHaveCount(0);
+
+  await openDataManagement(page);
+  await expect(dataManagement.getByTestId("classroom-code-input")).toHaveCount(0);
+  await expect(dataManagement.getByTestId("classroom-catalog-url")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
 test("貼り付けた有効なJSONを検証できる", async ({ page }) => {
   await page.goto("./");
   await openDataManagement(page);
@@ -490,10 +507,10 @@ test("教室コードdemoから教室カタログ画面を開き、曲カード�
   page,
 }) => {
   await page.goto("./");
-  await openDataManagement(page);
   await page.getByTestId("classroom-code-input").fill(" demo ");
   await page.getByTestId("classroom-code-open").click();
 
+  await expect(page.locator(".app-shell--classroom-focused")).toBeVisible();
   await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
   await expect(page.locator(".classroom-catalog-screen")).toContainText(
     "デモ教室",
@@ -507,11 +524,7 @@ test("教室コードdemoから教室カタログ画面を開き、曲カード�
   ).toHaveCount(2);
 
   const card = page.locator('[data-classroom-song-id="demo-001"]');
-  await card.getByTestId("classroom-catalog-song-open").click();
-
-  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
-  await expect(page.locator(".button--preview")).toBeEnabled();
-  await page.locator(".button--preview").click();
+  await card.getByTestId("classroom-catalog-song-vertical").click();
   await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
@@ -527,18 +540,17 @@ test("?classroom=demoから初期読み込みし、曲カードからスコア�
         .getByTestId("data-management")
         .evaluate((element) => (element as HTMLDetailsElement).open),
     )
-    .toBe(true);
+    .toBe(false);
+  await expect(page.locator(".app-shell--classroom-focused")).toBeVisible();
+  await expect(getSongSelect(page)).toBeHidden();
+  await expect(page.getByTestId("data-management")).toBeHidden();
   await expect(page.locator(".classroom-catalog-screen")).toContainText(
     "デモ教室",
   );
 
   const card = page.locator('[data-classroom-song-id="demo-902"]');
   await expect(card).toBeVisible();
-  await card.getByTestId("classroom-catalog-song-open").click();
-
-  await expect(getJsonEditor(page)).toHaveValue(/"id": "902"/);
-  await expect(page.locator(".button--horizontal-preview")).toBeEnabled();
-  await page.locator(".button--horizontal-preview").click();
+  await card.getByTestId("classroom-catalog-song-horizontal").click();
   await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
@@ -557,6 +569,7 @@ test("教室カタログ画面からホームへ戻れる", async ({ page }) => 
     )
     .toBe(false);
   await expect(getSongSelect(page)).toBeVisible();
+  await expect(page.locator(".app-shell--classroom-focused")).toHaveCount(0);
   await expect(page.locator(".classroom-catalog-screen")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
 });
@@ -575,7 +588,6 @@ test("存在しない教室コードは回復可能なエラーとして表示�
     },
   );
   await page.goto("./");
-  await openDataManagement(page);
   await page.getByTestId("classroom-code-input").fill("missing-stage18");
   await page.getByTestId("classroom-code-open").click();
 
@@ -586,6 +598,7 @@ test("存在しない教室コードは回復可能なエラーとして表示�
     "教室コードを確認してください",
   );
   await expect(getSongSelect(page)).toBeVisible();
+  await openDataManagement(page);
   await expect(getJsonEditor(page)).toBeEditable();
   await expectNoHorizontalOverflow(page);
 });
@@ -595,7 +608,6 @@ test("スマートフォン幅でも教室コードから開いた教室カタ�
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./");
-  await openDataManagement(page);
   await page.getByTestId("classroom-code-input").fill("demo");
   await page.getByTestId("classroom-code-open").click();
 
