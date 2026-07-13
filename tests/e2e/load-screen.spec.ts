@@ -35,10 +35,11 @@ const builtinSongs = [
   ["004", "きらきら星"],
   ["005", "ぶんぶんぶん"],
   ["006", "聖者の行進"],
+  ["007", "カエルの合唱 左手"],
   ["901", "ドからソまで"],
   ["902", "ド♯とレ♭"],
 ] as const;
-const homeVisibleBuiltinSongs = builtinSongs.slice(0, 6);
+const homeVisibleBuiltinSongs = builtinSongs.slice(0, 7);
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const hasHorizontalOverflow = await page.evaluate(
@@ -246,6 +247,54 @@ test("アウフタクト曲 ?id=006 からピアノ表示とスコア表示へ�
   await expectNoHorizontalOverflow(page);
 });
 
+test("左手低音部曲 ?id=007 からピアノ表示とスコア表示へ進める", async ({
+  page,
+}) => {
+  await page.goto("./?id=007");
+  await expect(page.getByTestId("song-detail")).toContainText(
+    "カエルの合唱 左手",
+  );
+  await expect(page.getByTestId("song-detail")).toContainText("ヘ音記号");
+  await getPianoButton(page).click();
+  const verticalCanvas = page.locator("canvas.vertical-canvas");
+  await expect(verticalCanvas).toBeVisible();
+  await expect(verticalCanvas).toHaveAttribute("data-clef", "bass");
+  await expect(verticalCanvas).toHaveAttribute("data-pitch-range", "48|57");
+  await expect(verticalCanvas).toHaveAttribute(
+    "data-left-hand-note-count",
+    "29",
+  );
+  await expect(verticalCanvas).toHaveAttribute("data-hand-kinds", "left");
+  await expectNoHorizontalOverflow(page);
+
+  await page.goto("./?id=007");
+  await expect(page.getByTestId("song-detail")).toContainText(
+    "カエルの合唱 左手",
+  );
+  await getScoreButton(page).click();
+  const horizontalCanvas = page.locator("canvas.horizontal-canvas");
+  await expect(horizontalCanvas).toBeVisible();
+  await expect(horizontalCanvas).toHaveAttribute("data-clef", "bass");
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-staff-bottom-line",
+    "G2",
+  );
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-left-hand-note-count",
+    "29",
+  );
+  await expect(horizontalCanvas).toHaveAttribute("data-hand-kinds", "left");
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-staff-diatonic-offset-range",
+    "3|8",
+  );
+  await expect(horizontalCanvas).toHaveAttribute(
+    "data-measure-grid-line-count",
+    /^[1-9]\d*$/,
+  );
+  await expectNoHorizontalOverflow(page);
+});
+
 test("データ管理は初期状態で閉じ、開くとJSONと保存操作へ到達できる", async ({
   page,
 }) => {
@@ -428,7 +477,7 @@ test("教室カタログを読み込み、曲カードからピアノ表示へ�
   );
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
 
   const card = page.locator('[data-classroom-song-id="demo-001"]');
   await expect(card).toContainText("メリーさんの羊");
@@ -499,7 +548,7 @@ test("スマートフォン幅でも教室カタログカードで横スクロ�
 
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -521,7 +570,7 @@ test("教室コードdemoから教室カタログ画面を開き、曲カード�
   await expect(page.getByTestId("classroom-catalog-home")).toBeVisible();
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
 
   const card = page.locator('[data-classroom-song-id="demo-001"]');
   await card.getByTestId("classroom-catalog-song-vertical").click();
@@ -614,6 +663,6 @@ test("スマートフォン幅でも教室コードから開いた教室カタ�
   await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
   await expectNoHorizontalOverflow(page);
 });

@@ -79,6 +79,63 @@ const pickupSong: Song = {
   ],
 };
 
+const bassLeftHandSong: Song = {
+  schemaVersion: 1,
+  title: "低音部左手テスト",
+  bpm: 80,
+  timeSignature: {
+    numerator: 4,
+    denominator: 4,
+  },
+  clef: "bass",
+  displayRange: {
+    mode: "fixed",
+    minPitch: 48,
+    maxPitch: 57,
+  },
+  notes: [
+    {
+      id: "left-c3",
+      pitch: 48,
+      spelling: {
+        step: "C",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 5,
+      time: 0,
+      duration: 1,
+    },
+    {
+      id: "left-d3",
+      pitch: 50,
+      spelling: {
+        step: "D",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 4,
+      time: 1,
+      duration: 1,
+    },
+    {
+      id: "left-a3",
+      pitch: 57,
+      spelling: {
+        step: "A",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 1,
+      time: 2,
+      duration: 1,
+    },
+  ],
+};
+
 describe("横表示シーン", () => {
   it("timeから横位置、durationから音符幅を計算する", () => {
     expect(calculateNoteHorizontalRectangle(2, 1.5)).toEqual({
@@ -318,6 +375,34 @@ describe("横表示シーン", () => {
     expect(scene.staffLines).toHaveLength(5);
     expect(scene.guideLines.some((line) => !line.isStaffLine)).toBe(true);
     expect(scene.guideLines.filter((line) => line.isStaffLine)).toHaveLength(5);
+  });
+
+  it("低音部譜表ではC3からA3の左手音符をヘ音記号の五線位置へ配置する", () => {
+    const scene = createHorizontalScene(bassLeftHandSong, {
+      width: 640,
+      height: 360,
+      lineSpacing: 18,
+    });
+    const c3 = scene.notes.find((note) => note.id === "left-c3");
+    const d3 = scene.notes.find((note) => note.id === "left-d3");
+    const a3 = scene.notes.find((note) => note.id === "left-a3");
+
+    expect(scene.staff.clef).toBe("bass");
+    expect(scene.staff.bottomLineSpelling).toEqual({
+      step: "G",
+      accidental: "natural",
+      octave: 2,
+    });
+    expect(scene.notes.map((note) => note.hand)).toEqual([
+      "left",
+      "left",
+      "left",
+    ]);
+    expect(c3?.diatonicOffset).toBe(3);
+    expect(d3?.diatonicOffset).toBe(4);
+    expect(a3?.diatonicOffset).toBe(8);
+    expect(c3?.staffY).toBeGreaterThan(d3?.staffY ?? 0);
+    expect(d3?.staffY).toBeGreaterThan(a3?.staffY ?? 0);
   });
 
   it("五線外の音に補助線を付ける", () => {

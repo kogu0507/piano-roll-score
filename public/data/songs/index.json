@@ -50,6 +50,14 @@
       "catalogGroup": "サンプル曲"
     },
     {
+      "id": "007",
+      "title": "カエルの合唱 左手",
+      "description": "右手版のカエルの合唱に続けて使う、低音部・左手だけの導入サンプル",
+      "level": "左手導入",
+      "visibleInHome": true,
+      "catalogGroup": "左手教材"
+    },
+    {
       "id": "901",
       "title": "ドからソまで",
       "description": "自然音を使った短い右手の開発確認課題",

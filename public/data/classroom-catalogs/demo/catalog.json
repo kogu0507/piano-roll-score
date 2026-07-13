@@ -16,6 +16,14 @@
       "songUrl": "../../songs/001.json"
     },
     {
+      "id": "demo-007",
+      "title": "カエルの合唱 左手",
+      "description": "低音部・左手だけの教材読み込み確認用",
+      "level": "左手導入",
+      "catalogGroup": "左手教材",
+      "songUrl": "../../songs/007.json"
+    },
+    {
       "id": "demo-902",
       "title": "ド♯とレ♭",
       "description": "臨時記号表示確認用",

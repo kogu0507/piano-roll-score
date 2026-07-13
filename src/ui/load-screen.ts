@@ -576,6 +576,7 @@ function createSongDetail(song: Song): HTMLElement {
       "拍子",
       `${song.timeSignature.numerator}/${song.timeSignature.denominator}`,
     ],
+    ["音部記号", song.clef === "treble" ? "ト音記号" : "ヘ音記号"],
     ["音符数", `${song.notes.length}件`],
     ["表示音域", displayRange],
   ] as const;

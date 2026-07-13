@@ -44,6 +44,29 @@ describe("五線座標", () => {
     ]);
   });
 
+  it("ヘ音記号で左手導入音域C3からA3を五線内へ配置する", () => {
+    const staff = createStaffGeometry("bass", 220, 18);
+    const c3 = calculateStaffNotePosition(
+      { step: "C", accidental: "natural", octave: 3 },
+      staff,
+    );
+    const d3 = calculateStaffNotePosition(
+      { step: "D", accidental: "natural", octave: 3 },
+      staff,
+    );
+    const a3 = calculateStaffNotePosition(
+      { step: "A", accidental: "natural", octave: 3 },
+      staff,
+    );
+
+    expect(c3.diatonicOffset).toBe(3);
+    expect(d3.diatonicOffset).toBe(4);
+    expect(a3.diatonicOffset).toBe(8);
+    expect(c3.y).toBe(193);
+    expect(d3.y).toBe(184);
+    expect(a3.y).toBe(148);
+  });
+
   it("spellingから音名段階を計算する", () => {
     expect(
       spellingToDiatonicIndex({

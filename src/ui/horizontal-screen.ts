@@ -378,8 +378,20 @@ export function mountHorizontalScreen(
     canvas.dataset.playbackGuideX = String(scene.playbackGuideX);
     canvas.dataset.judgmentLineX = String(scene.judgmentLineX);
     canvas.dataset.noteCount = String(scene.notes.length);
+    canvas.dataset.clef = scene.staff.clef;
+    canvas.dataset.staffBottomLine = `${scene.staff.bottomLineSpelling.step}${scene.staff.bottomLineSpelling.octave}`;
     canvas.dataset.staffLineSpacing = String(scene.staff.lineSpacing);
     canvas.dataset.verticalOffset = String(scene.verticalOffset);
+    canvas.dataset.leftHandNoteCount = String(
+      scene.notes.filter((note) => note.hand === "left").length,
+    );
+    canvas.dataset.handKinds = Array.from(
+      new Set(scene.notes.map((note) => note.hand)),
+    ).join("|");
+    canvas.dataset.staffDiatonicOffsetRange = [
+      Math.min(...scene.notes.map((note) => note.diatonicOffset)),
+      Math.max(...scene.notes.map((note) => note.diatonicOffset)),
+    ].join("|");
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
     canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);

@@ -399,6 +399,8 @@ export function mountVerticalScreen(
     canvas.dataset.keyboardGuideHeightScale = String(
       keyboardGuideHeightScale,
     );
+    canvas.dataset.clef = song.clef;
+    canvas.dataset.pitchRange = `${range.minPitch}|${range.maxPitch}`;
     canvas.dataset.showNoteNames = String(displayTextSettings.showNoteNames);
     canvas.dataset.showFingerNumbers = String(
       displayTextSettings.showFingerNumbers,
@@ -420,6 +422,12 @@ export function mountVerticalScreen(
       devicePixelRatio: window.devicePixelRatio || 1,
     });
     canvas.dataset.currentBeat = formatBeat(playbackState.currentBeat);
+    canvas.dataset.leftHandNoteCount = String(
+      scene.notes.filter((note) => note.hand === "left").length,
+    );
+    canvas.dataset.handKinds = Array.from(
+      new Set(scene.notes.map((note) => note.hand)),
+    ).join("|");
     canvas.dataset.displayBeat = displayBeat.toFixed(2);
     canvas.dataset.endBeat = formatBeat(playbackState.endBeat);
     canvas.dataset.playbackRate = formatPlaybackRate(

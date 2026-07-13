@@ -7,6 +7,7 @@ const catalogSongs = [
   ["004", "きらきら星"],
   ["005", "ぶんぶんぶん"],
   ["006", "聖者の行進"],
+  ["007", "カエルの合唱 左手"],
   ["901", "ドからソまで"],
   ["902", "ド♯とレ♭"],
 ] as const;
@@ -65,12 +66,13 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
   );
   await expect(page.locator("table")).toHaveCount(0);
   await expect(page.locator(".song-card")).toHaveCount(catalogSongs.length);
-  await expect(page.locator(".catalog-list")).toHaveCount(2);
+  await expect(page.locator(".catalog-list")).toHaveCount(3);
 
   for (const [id, title] of catalogSongs) {
     const card = page.locator(`[data-song-id="${id}"]`);
     const isHomeVisible = !["901", "902"].includes(id);
-    const groupName = isHomeVisible ? "サンプル曲" : "開発確認";
+    const groupName =
+      id === "007" ? "左手教材" : isHomeVisible ? "サンプル曲" : "開発確認";
 
     await expect(card).toContainText(id);
     await expect(card).toContainText(title);
@@ -139,7 +141,7 @@ test("catalog.htmlは全画面幅で1列カード配置になり横スクロー�
 
   await expectNoHorizontalOverflow(page);
   await expectCardsDoNotOverlap(page);
-  await expect(page.locator(".catalog-section")).toHaveCount(2);
+  await expect(page.locator(".catalog-section")).toHaveCount(3);
 
   const firstCatalogList = page.locator(".catalog-list").first();
   const columnCount = await firstCatalogList.evaluate((element) => {

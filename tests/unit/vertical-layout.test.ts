@@ -73,6 +73,63 @@ const pickupSong: Song = {
   ],
 };
 
+const bassLeftHandSong: Song = {
+  schemaVersion: 1,
+  title: "低音部左手テスト",
+  bpm: 80,
+  timeSignature: {
+    numerator: 4,
+    denominator: 4,
+  },
+  clef: "bass",
+  displayRange: {
+    mode: "fixed",
+    minPitch: 48,
+    maxPitch: 57,
+  },
+  notes: [
+    {
+      id: "left-c3",
+      pitch: 48,
+      spelling: {
+        step: "C",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 5,
+      time: 0,
+      duration: 1,
+    },
+    {
+      id: "left-d3",
+      pitch: 50,
+      spelling: {
+        step: "D",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 4,
+      time: 1,
+      duration: 1,
+    },
+    {
+      id: "left-a3",
+      pitch: 57,
+      spelling: {
+        step: "A",
+        accidental: "natural",
+        octave: 3,
+      },
+      hand: "left",
+      finger: 1,
+      time: 2,
+      duration: 1,
+    },
+  ],
+};
+
 describe("縦表示シーン", () => {
   it("C♯4とD♭4を同じ横位置、異なるラベルにする", () => {
     const scene = createVerticalScene(enharmonicSong, {
@@ -368,5 +425,44 @@ describe("縦表示シーン", () => {
     expect(shouldUseCompactKeyboardGuide({ width: 1280, height: 720 })).toBe(
       false,
     );
+  });
+
+  it("低音域の左手教材でも白鍵幅と横位置調整で音符の横座標を合わせられる", () => {
+    const base = createVerticalScene(bassLeftHandSong, {
+      width: 420,
+      height: 480,
+      whiteKeyWidth: 64,
+      horizontalOffset: 20,
+    });
+    const wide = createVerticalScene(bassLeftHandSong, {
+      width: 520,
+      height: 480,
+      whiteKeyWidth: 96,
+      horizontalOffset: 20,
+    });
+    const shifted = createVerticalScene(bassLeftHandSong, {
+      width: 420,
+      height: 480,
+      whiteKeyWidth: 64,
+      horizontalOffset: -12,
+    });
+    const baseC3 = base.notes.find((note) => note.id === "left-c3");
+    const baseD3 = base.notes.find((note) => note.id === "left-d3");
+    const wideC3 = wide.notes.find((note) => note.id === "left-c3");
+    const wideD3 = wide.notes.find((note) => note.id === "left-d3");
+    const shiftedC3 = shifted.notes.find((note) => note.id === "left-c3");
+
+    expect(base.keyboard.whiteKeys).toHaveLength(6);
+    expect(base.notes.map((note) => note.hand)).toEqual([
+      "left",
+      "left",
+      "left",
+    ]);
+    expect(baseC3?.x).toBeCloseTo(25.12);
+    expect((baseD3?.x ?? 0) - (baseC3?.x ?? 0)).toBe(64);
+    expect((wideD3?.x ?? 0) - (wideC3?.x ?? 0)).toBe(96);
+    expect((shiftedC3?.x ?? 0) - (baseC3?.x ?? 0)).toBe(-32);
+    expect(baseC3?.width).toBeCloseTo(53.76);
+    expect(wideC3?.width).toBeCloseTo(80.64);
   });
 });
