@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { catalogVariationMetadataShape } from "./catalog-variation-metadata";
 import { validateWithSchema, type ValidationResult } from "./validation";
 
 const nonEmptyText = z.string().trim().min(1, "空文字は指定できません。");
@@ -11,6 +12,7 @@ export const classroomCatalogSongSchema = z.object({
   level: z.string().optional(),
   catalogGroup: z.string().optional(),
   songUrl: nonEmptyText,
+  ...catalogVariationMetadataShape,
 });
 
 export const classroomCatalogSchema = z

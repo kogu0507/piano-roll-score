@@ -17,6 +17,11 @@ const validCatalog = {
       description: "右手導入用",
       level: "導入",
       catalogGroup: "右手",
+      seriesId: "frog-song",
+      seriesTitle: "カエルの合唱",
+      part: "right",
+      variantLabel: "右手",
+      sortOrder: 100,
       songUrl: "./songs/001.json",
     },
   ],
@@ -30,6 +35,8 @@ describe("教室カタログスキーマ", () => {
     if (result.success) {
       expect(result.data.classroom.displayName).toBe("デモ教室");
       expect(result.data.songs[0]?.songUrl).toBe("./songs/001.json");
+      expect(result.data.songs[0]?.seriesTitle).toBe("カエルの合唱");
+      expect(result.data.songs[0]?.part).toBe("right");
     }
   });
 
@@ -73,5 +80,19 @@ describe("教室カタログスキーマ", () => {
         ]),
       );
     }
+  });
+
+  it("教材バリエーションのpartは定義済み値だけを受け入れる", () => {
+    const result = validateClassroomCatalog({
+      ...validCatalog,
+      songs: [
+        {
+          ...validCatalog.songs[0],
+          part: "unknown",
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
   });
 });

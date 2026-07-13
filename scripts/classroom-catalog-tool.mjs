@@ -43,6 +43,17 @@ class CliError extends Error {
 
 const finiteNumber = z.number().finite("有限の数値を指定してください。");
 const nonEmptyText = z.string().trim().min(1, "空文字は指定できません。");
+const optionalNonEmptyText = z.string().trim().min(1, "空文字は指定できません。").optional();
+const catalogPartValues = [
+  "right",
+  "left",
+  "both",
+  "primo",
+  "secondo",
+  "etude",
+  "scale",
+  "other",
+];
 
 const classroomCatalogSongSchema = z.object({
   id: nonEmptyText,
@@ -51,6 +62,11 @@ const classroomCatalogSongSchema = z.object({
   level: z.string().optional(),
   catalogGroup: z.string().optional(),
   songUrl: nonEmptyText,
+  seriesId: optionalNonEmptyText,
+  seriesTitle: optionalNonEmptyText,
+  part: z.enum(catalogPartValues).optional(),
+  variantLabel: optionalNonEmptyText,
+  sortOrder: finiteNumber.optional(),
 });
 
 const classroomCatalogSchema = z

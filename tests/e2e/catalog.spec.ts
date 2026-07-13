@@ -72,7 +72,11 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
     const card = page.locator(`[data-song-id="${id}"]`);
     const isHomeVisible = !["901", "902"].includes(id);
     const groupName =
-      id === "007" ? "左手教材" : isHomeVisible ? "サンプル曲" : "開発確認";
+      id === "002" || id === "007"
+        ? "カエルの合唱"
+        : isHomeVisible
+          ? "サンプル曲"
+          : "開発確認";
 
     await expect(card).toContainText(id);
     await expect(card).toContainText(title);
@@ -88,6 +92,16 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
     await expect(card).toContainText(
       isHomeVisible ? "ホーム表示" : "カタログのみ",
     );
+    if (id === "002") {
+      await expect(card).toHaveAttribute("data-series-title", "カエルの合唱");
+      await expect(card).toHaveAttribute("data-part", "right");
+      await expect(card).toContainText("右手");
+    }
+    if (id === "007") {
+      await expect(card).toHaveAttribute("data-series-title", "カエルの合唱");
+      await expect(card).toHaveAttribute("data-part", "left");
+      await expect(card).toContainText("左手 Lv.1");
+    }
     await card.locator(".direct-url").evaluate((element) => {
       (element as HTMLDetailsElement).open = true;
     });

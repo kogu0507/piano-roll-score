@@ -76,7 +76,42 @@ npm.cmd run classroom:scaffold -- --code sakura-4832 --name "さくらピアノ�
 
 曲JSONは既存の楽曲スキーマに通る必要がある。カタログ上の `songs[].id` と曲JSON内の `id` は、運用上そろえることを推奨するが、検証CLIでは一致必須にはしない。
 
-## 5. 検証する
+## 5. 運営教材カタログのID方針
+
+内蔵サンプルは最小限に保ち、右手版、左手版、将来の両手版、分割練習版、移調版などの教材バリエーションは、原則として教室カタログまたは運営教材カタログで管理する。
+
+推奨方針:
+
+- 運営教材カタログの `songs[].id` は4桁IDを推奨する。
+- 曲ごとに100枠程度を確保し、同じ曲の右手版、左手版、両手版、分割練習版を近い番号へ置く。
+- 例:
+  - `0100`: カエルの合唱 右手
+  - `0101`: カエルの合唱 左手 Lv.1
+  - `0110`: カエルの合唱 両手 Lv.1
+- スケールやエチュードはID接頭辞を増やしすぎず、番号帯または `catalogGroup`、`seriesTitle`、`part` などのメタデータで分類する。
+- 既存公開済みIDは、直接URLや教材案内への影響があるため、原則として後から付け替えない。
+
+教材バリエーションを表す場合は、カタログ上の任意項目を使う。
+
+```json
+{
+  "id": "0101",
+  "title": "カエルの合唱 左手 Lv.1",
+  "description": "右手版に続けて使う左手導入",
+  "level": "導入",
+  "catalogGroup": "導入教材",
+  "seriesId": "frog-song",
+  "seriesTitle": "カエルの合唱",
+  "part": "left",
+  "variantLabel": "左手 Lv.1",
+  "sortOrder": 101,
+  "songUrl": "./songs/0101.json"
+}
+```
+
+`seriesTitle` が同じ教材は、アプリ内の教室カタログや `catalog.html` で同じまとまりとして見せる。`variantLabel` はカード上の短い表示に使うため、「左手 Lv.1」「両手 Lv.1」のように短くする。
+
+## 6. 検証する
 
 ```text
 npm.cmd run classroom:validate -- "C:\Users\kogu0\Documents\seegmund-music-labo-repositorys\public_html\data\piano-roll-score\classroom-catalogs\{catalogKey}\catalog.json"
@@ -92,7 +127,7 @@ npm.cmd run classroom:validate -- "C:\Users\kogu0\Documents\seegmund-music-labo-
 
 リモート `http:` / `https:` の `songUrl` は許可するが、ローカルCLIでは存在確認と楽曲スキーマ検証をスキップする。
 
-## 6. ローカル公開URLで確認する
+## 7. ローカル公開URLで確認する
 
 ローカル公開用ディレクトリに配置したら、アプリから次のように開く。
 
@@ -109,7 +144,7 @@ https://<ドメイン>/app/piano-roll-score/?classroom=sakura-4832
 - 必要に応じて「JSONを確認」から曲JSONを確認できる
 - スマートフォン幅で横スクロールが出ない
 
-## 7. FTPで配置する
+## 8. FTPで配置する
 
 FTPでは、サーバー側の次に相当する場所へアップロードする。
 
@@ -122,7 +157,7 @@ FTPでは、サーバー側の次に相当する場所へアップロードす�
 
 古いファイルが残ると不要ファイルが公開され続ける可能性があるため、更新時はアップロード先を確認する。ただし、退避ディレクトリや他教室のフォルダを勝手に削除しない。
 
-## 8. 公開停止
+## 9. 公開停止
 
 公開停止時は、該当する `{catalogKey}` フォルダを削除または退避する。
 
@@ -130,7 +165,7 @@ FTPでは、サーバー側の次に相当する場所へアップロードす�
 
 運営は、権利上の疑義、規約違反、契約終了、支払い停止などがある場合、該当カタログを停止できる方針とする。
 
-## 9. 設定サンプル
+## 10. 設定サンプル
 
 実際の作成手順を短く確認するため、`docs/classroom-catalog-quickstart.md` に `kog` を例にした設定サンプル手順を置く。
 

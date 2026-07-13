@@ -42,6 +42,13 @@ const expectedCatalogGroupById = new Map<string, string>([
   ["901", "開発確認"],
   ["902", "開発確認"],
 ]);
+const expectedFrogSongVariants = new Map<
+  string,
+  { readonly part: string; readonly variantLabel: string; readonly sortOrder: number }
+>([
+  ["002", { part: "right", variantLabel: "右手", sortOrder: 100 }],
+  ["007", { part: "left", variantLabel: "左手 Lv.1", sortOrder: 101 }],
+]);
 
 function readJson(fileName: string): unknown {
   return JSON.parse(readFileSync(path.join(songDir, fileName), "utf8"));
@@ -86,6 +93,15 @@ describe("内蔵曲ファイル", () => {
       expect(summary.catalogGroup).toBe(
         expectedCatalogGroupById.get(summary.id),
       );
+
+      const expectedVariant = expectedFrogSongVariants.get(summary.id);
+      if (expectedVariant !== undefined) {
+        expect(summary.seriesId).toBe("frog-song");
+        expect(summary.seriesTitle).toBe("カエルの合唱");
+        expect(summary.part).toBe(expectedVariant.part);
+        expect(summary.variantLabel).toBe(expectedVariant.variantLabel);
+        expect(summary.sortOrder).toBe(expectedVariant.sortOrder);
+      }
     });
   });
 

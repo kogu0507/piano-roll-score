@@ -15,6 +15,11 @@
       "description": "8分音符の連続を含む、初期練習向けの標準サンプル",
       "level": "標準",
       "visibleInHome": true,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "right",
+      "variantLabel": "右手",
+      "sortOrder": 100,
       "catalogGroup": "サンプル曲"
     },
     {
@@ -55,6 +60,11 @@
       "description": "右手版のカエルの合唱に続けて使う、低音部・左手だけの導入サンプル",
       "level": "左手導入",
       "visibleInHome": true,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.1",
+      "sortOrder": 101,
       "catalogGroup": "左手教材"
     },
     {

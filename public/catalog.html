@@ -162,6 +162,18 @@
         border-color: #e3cda5;
       }
 
+      .song-card__badge--variant {
+        color: #214b39;
+        background: #e7f0f5;
+        border-color: #bfd3df;
+      }
+
+      .song-card__badge--part {
+        color: #324151;
+        background: #eef1f5;
+        border-color: #d2dae4;
+      }
+
       .song-card__description {
         margin: 14px 0 18px;
         overflow-wrap: anywhere;
@@ -288,26 +300,6 @@
               <code>https://seegmund-music-labo.com/app/piano-roll-score/?id=001</code>
             </details>
           </article>
-          <article class="song-card" data-song-id="002" data-visible-in-home="true">
-            <div class="song-card__main">
-              <div class="song-card__header">
-                <p class="song-card__id">ID <code>002</code></p>
-                <h3 class="song-card__title">カエルの合唱</h3>
-              </div>
-              <div class="song-card__badges" aria-label="曲の情報">
-                <span class="song-card__badge">標準</span>
-                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
-              </div>
-              <p class="song-card__description">8分音符の連続を含む、初期練習向けの標準サンプル</p>
-            </div>
-            <div class="song-card__actions">
-              <a class="open-link" href="./?id=002">開く</a>
-            </div>
-            <details class="direct-url">
-              <summary>直接URL例</summary>
-              <code>https://seegmund-music-labo.com/app/piano-roll-score/?id=002</code>
-            </details>
-          </article>
           <article class="song-card" data-song-id="003" data-visible-in-home="true">
             <div class="song-card__main">
               <div class="song-card__header">
@@ -390,16 +382,41 @@
           </article>
         </div>
       </section>
-      <section class="catalog-section" data-catalog-group="左手教材" aria-labelledby="catalog-group-2">
-        <h2 id="catalog-group-2" class="catalog-section__title">左手教材</h2>
+      <section class="catalog-section" data-catalog-group="カエルの合唱" aria-labelledby="catalog-group-2">
+        <h2 id="catalog-group-2" class="catalog-section__title">カエルの合唱</h2>
         <div class="catalog-list">
-          <article class="song-card" data-song-id="007" data-visible-in-home="true">
+          <article class="song-card" data-song-id="002" data-visible-in-home="true" data-series-id="frog-song" data-series-title="カエルの合唱" data-part="right">
+            <div class="song-card__main">
+              <div class="song-card__header">
+                <p class="song-card__id">ID <code>002</code></p>
+                <h3 class="song-card__title">カエルの合唱</h3>
+              </div>
+              <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge song-card__badge--variant">右手</span>
+                <span class="song-card__badge">分類: サンプル曲</span>
+                <span class="song-card__badge">標準</span>
+                <span class="song-card__badge song-card__badge--home">ホーム表示</span>
+              </div>
+              <p class="song-card__description">8分音符の連続を含む、初期練習向けの標準サンプル</p>
+            </div>
+            <div class="song-card__actions">
+              <a class="open-link" href="./?id=002">開く</a>
+            </div>
+            <details class="direct-url">
+              <summary>直接URL例</summary>
+              <code>https://seegmund-music-labo.com/app/piano-roll-score/?id=002</code>
+            </details>
+          </article>
+          <article class="song-card" data-song-id="007" data-visible-in-home="true" data-series-id="frog-song" data-series-title="カエルの合唱" data-part="left">
             <div class="song-card__main">
               <div class="song-card__header">
                 <p class="song-card__id">ID <code>007</code></p>
                 <h3 class="song-card__title">カエルの合唱 左手</h3>
               </div>
               <div class="song-card__badges" aria-label="曲の情報">
+                <span class="song-card__badge song-card__badge--variant">左手 Lv.1</span>
+                <span class="song-card__badge song-card__badge--part">左手</span>
+                <span class="song-card__badge">分類: 左手教材</span>
                 <span class="song-card__badge">左手導入</span>
                 <span class="song-card__badge song-card__badge--home">ホーム表示</span>
               </div>

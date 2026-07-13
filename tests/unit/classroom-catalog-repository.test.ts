@@ -27,6 +27,11 @@ const validCatalog = {
       description: "外部カタログ読み込み確認用",
       level: "導入",
       catalogGroup: "右手",
+      seriesId: "frog-song",
+      seriesTitle: "カエルの合唱",
+      part: "right" as const,
+      variantLabel: "右手",
+      sortOrder: 100,
       songUrl: "../../songs/001.json",
     },
   ],
@@ -123,6 +128,8 @@ describe("教室カタログ取得", () => {
       expect(result.data.songs[0]?.resolvedSongUrl).toBe(
         "https://example.com/app/piano-roll-score/data/songs/001.json",
       );
+      expect(result.data.songs[0]?.seriesTitle).toBe("カエルの合唱");
+      expect(result.data.songs[0]?.variantLabel).toBe("右手");
     }
   });
 

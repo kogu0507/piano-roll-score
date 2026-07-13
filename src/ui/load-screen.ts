@@ -113,6 +113,73 @@ function createButton(text: string, className = "button"): HTMLButtonElement {
   return button;
 }
 
+const catalogPartLabels: Readonly<Record<string, string>> = {
+  right: "右手",
+  left: "左手",
+  both: "両手",
+  primo: "プリモ",
+  secondo: "セコンド",
+  etude: "エチュード",
+  scale: "スケール",
+  other: "その他",
+};
+
+function getCatalogPartLabel(part: string | undefined): string | undefined {
+  return part === undefined ? undefined : catalogPartLabels[part];
+}
+
+function getClassroomCatalogGroupName(
+  song: LoadedClassroomCatalogSong,
+): string {
+  return song.seriesTitle?.trim() || song.catalogGroup?.trim() || "未分類";
+}
+
+function compareClassroomCatalogSongs(
+  a: LoadedClassroomCatalogSong,
+  b: LoadedClassroomCatalogSong,
+): number {
+  const aOrder =
+    typeof a.sortOrder === "number" ? a.sortOrder : Number.MAX_SAFE_INTEGER;
+  const bOrder =
+    typeof b.sortOrder === "number" ? b.sortOrder : Number.MAX_SAFE_INTEGER;
+
+  if (aOrder !== bOrder) {
+    return aOrder - bOrder;
+  }
+
+  return a.id.localeCompare(b.id, "ja");
+}
+
+function appendClassroomCatalogBadge(
+  container: HTMLElement,
+  text: string | undefined,
+  modifierClass?: string,
+): void {
+  const normalizedText = text?.trim();
+
+  if (normalizedText === undefined || normalizedText.length === 0) {
+    return;
+  }
+
+  const hasSameBadge = Array.from(container.children).some(
+    (child) => child.textContent?.trim() === normalizedText,
+  );
+
+  if (hasSameBadge) {
+    return;
+  }
+
+  const badge = createTextElement(
+    "span",
+    modifierClass === undefined
+      ? "classroom-catalog-card__badge"
+      : `classroom-catalog-card__badge ${modifierClass}`,
+    normalizedText,
+  );
+
+  container.append(badge);
+}
+
 function createLoadScreen(root: HTMLElement): LoadScreenElements {
   const main = document.createElement("main");
   const header = document.createElement("header");
@@ -889,7 +956,7 @@ export async function mountLoadScreen(
     const groups = new Map<string, LoadedClassroomCatalogSong[]>();
 
     catalogData.songs.forEach((song) => {
-      const group = song.catalogGroup?.trim() || "未分類";
+      const group = getClassroomCatalogGroupName(song);
       const groupSongs = groups.get(group) ?? [];
 
       groupSongs.push(song);
@@ -915,9 +982,10 @@ export async function mountLoadScreen(
       const list = document.createElement("div");
 
       groupSection.className = "classroom-catalog__group";
+      groupSection.dataset.catalogGroup = groupName;
       list.className = "classroom-catalog__list";
 
-      songs.forEach((song) => {
+      [...songs].sort(compareClassroomCatalogSongs).forEach((song) => {
         const card = document.createElement("article");
         const body = document.createElement("div");
         const titleRow = document.createElement("div");
@@ -955,6 +1023,15 @@ export async function mountLoadScreen(
 
         card.className = "classroom-catalog-card";
         card.dataset.classroomSongId = song.id;
+        if (song.seriesId !== undefined) {
+          card.dataset.seriesId = song.seriesId;
+        }
+        if (song.seriesTitle !== undefined) {
+          card.dataset.seriesTitle = song.seriesTitle;
+        }
+        if (song.part !== undefined) {
+          card.dataset.part = song.part;
+        }
         card.setAttribute("data-testid", "classroom-catalog-song-card");
         body.className = "classroom-catalog-card__body";
         titleRow.className = "classroom-catalog-card__title-row";
@@ -996,22 +1073,29 @@ export async function mountLoadScreen(
         });
 
         titleRow.append(songId, title);
-        badges.append(
-          createTextElement(
-            "span",
-            "classroom-catalog-card__badge",
-            `グループ: ${groupName}`,
-          ),
+        appendClassroomCatalogBadge(
+          badges,
+          song.variantLabel,
+          "classroom-catalog-card__badge--variant",
         );
+        appendClassroomCatalogBadge(
+          badges,
+          getCatalogPartLabel(song.part),
+          "classroom-catalog-card__badge--part",
+        );
+        if (
+          song.catalogGroup !== undefined &&
+          song.catalogGroup.trim().length > 0 &&
+          song.catalogGroup.trim() !== groupName
+        ) {
+          appendClassroomCatalogBadge(
+            badges,
+            `分類: ${song.catalogGroup.trim()}`,
+          );
+        }
 
         if (song.level !== undefined && song.level.trim().length > 0) {
-          badges.append(
-            createTextElement(
-              "span",
-              "classroom-catalog-card__badge",
-              `level: ${song.level}`,
-            ),
-          );
+          appendClassroomCatalogBadge(badges, `level: ${song.level.trim()}`);
         }
 
         body.append(titleRow, description, badges);

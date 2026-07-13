@@ -16,11 +16,29 @@
       "songUrl": "../../songs/001.json"
     },
     {
+      "id": "demo-002",
+      "title": "カエルの合唱 右手",
+      "description": "右手版のカエルの合唱。左手版へ進む前の確認用です。",
+      "level": "導入",
+      "catalogGroup": "サンプル曲",
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "right",
+      "variantLabel": "右手",
+      "sortOrder": 100,
+      "songUrl": "../../songs/002.json"
+    },
+    {
       "id": "demo-007",
       "title": "カエルの合唱 左手",
       "description": "低音部・左手だけの教材読み込み確認用",
       "level": "左手導入",
       "catalogGroup": "左手教材",
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.1",
+      "sortOrder": 101,
       "songUrl": "../../songs/007.json"
     },
     {

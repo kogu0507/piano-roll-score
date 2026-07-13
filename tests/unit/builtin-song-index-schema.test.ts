@@ -15,6 +15,11 @@ const validIndex = {
       level: "導入",
       visibleInHome: true,
       catalogGroup: "サンプル曲",
+      seriesId: "frog-song",
+      seriesTitle: "カエルの合唱",
+      part: "right",
+      variantLabel: "右手",
+      sortOrder: 100,
     },
   ],
 };
@@ -33,7 +38,7 @@ describe("内蔵曲一覧スキーマ", () => {
     ).toBe(false);
   });
 
-  it("visibleInHomeとcatalogGroupを任意項目として扱える", () => {
+  it("visibleInHome、catalogGroup、教材バリエーションを任意項目として扱える", () => {
     const omitted = validateBuiltinSongIndex({
       ...validIndex,
       songs: [
@@ -55,6 +60,11 @@ describe("内蔵曲一覧スキーマ", () => {
           level: "検証",
           visibleInHome: false,
           catalogGroup: "開発確認",
+          seriesId: "frog-song",
+          seriesTitle: "カエルの合唱",
+          part: "left",
+          variantLabel: "左手 Lv.1",
+          sortOrder: 101,
         },
       ],
     });
@@ -68,6 +78,24 @@ describe("内蔵曲一覧スキーマ", () => {
 
     if (hidden.success) {
       expect(isBuiltinSongVisibleInHome(hidden.data.songs[0])).toBe(false);
+      expect(hidden.data.songs[0]?.seriesTitle).toBe("カエルの合唱");
+      expect(hidden.data.songs[0]?.part).toBe("left");
+      expect(hidden.data.songs[0]?.variantLabel).toBe("左手 Lv.1");
+      expect(hidden.data.songs[0]?.sortOrder).toBe(101);
     }
+  });
+
+  it("教材バリエーションのpartは定義済み値だけを受け入れる", () => {
+    const result = validateBuiltinSongIndex({
+      ...validIndex,
+      songs: [
+        {
+          ...validIndex.songs[0],
+          part: "unknown",
+        },
+      ],
+    });
+
+    expect(result.success).toBe(false);
   });
 });

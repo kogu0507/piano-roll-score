@@ -20,6 +20,76 @@ function ensureTrailingSlash(value) {
   return value.endsWith("/") ? value : `${value}/`;
 }
 
+const partLabels = {
+  right: "右手",
+  left: "左手",
+  both: "両手",
+  primo: "プリモ",
+  secondo: "セコンド",
+  etude: "エチュード",
+  scale: "スケール",
+  other: "その他",
+};
+
+function getPartLabel(part) {
+  if (typeof part !== "string") {
+    return undefined;
+  }
+
+  return partLabels[part];
+}
+
+function getCatalogGroupName(song) {
+  return song.seriesTitle?.trim() || song.catalogGroup?.trim() || "未分類";
+}
+
+function compareCatalogSongs(a, b) {
+  const aOrder = typeof a.sortOrder === "number" ? a.sortOrder : Number.MAX_SAFE_INTEGER;
+  const bOrder = typeof b.sortOrder === "number" ? b.sortOrder : Number.MAX_SAFE_INTEGER;
+
+  if (aOrder !== bOrder) {
+    return aOrder - bOrder;
+  }
+
+  return String(a.id).localeCompare(String(b.id), "ja");
+}
+
+function renderBadges(badges) {
+  return badges
+    .filter((badge) => badge.text)
+    .filter((badge, index, allBadges) => {
+      return (
+        allBadges.findIndex((otherBadge) => otherBadge.text === badge.text) ===
+        index
+      );
+    })
+    .map((badge) => {
+      const className = badge.className
+        ? ` song-card__badge ${badge.className}`
+        : " song-card__badge";
+      return `<span class="${className.trim()}">${escapeHtml(badge.text)}</span>`;
+    })
+    .join("\n                ");
+}
+
+function renderOptionalDataAttributes(song) {
+  const attributes = [];
+
+  if (typeof song.seriesId === "string") {
+    attributes.push(`data-series-id="${escapeHtml(song.seriesId)}"`);
+  }
+
+  if (typeof song.seriesTitle === "string") {
+    attributes.push(`data-series-title="${escapeHtml(song.seriesTitle)}"`);
+  }
+
+  if (typeof song.part === "string") {
+    attributes.push(`data-part="${escapeHtml(song.part)}"`);
+  }
+
+  return attributes.length === 0 ? "" : ` ${attributes.join(" ")}`;
+}
+
 function assertSongIndex(index) {
   if (index === null || typeof index !== "object" || !Array.isArray(index.songs)) {
     throw new Error("public/data/songs/index.json の形式が正しくありません。");
@@ -35,7 +105,7 @@ export function generateSongCatalogHtml(
   const groups = [];
 
   index.songs.forEach((song) => {
-    const groupName = song.catalogGroup || "未分類";
+    const groupName = getCatalogGroupName(song);
     const currentGroup = groups.find((group) => group.name === groupName);
 
     if (currentGroup) {
@@ -49,13 +119,30 @@ export function generateSongCatalogHtml(
   const sections = groups
     .map((group, groupIndex) => {
       const sectionId = `catalog-group-${groupIndex + 1}`;
-      const cards = group.songs
+      const cards = [...group.songs]
+        .sort(compareCatalogSongs)
         .map((song) => {
           const isVisibleInHome = song.visibleInHome !== false;
           const homeStatus = isVisibleInHome ? "ホーム表示" : "カタログのみ";
           const relativeHref = `./?id=${encodeURIComponent(song.id)}`;
           const absoluteUrl = `${baseUrl}?id=${encodeURIComponent(song.id)}`;
-          const badges = [
+          const partLabel = getPartLabel(song.part);
+          const catalogGroup =
+            typeof song.catalogGroup === "string"
+              ? song.catalogGroup.trim()
+              : undefined;
+          const badges = renderBadges([
+            { text: song.variantLabel, className: "song-card__badge--variant" },
+            { text: partLabel, className: "song-card__badge--part" },
+            {
+              text:
+                catalogGroup !== undefined &&
+                catalogGroup.length > 0 &&
+                catalogGroup !== group.name
+                  ? `分類: ${catalogGroup}`
+                  : undefined,
+              className: "",
+            },
             { text: song.level, className: "" },
             {
               text: homeStatus,
@@ -63,24 +150,10 @@ export function generateSongCatalogHtml(
                 ? "song-card__badge--home"
                 : "song-card__badge--catalog-only",
             },
-          ]
-            .filter((badge) => badge.text)
-            .filter((badge, index, allBadges) => {
-              return (
-                allBadges.findIndex(
-                  (otherBadge) => otherBadge.text === badge.text,
-                ) === index
-              );
-            })
-            .map((badge) => {
-              const className = badge.className
-                ? ` song-card__badge ${badge.className}`
-                : " song-card__badge";
-              return `<span class="${className.trim()}">${escapeHtml(badge.text)}</span>`;
-            })
-            .join("\n                ");
+          ]);
+          const dataAttributes = renderOptionalDataAttributes(song);
 
-          return `          <article class="song-card" data-song-id="${escapeHtml(song.id)}" data-visible-in-home="${String(isVisibleInHome)}">
+          return `          <article class="song-card" data-song-id="${escapeHtml(song.id)}" data-visible-in-home="${String(isVisibleInHome)}"${dataAttributes}>
             <div class="song-card__main">
               <div class="song-card__header">
                 <p class="song-card__id">ID <code>${escapeHtml(song.id)}</code></p>
@@ -273,6 +346,18 @@ ${cards}
         color: #59431b;
         background: #f7ecd8;
         border-color: #e3cda5;
+      }
+
+      .song-card__badge--variant {
+        color: #214b39;
+        background: #e7f0f5;
+        border-color: #bfd3df;
+      }
+
+      .song-card__badge--part {
+        color: #324151;
+        background: #eef1f5;
+        border-color: #d2dae4;
       }
 
       .song-card__description {

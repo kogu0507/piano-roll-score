@@ -477,7 +477,7 @@ test("教室カタログを読み込み、曲カードからピアノ表示へ�
   );
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(3);
+  ).toHaveCount(4);
 
   const card = page.locator('[data-classroom-song-id="demo-001"]');
   await expect(card).toContainText("メリーさんの羊");
@@ -548,7 +548,21 @@ test("スマートフォン幅でも教室カタログカードで横スクロ�
 
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(3);
+  ).toHaveCount(4);
+  await expect(
+    page.locator('.classroom-catalog__group[data-catalog-group="カエルの合唱"]'),
+  ).toContainText("カエルの合唱 右手");
+  await expect(
+    page.locator('.classroom-catalog__group[data-catalog-group="カエルの合唱"]'),
+  ).toContainText("カエルの合唱 左手");
+  await expect(page.locator('[data-classroom-song-id="demo-002"]')).toHaveAttribute(
+    "data-part",
+    "right",
+  );
+  await expect(page.locator('[data-classroom-song-id="demo-007"]')).toHaveAttribute(
+    "data-part",
+    "left",
+  );
   await expectNoHorizontalOverflow(page);
 });
 
@@ -570,11 +584,38 @@ test("教室コードdemoから教室カタログ画面を開き、曲カード�
   await expect(page.getByTestId("classroom-catalog-home")).toBeVisible();
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(3);
+  ).toHaveCount(4);
 
-  const card = page.locator('[data-classroom-song-id="demo-001"]');
+  const card = page.locator('[data-classroom-song-id="demo-002"]');
+  await expect(card).toContainText("右手");
   await card.getByTestId("classroom-catalog-song-vertical").click();
   await expect(page.locator("canvas.vertical-canvas")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("教室カタログでカエルの合唱の右手・左手が同じシリーズとして表示される", async ({
+  page,
+}) => {
+  await page.goto("./?classroom=demo");
+
+  const frogGroup = page.locator(
+    '.classroom-catalog__group[data-catalog-group="カエルの合唱"]',
+  );
+  await expect(frogGroup).toBeVisible();
+  await expect(frogGroup).toContainText("カエルの合唱 右手");
+  await expect(frogGroup).toContainText("カエルの合唱 左手");
+  await expect(page.locator('[data-classroom-song-id="demo-002"]')).toContainText(
+    "右手",
+  );
+  await expect(page.locator('[data-classroom-song-id="demo-007"]')).toContainText(
+    "左手 Lv.1",
+  );
+
+  await page
+    .locator('[data-classroom-song-id="demo-007"]')
+    .getByTestId("classroom-catalog-song-horizontal")
+    .click();
+  await expect(page.locator("canvas.horizontal-canvas")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
@@ -663,6 +704,6 @@ test("スマートフォン幅でも教室コードから開いた教室カタ�
   await expect(page.locator(".classroom-catalog-screen")).toBeVisible();
   await expect(
     page.getByTestId("classroom-catalog-song-card"),
-  ).toHaveCount(3);
+  ).toHaveCount(4);
   await expectNoHorizontalOverflow(page);
 });

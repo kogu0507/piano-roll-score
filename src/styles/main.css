@@ -377,6 +377,16 @@ select {
   border-radius: 999px;
 }
 
+.classroom-catalog-card__badge--variant {
+  color: #214b39;
+  background: #dcecf3;
+}
+
+.classroom-catalog-card__badge--part {
+  color: #324151;
+  background: #e6ebf1;
+}
+
 .classroom-catalog-card__description {
   margin: 0;
   color: #55625b;

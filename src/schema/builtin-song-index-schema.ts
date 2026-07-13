@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { catalogVariationMetadataShape } from "./catalog-variation-metadata";
 import { validateWithSchema, type ValidationResult } from "./validation";
 
 export const BUILTIN_SONG_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
@@ -16,6 +17,7 @@ export const builtinSongSummarySchema = z.object({
   level: z.string(),
   visibleInHome: z.boolean().optional(),
   catalogGroup: z.string().optional(),
+  ...catalogVariationMetadataShape,
 });
 
 export const builtinSongIndexSchema = z
