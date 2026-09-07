@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "id": "049",
+  "title": "カエルの合唱 左手 Lv.9",
+  "description": "右手版と組み合わせて使う、左手伴奏Lv.9のサンプル",
+  "bpm": 80,
+  "timeSignature": {
+    "numerator": 4,
+    "denominator": 4
+  },
+  "clef": "bass",
+  "displayRange": {
+    "mode": "fixed",
+    "minPitch": 48,
+    "maxPitch": 55
+  },
+  "notes": [
+    {
+      "id": "n1",
+      "pitch": 48,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 4,
+      "duration": 1,
+      "finger": 5
+    },
+    {
+      "id": "n2",
+      "pitch": 50,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 5,
+      "duration": 1,
+      "finger": 4
+    },
+    {
+      "id": "n3",
+      "pitch": 52,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 6,
+      "duration": 1,
+      "finger": 3
+    },
+    {
+      "id": "n4",
+      "pitch": 53,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 7,
+      "duration": 1,
+      "finger": 2
+    },
+    {
+      "id": "n5",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 8,
+      "duration": 4,
+      "finger": 1
+    },
+    {
+      "id": "n6",
+      "pitch": 48,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 12,
+      "duration": 1,
+      "finger": 5
+    },
+    {
+      "id": "n7",
+      "pitch": 50,
+      "spelling": {
+        "step": "D",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 13,
+      "duration": 1,
+      "finger": 4
+    },
+    {
+      "id": "n8",
+      "pitch": 52,
+      "spelling": {
+        "step": "E",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 14,
+      "duration": 1,
+      "finger": 3
+    },
+    {
+      "id": "n9",
+      "pitch": 53,
+      "spelling": {
+        "step": "F",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 15,
+      "duration": 1,
+      "finger": 2
+    },
+    {
+      "id": "n10",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 16,
+      "duration": 4,
+      "finger": 1
+    },
+    {
+      "id": "n11",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 21,
+      "duration": 1,
+      "finger": 1
+    },
+    {
+      "id": "n12",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 23,
+      "duration": 1,
+      "finger": 1
+    },
+    {
+      "id": "n13",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 25,
+      "duration": 3,
+      "finger": 1
+    },
+    {
+      "id": "n14",
+      "pitch": 55,
+      "spelling": {
+        "step": "G",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 29,
+      "duration": 1,
+      "finger": 1
+    },
+    {
+      "id": "n15",
+      "pitch": 48,
+      "spelling": {
+        "step": "C",
+        "accidental": "natural",
+        "octave": 3
+      },
+      "hand": "left",
+      "time": 30,
+      "duration": 1,
+      "finger": 5
+    }
+  ]
+}

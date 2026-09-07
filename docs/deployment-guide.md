@@ -28,7 +28,7 @@ FTPでのアップロード先:
 
 ```text
 https://<ドメイン>/app/piano-roll-score/
-https://<ドメイン>/app/piano-roll-score/?id=001
+https://<ドメイン>/app/piano-roll-score/?id=000
 ```
 
 ## 2. ビルド
@@ -118,7 +118,7 @@ Viteが生成するJS/CSSなどのassetsは、通常ハッシュ付きファイ�
 公開後、最低限次を確認する。
 
 1. `https://<ドメイン>/app/piano-roll-score/` が開ける。
-2. `https://<ドメイン>/app/piano-roll-score/?id=001` でサンプル曲が選択済みになる。
+2. `https://<ドメイン>/app/piano-roll-score/?id=000` でサンプル曲が選択済みになる。
 3. `https://<ドメイン>/app/piano-roll-score/catalog.html` で曲一覧が開ける。
 4. catalogにホーム非表示の開発確認曲も含め、全曲が載っている。
 5. catalogの「開く」リンクから各曲を開ける。

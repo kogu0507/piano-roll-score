@@ -2,70 +2,174 @@
   "schemaVersion": 1,
   "songs": [
     {
-      "id": "001",
+      "id": "000",
       "title": "メリーさんの羊",
-      "description": "付点八分音符を含む、体験レッスン向けの標準サンプル",
-      "level": "標準",
+      "description": "固定ポジションで付点リズムを経験する導入サンプル",
+      "level": "導入・付点",
       "visibleInHome": true,
-      "catalogGroup": "サンプル曲"
+      "catalogGroup": "ポジション移動なし"
     },
     {
-      "id": "002",
+      "id": "010",
+      "title": "ぶんぶんぶん",
+      "description": "固定ポジションで8分音符の連続を経験する導入サンプル",
+      "level": "導入・8分音符",
+      "visibleInHome": true,
+      "catalogGroup": "ポジション移動なし"
+    },
+    {
+      "id": "020",
+      "title": "聖者の行進",
+      "description": "固定ポジションでアウフタクトを経験する導入サンプル",
+      "level": "導入・アウフタクト",
+      "visibleInHome": true,
+      "catalogGroup": "ポジション移動なし"
+    },
+    {
+      "id": "030",
+      "title": "喜びの歌（D major）",
+      "description": "固定ポジションでニ長調を経験する導入サンプル",
+      "level": "導入・D major",
+      "visibleInHome": true,
+      "catalogGroup": "ポジション移動なし"
+    },
+    {
+      "id": "040",
       "title": "カエルの合唱",
-      "description": "8分音符の連続を含む、初期練習向けの標準サンプル",
-      "level": "標準",
+      "description": "同じ運指を使ったポジション移動を経験する右手サンプル",
+      "level": "右手導入",
       "visibleInHome": true,
       "seriesId": "frog-song",
       "seriesTitle": "カエルの合唱",
       "part": "right",
       "variantLabel": "右手",
-      "sortOrder": 100,
-      "catalogGroup": "サンプル曲"
+      "sortOrder": 400,
+      "catalogGroup": "ポジション移動あり"
     },
     {
-      "id": "003",
-      "title": "喜びの歌（D major）",
-      "description": "ニ長調の音域と指使いを確認する標準サンプル",
-      "level": "標準",
-      "visibleInHome": true,
-      "catalogGroup": "サンプル曲"
-    },
-    {
-      "id": "004",
-      "title": "きらきら星",
-      "description": "1〜4指による導入練習向けの標準サンプル",
-      "level": "標準",
-      "visibleInHome": true,
-      "catalogGroup": "サンプル曲"
-    },
-    {
-      "id": "005",
-      "title": "ぶんぶんぶん",
-      "description": "8分音符の連続を扱う標準サンプル",
-      "level": "標準",
-      "visibleInHome": true,
-      "catalogGroup": "サンプル曲"
-    },
-    {
-      "id": "006",
-      "title": "聖者の行進",
-      "description": "八分音符3つ分のアウフタクトから始まる聖者の行進ワンコーラス確認用サンプル",
-      "level": "標準",
-      "visibleInHome": true,
-      "catalogGroup": "サンプル曲"
-    },
-    {
-      "id": "007",
-      "title": "カエルの合唱 左手",
-      "description": "右手版のカエルの合唱に続けて使う、低音部・左手だけの導入サンプル",
-      "level": "左手導入",
+      "id": "041",
+      "title": "カエルの合唱 左手 Lv.1",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.1",
+      "level": "左手 Lv.1",
       "visibleInHome": true,
       "seriesId": "frog-song",
       "seriesTitle": "カエルの合唱",
       "part": "left",
       "variantLabel": "左手 Lv.1",
-      "sortOrder": 101,
-      "catalogGroup": "左手教材"
+      "sortOrder": 401,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "042",
+      "title": "カエルの合唱 左手 Lv.2",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.2",
+      "level": "左手 Lv.2",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.2",
+      "sortOrder": 402,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "043",
+      "title": "カエルの合唱 左手 Lv.3",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.3",
+      "level": "左手 Lv.3",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.3",
+      "sortOrder": 403,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "044",
+      "title": "カエルの合唱 左手 Lv.4",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.4",
+      "level": "左手 Lv.4",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.4",
+      "sortOrder": 404,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "045",
+      "title": "カエルの合唱 左手 Lv.5",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.5",
+      "level": "左手 Lv.5",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.5",
+      "sortOrder": 405,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "046",
+      "title": "カエルの合唱 左手 Lv.6",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.6",
+      "level": "左手 Lv.6",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.6",
+      "sortOrder": 406,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "047",
+      "title": "カエルの合唱 左手 Lv.7",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.7",
+      "level": "左手 Lv.7",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.7",
+      "sortOrder": 407,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "048",
+      "title": "カエルの合唱 左手 Lv.8",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.8",
+      "level": "左手 Lv.8",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.8",
+      "sortOrder": 408,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "049",
+      "title": "カエルの合唱 左手 Lv.9",
+      "description": "右手版と組み合わせて使う左手伴奏Lv.9",
+      "level": "左手 Lv.9",
+      "visibleInHome": false,
+      "seriesId": "frog-song",
+      "seriesTitle": "カエルの合唱",
+      "part": "left",
+      "variantLabel": "左手 Lv.9",
+      "sortOrder": 409,
+      "catalogGroup": "ポジション移動あり"
+    },
+    {
+      "id": "050",
+      "title": "きらきら星",
+      "description": "ポジション移動を含む右手サンプル",
+      "level": "導入・ポジション移動",
+      "visibleInHome": true,
+      "catalogGroup": "ポジション移動あり"
     },
     {
       "id": "901",

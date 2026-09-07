@@ -29,7 +29,7 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 }
 
 async function openBuiltinLoadScreen(page: Page): Promise<void> {
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
   await expect(getVerticalPreviewButton(page)).toBeEnabled();
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
 }
@@ -637,7 +637,7 @@ test("練習メニューから表示切り替え、保存、JSON書き出し、�
   const downloadPromise = page.waitForEvent("download");
   await page.getByTestId("practice-export-song-button").click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("001.json");
+  expect(download.suggestedFilename()).toBe("000.json");
 
   await page.getByTestId("practice-saved-list-button").click();
   await expect(page.getByTestId("saved-song-item")).toHaveCount(1);

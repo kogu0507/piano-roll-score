@@ -8,15 +8,15 @@
   },
   "songs": [
     {
-      "id": "demo-001",
+      "id": "demo-000",
       "title": "メリーさんの羊",
       "description": "外部カタログ読み込み確認用",
       "level": "導入",
       "catalogGroup": "右手",
-      "songUrl": "../../songs/001.json"
+      "songUrl": "../../songs/000.json"
     },
     {
-      "id": "demo-002",
+      "id": "demo-040",
       "title": "カエルの合唱 右手",
       "description": "右手版のカエルの合唱。左手版へ進む前の確認用です。",
       "level": "導入",
@@ -25,21 +25,21 @@
       "seriesTitle": "カエルの合唱",
       "part": "right",
       "variantLabel": "右手",
-      "sortOrder": 100,
-      "songUrl": "../../songs/002.json"
+      "sortOrder": 400,
+      "songUrl": "../../songs/040.json"
     },
     {
-      "id": "demo-007",
-      "title": "カエルの合唱 左手",
-      "description": "低音部・左手だけの教材読み込み確認用",
-      "level": "左手導入",
-      "catalogGroup": "左手教材",
+      "id": "demo-041",
+      "title": "カエルの合唱 左手 Lv.1",
+      "description": "C3とG3を使う左手伴奏Lv.1の教材読み込み確認用",
+      "level": "左手 Lv.1",
+      "catalogGroup": "ポジション移動あり",
       "seriesId": "frog-song",
       "seriesTitle": "カエルの合唱",
       "part": "left",
       "variantLabel": "左手 Lv.1",
-      "sortOrder": 101,
-      "songUrl": "../../songs/007.json"
+      "sortOrder": 401,
+      "songUrl": "../../songs/041.json"
     },
     {
       "id": "demo-902",

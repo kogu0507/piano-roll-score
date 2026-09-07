@@ -238,7 +238,7 @@ async function openLoadScreen(
   viewport: ViewportCase,
 ): Promise<void> {
   await useViewport(page, viewport);
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
   await expect(getVerticalPreviewButton(page)).toBeEnabled();
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
 }

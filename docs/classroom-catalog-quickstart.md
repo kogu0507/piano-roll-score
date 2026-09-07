@@ -88,7 +88,7 @@ songs/
 既存の内蔵曲を設定サンプルとしてコピーする場合:
 
 ```powershell
-Copy-Item -LiteralPath "C:\Users\kogu0\Documents\seegmund-music-labo-repositorys\projects\piano-roll-score\public\data\songs\001.json" -Destination "C:\Users\kogu0\Documents\seegmund-music-labo-repositorys\public_html\data\piano-roll-score\classroom-catalogs\6357680cf864aabdefe28b1e7124400f50e419d0ff00855fc26c1d48d9a454d2\songs\001.json" -Force
+Copy-Item -LiteralPath "C:\Users\kogu0\Documents\seegmund-music-labo-repositorys\projects\piano-roll-score\public\data\songs\000.json" -Destination "C:\Users\kogu0\Documents\seegmund-music-labo-repositorys\public_html\data\piano-roll-score\classroom-catalogs\6357680cf864aabdefe28b1e7124400f50e419d0ff00855fc26c1d48d9a454d2\songs\001.json" -Force
 ```
 
 必要な曲数分だけ同様にコピーする。

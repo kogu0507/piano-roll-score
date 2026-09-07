@@ -21,7 +21,7 @@
 | 2 | 型検査、単体テスト、E2Eテスト、ビルドをnpmスクリプトから実行できる | 達成済み / 自動テストで確認済み | `npm.cmd run typecheck`、`test`、`test:e2e`、`build` を第10段階で実行 | なし |
 | 3 | 静的ビルドを `/app/piano-roll-score/` 相当のサブパスへ配置して動作する | 達成済み / 自動テストで確認済み | `vite.config.ts` の `base: "/app/piano-roll-score/"`、Playwright baseURL `/app/piano-roll-score/`、ビルド成功、`dist/index.html` のassets参照確認 | 実ホスティング環境へ置く場合は `https://<ドメイン>/app/piano-roll-score/` で再確認する |
 | 4 | ロード画面から内蔵サンプルを選択できる | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts` | なし |
-| 5 | `?id=001` で内蔵サンプルを直接開ける | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts` で `001`〜`006`、`901`、`902` を確認。`catalog.html` の相対リンクも `tests/e2e/catalog.spec.ts` で確認 | なし |
+| 5 | `?id=000` で内蔵サンプルを直接開ける | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts` で `000`〜`050`の登録曲、`901`、`902`を確認。`catalog.html` の相対リンクも `tests/e2e/catalog.spec.ts` で確認 | なし |
 | 6 | JSONの貼り付け、編集、検証ができる | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts`、`tests/unit/song-json.test.ts` | なし |
 | 7 | JSONファイルのインポートとエクスポートができる | 達成済み / 自動テストで確認済み | `tests/e2e/load-screen.spec.ts`、`tests/unit/import-export.test.ts` | なし |
 | 8 | 楽曲を端末内へ保存し、再読み込みと削除ができる | 達成済み / 自動テストで確認済み / 手動確認済み | `tests/e2e/device-storage.spec.ts`、第8段階手動確認 | 端末ごとのブラウザ保存制限は教室試用時に注意する |
@@ -61,7 +61,7 @@
 1. **iPhone Safariの未確認**
    - 自動E2EはChromiumで実行している。
    - Android Chrome、PC、Androidタブレット、Windowsタブレットは確認済みだが、iPhone Safariの音とレイアウトは未確認。
-   - 推奨案: 教室でiPhoneを使う可能性がある場合、早期に `?id=001`、再生、メトロノーム、表示調整、保存を確認する。
+   - 推奨案: 教室でiPhoneを使う可能性がある場合、早期に `?id=000`、再生、メトロノーム、表示調整、保存を確認する。
 
 2. **教室での教育的有効性**
    - 実鍵盤との位置合わせや操作感は確認済みだが、先生・生徒が使ったときの教育的価値はこれから検証する。

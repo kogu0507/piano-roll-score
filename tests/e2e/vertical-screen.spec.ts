@@ -274,7 +274,7 @@ test("メトロノーム、音量、プリカウントを操作できる", async
 test("アウフタクト曲のピアノ表示はプリカウントなし、1小節、2小節で再生できる", async ({
   page,
 }) => {
-  await page.goto("./?id=006");
+  await page.goto("./?id=020");
   await expect(getPreviewButton(page)).toBeEnabled();
   await getPreviewButton(page).click();
   const canvas = getCanvas(page);

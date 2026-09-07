@@ -59,7 +59,7 @@ async function openDisplayAdjustmentMode(page: Page): Promise<void> {
 }
 
 async function openBuiltinLoadScreen(page: Page): Promise<void> {
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
   await expect(getVerticalPreviewButton(page)).toBeEnabled();
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
 }

@@ -1,5 +1,11 @@
 # プロジェクト進行表
 
+## 現在の作業: O-025 M04（2026-09-07）
+
+[Issue #1](https://github.com/kogu0507/piano-roll-score/issues/1)に基づく教材ID再編と左手伴奏Lv.1〜9の整合化。旧`001`〜`007`のURL互換性終了、旧`007`廃止、`041`〜`049`採用と左手運指5・4・3・2・1を現行方針とする。第22段階以前の旧ID・未実装項目は当時の履歴として残す。
+
+状態: 実装・自動検証後のレビュー待ち（`review_status=pending`）。commit・push・merge・公開・production mirror更新は今回の対象外。ユーザーの次の作業は [O-025 M04実装記録](o025-m04-implementation.md) の検証結果と手動確認項目をレビューすること。
+
 ## 1. この資料の目的
 
 この資料は、`piano-roll-score` の全体進行をユーザーとCodexが共有するための一覧である。

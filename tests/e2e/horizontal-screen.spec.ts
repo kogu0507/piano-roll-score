@@ -201,7 +201,7 @@ test("横表示でスタートと一時停止ができる", async ({ page }) => 
 });
 
 test("アウフタクト曲をスコア表示で再生できる", async ({ page }) => {
-  await page.goto("./?id=006");
+  await page.goto("./?id=020");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
   await getHorizontalPreviewButton(page).click();
   const canvas = getHorizontalCanvas(page);
@@ -411,7 +411,7 @@ test("スマートフォン幅とサイズ変更でCanvas内部サイズを更�
 test("score display note labels are left aligned near the note block start", async ({
   page,
 }) => {
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
   await getHorizontalPreviewButton(page).click();
   const canvas = getHorizontalCanvas(page);
@@ -451,7 +451,7 @@ test("score display note labels are left aligned near the note block start", asy
 test("score display label text follows note-name and finger toggles", async ({
   page,
 }) => {
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
   await expect(getHorizontalPreviewButton(page)).toBeEnabled();
   await getHorizontalPreviewButton(page).click();
   const canvas = getHorizontalCanvas(page);

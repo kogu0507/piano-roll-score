@@ -30,9 +30,9 @@ async function openDataManagement(page: Page): Promise<void> {
 test("検証済み楽曲を明示操作で端末内保存し、再読み込み後も読み込みと削除ができる", async ({
   page,
 }) => {
-  await page.goto("./?id=001");
+  await page.goto("./?id=000");
 
-  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "000"/);
   await openDataManagement(page);
   await expect(page.getByText(
     "この端末のこのブラウザ内だけ",
@@ -50,7 +50,7 @@ test("検証済み楽曲を明示操作で端末内保存し、再読み込み�
   await page.reload();
   await openDataManagement(page);
   await expect(page.getByTestId("saved-song-item")).toHaveCount(1);
-  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "000"/);
 
   await getJsonEditor(page).fill('{"edited":true}');
   page.once("dialog", async (dialog) => {
@@ -58,7 +58,7 @@ test("検証済み楽曲を明示操作で端末内保存し、再読み込み�
     await dialog.accept();
   });
   await page.getByTestId("saved-song-load").click();
-  await expect(getJsonEditor(page)).toHaveValue(/"id": "001"/);
+  await expect(getJsonEditor(page)).toHaveValue(/"id": "000"/);
   await expect(page.getByTestId("saved-song-status")).toContainText(
     "保存一覧から読み込みました",
   );

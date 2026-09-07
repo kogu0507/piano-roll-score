@@ -1,16 +1,46 @@
 import { expect, type Page, test } from "@playwright/test";
 
 const catalogSongs = [
-  ["001", "メリーさんの羊"],
-  ["002", "カエルの合唱"],
-  ["003", "喜びの歌（D major）"],
-  ["004", "きらきら星"],
-  ["005", "ぶんぶんぶん"],
-  ["006", "聖者の行進"],
-  ["007", "カエルの合唱 左手"],
+  ["000", "メリーさんの羊"],
+  ["010", "ぶんぶんぶん"],
+  ["020", "聖者の行進"],
+  ["030", "喜びの歌（D major）"],
+  ["040", "カエルの合唱"],
+  ["041", "カエルの合唱 左手 Lv.1"],
+  ["042", "カエルの合唱 左手 Lv.2"],
+  ["043", "カエルの合唱 左手 Lv.3"],
+  ["044", "カエルの合唱 左手 Lv.4"],
+  ["045", "カエルの合唱 左手 Lv.5"],
+  ["046", "カエルの合唱 左手 Lv.6"],
+  ["047", "カエルの合唱 左手 Lv.7"],
+  ["048", "カエルの合唱 左手 Lv.8"],
+  ["049", "カエルの合唱 左手 Lv.9"],
+  ["050", "きらきら星"],
   ["901", "ドからソまで"],
   ["902", "ド♯とレ♭"],
 ] as const;
+
+const frogSongIds = new Set([
+  "040",
+  "041",
+  "042",
+  "043",
+  "044",
+  "045",
+  "046",
+  "047",
+  "048",
+  "049",
+]);
+const homeVisibleSongIds = new Set([
+  "000",
+  "010",
+  "020",
+  "030",
+  "040",
+  "041",
+  "050",
+]);
 
 async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
@@ -66,16 +96,17 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
   );
   await expect(page.locator("table")).toHaveCount(0);
   await expect(page.locator(".song-card")).toHaveCount(catalogSongs.length);
-  await expect(page.locator(".catalog-list")).toHaveCount(3);
+  await expect(page.locator(".catalog-list")).toHaveCount(4);
 
   for (const [id, title] of catalogSongs) {
     const card = page.locator(`[data-song-id="${id}"]`);
-    const isHomeVisible = !["901", "902"].includes(id);
-    const groupName =
-      id === "002" || id === "007"
-        ? "カエルの合唱"
-        : isHomeVisible
-          ? "サンプル曲"
+    const isHomeVisible = homeVisibleSongIds.has(id);
+    const groupName = frogSongIds.has(id)
+      ? "カエルの合唱"
+      : ["000", "010", "020", "030"].includes(id)
+        ? "ポジション移動なし"
+        : id === "050"
+          ? "ポジション移動あり"
           : "開発確認";
 
     await expect(card).toContainText(id);
@@ -92,12 +123,12 @@ test("catalog.htmlに全曲が載り、相対リンクから各曲を開ける",
     await expect(card).toContainText(
       isHomeVisible ? "ホーム表示" : "カタログのみ",
     );
-    if (id === "002") {
+    if (id === "040") {
       await expect(card).toHaveAttribute("data-series-title", "カエルの合唱");
       await expect(card).toHaveAttribute("data-part", "right");
       await expect(card).toContainText("右手");
     }
-    if (id === "007") {
+    if (id === "041") {
       await expect(card).toHaveAttribute("data-series-title", "カエルの合唱");
       await expect(card).toHaveAttribute("data-part", "left");
       await expect(card).toContainText("左手 Lv.1");
@@ -155,7 +186,7 @@ test("catalog.htmlは全画面幅で1列カード配置になり横スクロー�
 
   await expectNoHorizontalOverflow(page);
   await expectCardsDoNotOverlap(page);
-  await expect(page.locator(".catalog-section")).toHaveCount(3);
+  await expect(page.locator(".catalog-section")).toHaveCount(4);
 
   const firstCatalogList = page.locator(".catalog-list").first();
   const columnCount = await firstCatalogList.evaluate((element) => {
